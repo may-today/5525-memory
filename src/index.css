@@ -133,6 +133,29 @@
   }
 }
 
+@font-face {
+  font-family: 'Doto';
+  src: url('./assets/doto.woff2') format('woff2-variations');
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'WJH';
+  src: url('./assets/wjh.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+.font-geist {
+  font-family: 'Doto', monospace;
+  font-weight: 300;
+}
+
+.font-wjh {
+  font-family: 'WJH', sans-serif;
+  line-height: 1.125;
+}
+
 .summary-globe-container {
   width: 100%;
   position: relative;
@@ -153,8 +176,18 @@
   inset: -2%;
   pointer-events: none;
   z-index: 1;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 40%, black 48%, black 100%);
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 40%, black 48%, black 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 40%,
+    black 48%,
+    black 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 40%,
+    black 48%,
+    black 100%
+  );
 }
 
 .summary-globe-orbit-svg {
@@ -162,7 +195,9 @@
   height: 100%;
   -webkit-transform: rotateX(62deg);
   transform: rotateX(62deg);
-  animation: orbit-spin 30s linear infinite, fade-in 1.7s ease .5s both;
+  animation:
+    orbit-spin 30s linear infinite,
+    fade-in 1.7s ease 0.5s both;
 }
 
 .summary-globe-orbit-text {
@@ -187,7 +222,9 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: opacity 0.8s, filter 0.8s;
+  transition:
+    opacity 0.8s,
+    filter 0.8s;
   pointer-events: auto;
   cursor: pointer;
   z-index: 2;
