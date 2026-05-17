@@ -1,4 +1,5 @@
 import createGlobe from "cobe";
+import type { Marker } from "cobe";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,88 +8,105 @@ const showcaseDefaultMarkers = [
 		id: "taoyuan",
 		location: [24.99, 121.3],
 		label: "桃园",
+		size: 0.03,
 	},
 	{
 		id: "singapore",
 		location: [1.21, 103.49],
 		label: "新加坡",
+		size: 0.03,
 	},
 	{
 		id: "sydney",
 		location: [-33.51, 151.12],
 		label: "悉尼",
+		size: 0.03,
 	},
 	{
 		id: "lasvegas",
 		location: [36.17, -115.14],
 		label: "拉斯维加斯",
+		size: 0.03,
 	},
 	{
 		id: "tianjin",
 		location: [39.08, 117.2],
 		label: "天津",
+		size: 0.03,
 	},
 	{
 		id: "hongkong",
 		location: [22.32, 114.17],
 		label: "香港",
+		size: 0.03,
 	},
 	{
 		id: "hangzhou",
 		location: [30.16, 120.12],
 		label: "杭州",
+		size: 0.03,
 	},
 	{
 		id: "herbin",
 		location: [45.75, 126.64],
 		label: "哈尔滨",
+		size: 0.03,
 	},
 	{
 		id: "taipei",
 		location: [25.02, 121.33],
 		label: "台北",
+		size: 0.03,
 	},
 	{
 		id: "beijing",
 		location: [39.92, 116.36],
 		label: "北京",
+		size: 0.03,
 	},
 	{
 		id: "shanghai",
 		location: [31.22, 121.48],
 		label: "上海",
+		size: 0.03,
 	},
 	{
 		id: "guiyang",
 		location: [26.34, 106.42],
 		label: "贵阳",
+		size: 0.03,
 	},
 	{
 		id: "changsha",
 		location: [28.11, 112.58],
 		label: "长沙",
+		size: 0.03,
 	},
 	{
 		id: "zhengzhou",
 		location: [34.45, 113.38],
 		label: "郑州",
+		size: 0.03,
 	},
 	{
 		id: "xiamen",
 		location: [24.46, 118.1],
 		label: "厦门",
+		size: 0.03,
 	},
 	{
 		id: "guangzhou",
 		location: [23.16, 113.23],
 		label: "广州",
+		size: 0.03,
 	},
 	{
 		id: "taizhong",
 		location: [24.08, 120.4],
 		label: "台中",
+		size: 0.03,
 	},
-] as { id: string; location: [number, number]; label: string }[];
+] as (Marker & { label: string })[];
 
 function formatCoord(value: number, posLabel: string, negLabel: string) {
 	return `${Math.abs(value).toFixed(2)}° ${value >= 0 ? posLabel : negLabel}`;
@@ -107,7 +125,7 @@ export function SummaryCardCity() {
 	useEffect(() => {
 		let phi = 0;
 
-		const globe = createGlobe(canvasRef.current, {
+		const globe = createGlobe(canvasRef.current!, {
 			devicePixelRatio: 2,
 			width: 600 * 2,
 			height: 600 * 2,
@@ -115,6 +133,9 @@ export function SummaryCardCity() {
 			theta: 0.2,
 			dark: 1.1,
 			diffuse: 1.8,
+			baseColor: [1, 1, 1],
+			markerColor: [0.3, 0.3, 0.3],
+			markerElevation: 0,
 			mapSamples: 16000,
 			mapBrightness: 6,
 			glowColor: [0.1, 0.1, 0.1],

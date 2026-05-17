@@ -29,7 +29,7 @@ export function Marquee({
 
   return (
     <>
-      <style jsx>
+      <style>
         {`
         @keyframes scroll {
           from {
