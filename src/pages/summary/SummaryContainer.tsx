@@ -1,12 +1,13 @@
-import { useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { Button } from "@/components/ui/button"
-import { SummaryCard1 } from "./cards/SummaryCard1"
-import { SummaryCard2 } from "./cards/SummaryCard2"
-import { SummaryCard3 } from "./cards/SummaryCard3"
+import { Button } from '@/components/ui/button'
+import { SummaryCardCity } from './cards/SummaryCardCity'
+import { SummaryCard1 } from './cards/SummaryCard1'
+import { SummaryCard2 } from './cards/SummaryCard2'
+import { SummaryCard3 } from './cards/SummaryCard3'
 
-const CARDS = [SummaryCard1, SummaryCard2, SummaryCard3]
+const CARDS = [SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
 
 export function SummaryContainer() {
   const navigate = useNavigate()
@@ -51,7 +52,11 @@ export function SummaryContainer() {
       {/* Bottom navigation */}
       <div className="flex flex-col items-center gap-4 p-6 pb-8">
         {isLast && (
-          <Button size="lg" className="w-full" onClick={() => navigate("/share")}>
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => navigate('/share')}
+          >
             生成总结
           </Button>
         )}
@@ -62,7 +67,9 @@ export function SummaryContainer() {
               aria-label={`跳至第 ${i + 1} 页`}
               onClick={() => setCurrentIndex(i)}
               className={`h-2 rounded-full transition-all duration-200 ${
-                i === currentIndex ? "bg-foreground w-5" : "bg-muted-foreground/40 w-2"
+                i === currentIndex
+                  ? 'w-5 bg-foreground'
+                  : 'w-2 bg-muted-foreground/40'
               }`}
             />
           ))}
