@@ -1,46 +1,91 @@
-# 5525 Memory — Design
+# 5525 Memory 设计文档
 
-## What It Is
+## 项目定位
 
-A mobile-first annual summary webapp for the Mayday #5525 live tour. Users fill in the concerts they attended, and the app generates a visual, shareable summary of their experience.
+5525 Memory 是一个移动端优先的五月天 #5525 巡回演唱会回顾网页应用。用户选择自己参加过的场次后，应用会生成可视化、可分享的个人巡演总结。
 
-## Current State (2026-06-19)
+## 当前状态（2026-06-19）
 
-The app is migrated to TanStack Start and navigation works end-to-end. The form uses the real show catalog and persists the user's selected show IDs for the summary flow.
+项目已迁移至 TanStack Start，完整页面流程可以正常跳转。表单使用真实场次目录，并为后续统计流程保存用户选择的场次 ID。统计页面的框架和部分视觉效果已经完成，真实统计逻辑仍待接入。
 
-## Architecture
+## 技术架构
 
-- **Framework**: TanStack Start + React 19 + Vite + TypeScript
-- **Styling**: Tailwind CSS 4 + shadcn
-- **Routing**: TanStack Router file-based routes with server-side rendering
-- **Deployment**: Cloudflare Workers through the Cloudflare Vite plugin
+- **应用框架**：TanStack Start + React 19 + Vite + TypeScript
+- **样式方案**：Tailwind CSS 4 + shadcn
+- **路由方案**：TanStack Router 文件路由与服务端渲染
+- **部署环境**：通过 Cloudflare Vite 插件部署至 Cloudflare Workers
 
-## Page Flow
+## 页面流程
 
+```text
+/（封面）→ /form（场次选择）→ /loading（生成过渡）→ /summary（统计回顾）→ /share（分享）
 ```
-/ (Cover) → /form → /loading → /summary → /share
-```
 
-## Key Design Decisions
+## 关键设计决策
 
-### Standard paths with server-side rendering
-Cloudflare Workers handles direct route requests, so routes use clean paths such as `/form` instead of hash URLs. The root route owns the HTML document, shared layout, and theme provider.
+### 使用标准路径与服务端渲染
 
-### Cloudflare Workers runtime
-The application uses the default TanStack Start server entry through the Cloudflare Vite plugin. Wrangler enables `nodejs_compat` and observability. No Cloudflare data bindings are required yet.
+Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` 等标准路径，而不是哈希路由。根路由统一管理 HTML 文档、共享布局和主题提供器。
 
-### Show catalog and form state
-`data/shows.json` is the current show catalog. The form groups visible shows by city, allows multi-selection, and stores selected numeric IDs in `sessionStorage` under `concert-form-data` before navigating to `/loading`.
+### 使用 Cloudflare Workers 运行时
 
-### Summary as single route with internal state
-`/summary` renders `SummaryContainer` which manages `currentIndex`. Individual cards are components, not routes. This enables animated horizontal transitions and avoids URL churn for swipe gestures.
+应用通过 Cloudflare Vite 插件使用 TanStack Start 默认服务端入口。Wrangler 已启用 `nodejs_compat` 和可观测性，目前不需要 Cloudflare 数据绑定。
 
-### Swipe vs. in-page scroll
-Touch handler on `SummaryContainer` checks `abs(deltaX) > abs(deltaY) && abs(deltaX) > 40px` before treating a touch as a horizontal swipe. Otherwise the event falls through to the browser for normal vertical scroll. Each card is `overflow-y: auto` and can scroll independently.
+### 场次目录与表单状态
 
-## Open Questions / Future Work
+`data/shows.json` 是当前场次目录。表单按城市对可见场次分组，支持多选，并在进入 `/loading` 前将所选数字 ID 以 `concert-form-data` 为键写入 `sessionStorage`。
 
-- Summary statistics logic
-- Connect summary statistics to the selected show IDs in `sessionStorage`
-- Parallax / scroll animations within summary cards
-- `html2canvas` or similar for share image generation
+### 统计回顾使用单路由和内部状态
+
+`/summary` 渲染 `SummaryContainer`，由其通过 `currentIndex` 管理当前统计页面。每个统计页面是独立组件，而不是独立路由，以便实现横向切换动画，并避免滑动手势导致 URL 频繁变化。
+
+### 区分横向切页与页面内纵向滚动
+
+`SummaryContainer` 的触摸处理只有在横向位移大于纵向位移，且横向位移超过 40px 时才触发切页。其他手势交给浏览器进行正常纵向滚动。统计页面可以独立滚动。
+
+## 统计页面设计
+
+本章节按 `/summary` 中的展示顺序维护每一个统计页面。新增、删除或调整统计页面时，需要同步更新页面顺序、设计目标、数据来源和完成状态。
+
+### 1. 城市地图
+
+- **组件**：`SummaryCardCity`
+- **设计目标**：用全球视角呈现 #5525 巡演覆盖的城市，建立统计回顾的空间感和开场氛围。
+- **主要内容**：旋转地球、城市标记、当前城市名称、经纬度、城市序号。
+- **交互方式**：点击城市标记切换当前城市；使用底部左右按钮循环浏览城市。
+- **视觉方向**：深色背景、发光地球、环形巡演文字和等宽坐标信息。
+- **数据状态**：当前使用组件内置的巡演城市列表，尚未根据用户选择的场次筛选；底部详情区域仍为占位内容。
+
+### 2. 场次回顾
+
+- **组件**：`SummaryCard1`
+- **设计目标**：概括用户参加 #5525 巡演的整体规模。
+- **主要内容**：参加总场次、到访城市数，以及后续扩展的场次统计项。
+- **交互方式**：内容较长时支持页面内纵向滚动。
+- **数据来源**：根据 `sessionStorage` 中的已选场次 ID 关联 `data/shows.json` 后计算。
+- **数据状态**：当前均为占位值，真实统计和扩展统计项尚未实现。
+
+### 3. 里程追踪
+
+- **组件**：`SummaryCard2`
+- **设计目标**：用旅途距离呈现用户追随巡演的投入和跨城经历。
+- **主要内容**：估算总里程、距离最远的城市。
+- **数据来源**：待明确用户出发地、城市坐标和里程计算规则后，由所选场次计算。
+- **数据状态**：当前均为占位值；出发地采集方式和距离口径尚未确定。
+
+### 4. 歌曲回顾
+
+- **组件**：`SummaryCard3`
+- **设计目标**：从曲目角度回顾用户在所选场次中听到的内容。
+- **主要内容**：听到的歌曲总数、出现次数最多的歌曲。
+- **数据来源**：所选场次与对应歌单数据；当前场次目录尚未包含完整歌单关联。
+- **数据状态**：当前均为占位值，歌单数据和统计逻辑尚未实现。
+
+## 待确认与后续工作
+
+- 实现统计数据模型和计算逻辑。
+- 将 `sessionStorage` 中的已选场次 ID 接入各统计页面。
+- 确定里程统计的出发地采集方式与计算口径。
+- 补充场次对应的歌单数据。
+- 设计统计页面内的视差或滚动动画。
+- 评估使用 `html2canvas` 或同类方案生成分享图片。
