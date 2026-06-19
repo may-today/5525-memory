@@ -4,15 +4,16 @@
 
 A mobile-first annual summary webapp for the Mayday #5525 live tour. Users fill in the concerts they attended, and the app generates a visual, shareable summary of their experience.
 
-## Current State (2026-05-14)
+## Current State (2026-06-19)
 
-Minimal skeleton scaffolded. Navigation works end-to-end. No real data logic yet.
+Minimal skeleton scaffolded and migrated to TanStack Start. Navigation works end-to-end. No real data logic yet.
 
 ## Architecture
 
-- **Framework**: React 19 + Vite + TypeScript
+- **Framework**: TanStack Start + React 19 + Vite + TypeScript
 - **Styling**: Tailwind CSS 4 + shadcn
-- **Routing**: `react-router-dom` with `HashRouter` (static-hosting friendly)
+- **Routing**: TanStack Router file-based routes with server-side rendering
+- **Deployment**: Cloudflare Workers through the Cloudflare Vite plugin
 
 ## Page Flow
 
@@ -22,8 +23,11 @@ Minimal skeleton scaffolded. Navigation works end-to-end. No real data logic yet
 
 ## Key Design Decisions
 
-### HashRouter over BrowserRouter
-Static deployment (GitHub Pages, etc.) does not support server-side URL rewriting, so `HashRouter` avoids 404s on direct navigation.
+### Standard paths with server-side rendering
+Cloudflare Workers handles direct route requests, so routes use clean paths such as `/form` instead of hash URLs. The root route owns the HTML document, shared layout, and theme provider.
+
+### Cloudflare Workers runtime
+The application uses the default TanStack Start server entry through the Cloudflare Vite plugin. Wrangler enables `nodejs_compat` and observability. No Cloudflare data bindings are required yet.
 
 ### Summary as single route with internal state
 `/summary` renders `SummaryContainer` which manages `currentIndex`. Individual cards are components, not routes. This enables animated horizontal transitions and avoids URL churn for swipe gestures.

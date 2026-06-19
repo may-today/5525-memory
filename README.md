@@ -1,6 +1,36 @@
-# React + TypeScript + Vite + shadcn/ui
+# 5525 Memory
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+A mobile-first replay webapp for the Mayday #5525 live tour, built with TanStack Start and deployed on Cloudflare Workers.
+
+## Development
+
+```bash
+bun install
+bun run dev
+```
+
+## Checks
+
+```bash
+bun run lint
+bun run typecheck
+bun run build
+```
+
+## Cloudflare Workers
+
+Generate Worker binding types after changing `wrangler.jsonc`:
+
+```bash
+bun run cf-typegen
+```
+
+Preview the production Worker locally or deploy it:
+
+```bash
+bun run preview
+bun run deploy
+```
 
 ## Adding components
 

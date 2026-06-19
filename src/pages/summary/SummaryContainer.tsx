@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
 import { SummaryCardCity } from './cards/SummaryCardCity'
@@ -55,7 +55,7 @@ export function SummaryContainer() {
           <Button
             size="lg"
             className="w-full"
-            onClick={() => navigate('/share')}
+            onClick={() => navigate({ to: '/share' })}
           >
             生成总结
           </Button>

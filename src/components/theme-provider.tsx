@@ -4,14 +4,14 @@ import * as React from "react"
 type Theme = "dark" | "light" | "system"
 type ResolvedTheme = "dark" | "light"
 
-type ThemeProviderProps = {
+interface ThemeProviderProps {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
   disableTransitionOnChange?: boolean
 }
 
-type ThemeProviderState = {
+interface ThemeProviderState {
   theme: Theme
   setTheme: (theme: Theme) => void
 }
@@ -66,12 +66,12 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
-    const storedTheme = localStorage.getItem(storageKey)
-    if (isTheme(storedTheme)) {
-      return storedTheme
+    if (typeof window === "undefined") {
+      return defaultTheme
     }
 
-    return defaultTheme
+    const storedTheme = localStorage.getItem(storageKey)
+    return isTheme(storedTheme) ? storedTheme : defaultTheme
   })
 
   const setTheme = React.useCallback(

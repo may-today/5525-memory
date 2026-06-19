@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
 
@@ -22,7 +22,7 @@ export function SharePage() {
         </Button>
         <button
           className="text-muted-foreground mt-2 text-center text-sm underline underline-offset-4"
-          onClick={() => navigate("/summary")}
+          onClick={() => navigate({ to: "/summary" })}
         >
           返回总结
         </button>

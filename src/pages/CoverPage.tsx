@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 
 import { TextureOverlay } from "@/components/ui/texture-overlay";
 import { Marquee } from "@/components/marquee";
@@ -65,7 +65,7 @@ export function CoverPage() {
 				</h1>
 				<Logos />
 				<p className="text-xs text-muted-foreground mt-3">隐私声明 · 感谢名单</p>
-				<NextButton className="absolute bottom-8 right-6" onClick={() => navigate("/form")} />
+				<NextButton className="absolute bottom-8 right-6" onClick={() => navigate({ to: "/form" })} />
 				{/* <Button size="lg" onClick={() => navigate("/form")}>
 					开始回忆
 				</Button> */}
