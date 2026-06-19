@@ -6,7 +6,7 @@ A mobile-first annual summary webapp for the Mayday #5525 live tour. Users fill 
 
 ## Current State (2026-06-19)
 
-Minimal skeleton scaffolded and migrated to TanStack Start. Navigation works end-to-end. No real data logic yet.
+The app is migrated to TanStack Start and navigation works end-to-end. The form uses the real show catalog and persists the user's selected show IDs for the summary flow.
 
 ## Architecture
 
@@ -29,6 +29,9 @@ Cloudflare Workers handles direct route requests, so routes use clean paths such
 ### Cloudflare Workers runtime
 The application uses the default TanStack Start server entry through the Cloudflare Vite plugin. Wrangler enables `nodejs_compat` and observability. No Cloudflare data bindings are required yet.
 
+### Show catalog and form state
+`data/shows.json` is the current show catalog. The form groups visible shows by city, allows multi-selection, and stores selected numeric IDs in `sessionStorage` under `concert-form-data` before navigating to `/loading`.
+
 ### Summary as single route with internal state
 `/summary` renders `SummaryContainer` which manages `currentIndex`. Individual cards are components, not routes. This enables animated horizontal transitions and avoids URL churn for swipe gestures.
 
@@ -37,8 +40,7 @@ Touch handler on `SummaryContainer` checks `abs(deltaX) > abs(deltaY) && abs(del
 
 ## Open Questions / Future Work
 
-- Data model for concert form (dates, venues, seat info?)
-- State persistence across pages (context, URL params, or sessionStorage)
 - Summary statistics logic
+- Connect summary statistics to the selected show IDs in `sessionStorage`
 - Parallax / scroll animations within summary cards
 - `html2canvas` or similar for share image generation
