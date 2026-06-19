@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute } from '@tanstack/react-router'
 
-import { SummaryContainer } from "@/pages/summary/SummaryContainer"
+import { SummaryContainer } from '@/pages/summary/SummaryContainer'
 
-export const Route = createFileRoute("/summary")({
+export const Route = createFileRoute('/summary')({
   component: SummaryContainer,
 })

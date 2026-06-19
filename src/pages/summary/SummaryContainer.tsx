@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCard1 } from './cards/SummaryCard1'
 import { SummaryCard2 } from './cards/SummaryCard2'
 import { SummaryCard3 } from './cards/SummaryCard3'
+import { SummaryCardCity } from './cards/SummaryCardCity'
 
 const CARDS = [SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
 
@@ -20,13 +20,17 @@ export function SummaryContainer() {
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
-    if (!touchStart.current) return
+    if (!touchStart.current) {
+      return
+    }
     const touch = e.changedTouches[0]
     const deltaX = touch.clientX - touchStart.current.x
     const deltaY = touch.clientY - touchStart.current.y
     touchStart.current = null
 
-    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 40) return
+    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 40) {
+      return
+    }
 
     if (deltaX < 0 && currentIndex < CARDS.length - 1) {
       setCurrentIndex((i) => i + 1)
@@ -41,36 +45,26 @@ export function SummaryContainer() {
   return (
     <div className="relative flex min-h-svh flex-col overflow-hidden">
       {/* Swipe capture layer — covers full screen, allows inner scroll */}
-      <div
-        className="flex-1 overflow-y-auto"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="flex-1 overflow-y-auto" onTouchEnd={handleTouchEnd} onTouchStart={handleTouchStart}>
         <ActiveCard />
       </div>
 
       {/* Bottom navigation */}
       <div className="flex flex-col items-center gap-4 p-6 pb-8">
         {isLast && (
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => navigate({ to: '/share' })}
-          >
+          <Button className="w-full" onClick={() => navigate({ to: '/share' })} size="lg">
             生成总结
           </Button>
         )}
         <div className="flex gap-2">
           {CARDS.map((_, i) => (
             <button
-              key={i}
               aria-label={`跳至第 ${i + 1} 页`}
-              onClick={() => setCurrentIndex(i)}
               className={`h-2 rounded-full transition-all duration-200 ${
-                i === currentIndex
-                  ? 'w-5 bg-foreground'
-                  : 'w-2 bg-muted-foreground/40'
+                i === currentIndex ? 'w-5 bg-foreground' : 'w-2 bg-muted-foreground/40'
               }`}
+              key={i}
+              onClick={() => setCurrentIndex(i)}
             />
           ))}
         </div>

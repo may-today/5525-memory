@@ -1,16 +1,16 @@
-import { useMemo, useState } from "react"
-import { useNavigate } from "@tanstack/react-router"
+import { useNavigate } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
 
-import { Button } from "@/components/ui/button"
-import type { Show } from "@/types"
-import showsRaw from "../../data/shows.json"
+import { Button } from '@/components/ui/button'
+import type { Show } from '@/types'
+import showsRaw from '../../data/shows.json'
 
-const allShows = (showsRaw as unknown as Show[]).filter(s => !s.isHidden)
+const allShows = (showsRaw as unknown as Show[]).filter((s) => !s.isHidden)
 
 interface CityGroup {
   city: string
-  venue: string
   shows: Show[]
+  venue: string
 }
 
 function buildCityGroups(): CityGroup[] {
@@ -31,7 +31,7 @@ function buildCityGroups(): CityGroup[] {
 
 const CITY_GROUPS = buildCityGroups()
 
-const DAY_ABBR = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+const DAY_ABBR = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 /** Strip city prefix from venue name for compact display */
 function getShortVenue(venue: string, city: string): string {
@@ -39,16 +39,16 @@ function getShortVenue(venue: string, city: string): string {
 }
 
 function formatShowDate(dateStr: string): string {
-  return dateStr.replace(/-/g, ".")
+  return dateStr.replace(/-/g, '.')
 }
 
 function getDayAbbr(dateStr: string): string {
-  return DAY_ABBR[new Date(dateStr + "T12:00:00").getDay()]
+  return DAY_ABBR[new Date(dateStr + 'T12:00:00').getDay()]
 }
 
 function SubThemeTag({ theme }: { theme: string }) {
   return (
-    <span className="inline-flex items-center border border-muted-foreground/40 text-muted-foreground/60 px-1 py-px text-[9px] leading-none tracking-widest shrink-0">
+    <span className="inline-flex shrink-0 items-center border border-muted-foreground/40 px-1 py-px text-[9px] text-muted-foreground/60 leading-none tracking-widest">
       {theme}
     </span>
   )
@@ -62,26 +62,34 @@ export function FormPage() {
   )
 
   function toggleShow(id: number) {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
   }
 
   function toggleCity(city: string) {
-    setExpandedCities(prev => {
+    setExpandedCities((prev) => {
       const next = new Set(prev)
-      if (next.has(city)) next.delete(city)
-      else next.add(city)
+      if (next.has(city)) {
+        next.delete(city)
+      } else {
+        next.add(city)
+      }
       return next
     })
   }
 
   const { totalCount, primaryCity } = useMemo(() => {
     const totalCount = selectedIds.size
-    if (totalCount === 0) return { totalCount: 0, primaryCity: "" }
+    if (totalCount === 0) {
+      return { totalCount: 0, primaryCity: '' }
+    }
 
     const cityCountMap = new Map<string, number>()
     for (const show of allShows) {
@@ -90,7 +98,7 @@ export function FormPage() {
       }
     }
     let maxCount = 0
-    let primaryCity = ""
+    let primaryCity = ''
     for (const [city, count] of cityCountMap) {
       if (count > maxCount) {
         maxCount = count
@@ -101,37 +109,32 @@ export function FormPage() {
   }, [selectedIds])
 
   function handleSubmit() {
-    sessionStorage.setItem(
-      "concert-form-data",
-      JSON.stringify({ showIds: Array.from(selectedIds) })
-    )
-    navigate({ to: "/loading" })
+    sessionStorage.setItem('concert-form-data', JSON.stringify({ showIds: Array.from(selectedIds) }))
+    navigate({ to: '/loading' })
   }
 
   return (
-    <div className="flex flex-col min-h-svh">
+    <div className="flex min-h-svh flex-col">
       {/* Header */}
       <div className="px-5 pt-8 pb-5">
-        <p className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-2">
-          Select Shows
-        </p>
-        <h1 className="font-wjh text-4xl font-bold leading-tight">按城市选择</h1>
+        <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Select Shows</p>
+        <h1 className="font-bold font-wjh text-4xl leading-tight">按城市选择</h1>
       </div>
 
       {/* City accordion list */}
-      <div className="flex-1 px-4 pb-4 flex flex-col gap-2">
-        {CITY_GROUPS.map(group => {
+      <div className="flex flex-1 flex-col gap-2 px-4 pb-4">
+        {CITY_GROUPS.map((group) => {
           const isExpanded = expandedCities.has(group.city)
-          const selectedCount = group.shows.filter(s => selectedIds.has(s.id)).length
+          const selectedCount = group.shows.filter((s) => selectedIds.has(s.id)).length
           const shortVenue = getShortVenue(group.venue, group.city)
 
           return (
-            <div key={group.city} className="border border-border overflow-hidden">
+            <div className="overflow-hidden border border-border" key={group.city}>
               {/* City header */}
               <button
-                type="button"
+                className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-muted/20 active:bg-muted/30"
                 onClick={() => toggleCity(group.city)}
-                className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-muted/20 active:bg-muted/30 transition-colors"
+                type="button"
               >
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-bold text-[15px] tracking-wide">{group.city}</span>
@@ -139,42 +142,36 @@ export function FormPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {selectedCount > 0 && (
-                    <span className="text-[10px] font-bold bg-foreground text-background px-1.5 py-0.5 leading-none tabular-nums">
+                    <span className="bg-foreground px-1.5 py-0.5 font-bold text-[10px] text-background tabular-nums leading-none">
                       {selectedCount}
                     </span>
                   )}
-                  <span className="text-[9px] text-muted-foreground">
-                    {isExpanded ? "▼" : "▶"}
-                  </span>
+                  <span className="text-[9px] text-muted-foreground">{isExpanded ? '▼' : '▶'}</span>
                 </div>
               </button>
 
               {/* Show rows */}
               {isExpanded && (
-                <div className="border-t border-dashed border-border">
-                  {group.shows.map(show => {
+                <div className="border-border border-t border-dashed">
+                  {group.shows.map((show) => {
                     const isSelected = selectedIds.has(show.id)
                     return (
                       <button
+                        className="flex w-full items-center gap-3 border-border border-b border-dashed px-4 py-2.5 transition-colors last:border-b-0 hover:bg-muted/20 active:bg-muted/30"
                         key={show.id}
-                        type="button"
                         onClick={() => toggleShow(show.id)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 border-b border-dashed border-border last:border-b-0 hover:bg-muted/20 active:bg-muted/30 transition-colors"
+                        type="button"
                       >
                         {/* Square checkbox */}
                         <div
                           className={`size-[17px] flex-shrink-0 border transition-colors ${
-                            isSelected
-                              ? "bg-foreground border-foreground"
-                              : "border-muted-foreground/50"
+                            isSelected ? 'border-foreground bg-foreground' : 'border-muted-foreground/50'
                           }`}
                         />
 
                         {/* Date + subTheme tag */}
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-sm tabular-nums shrink-0">
-                            {formatShowDate(show.showDate)}
-                          </span>
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <span className="shrink-0 text-sm tabular-nums">{formatShowDate(show.showDate)}</span>
                           <SubThemeTag theme={show.subTheme} />
                         </div>
 
@@ -193,19 +190,11 @@ export function FormPage() {
       </div>
 
       {/* Sticky bottom bar */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 pt-3 pb-8">
-        <p className="text-[11px] text-muted-foreground mb-2.5 tabular-nums">
-          {totalCount === 0
-            ? "尚未选择场次"
-            : `已选 ${totalCount} 场${primaryCity ? ` · ${primaryCity}` : ""}`}
+      <div className="sticky bottom-0 border-border border-t bg-background/95 px-4 pt-3 pb-8 backdrop-blur-sm">
+        <p className="mb-2.5 text-[11px] text-muted-foreground tabular-nums">
+          {totalCount === 0 ? '尚未选择场次' : `已选 ${totalCount} 场${primaryCity ? ` · ${primaryCity}` : ''}`}
         </p>
-        <Button
-          type="button"
-          size="lg"
-          className="w-full"
-          disabled={totalCount === 0}
-          onClick={handleSubmit}
-        >
+        <Button className="w-full" disabled={totalCount === 0} onClick={handleSubmit} size="lg" type="button">
           下一步
         </Button>
       </div>

@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface MarqueeProps extends React.HTMLAttributes<HTMLDivElement> {
-  duration?: number;
-  pauseOnHover?: boolean;
-  direction?: "left" | "right" | "up" | "down";
-  fade?: boolean;
-  fadeAmount?: number;
+  direction?: 'left' | 'right' | 'up' | 'down'
+  duration?: number
+  fade?: boolean
+  fadeAmount?: number
+  pauseOnHover?: boolean
 }
 
 export function Marquee({
@@ -16,16 +16,16 @@ export function Marquee({
   className,
   duration = 20,
   pauseOnHover = false,
-  direction = "left",
+  direction = 'left',
   fade = true,
   fadeAmount = 10,
   ...props
 }: MarqueeProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [isPaused, setIsPaused] = React.useState(false)
 
-  const items = React.Children.toArray(children);
-  const isVertical = direction === "up" || direction === "down";
+  const items = React.Children.toArray(children)
+  const isVertical = direction === 'up' || direction === 'down'
 
   return (
     <>
@@ -70,10 +70,14 @@ export function Marquee({
         .marquee-scroller {
           display: flex;
           animation: ${
-          isVertical
-            ? (direction === "up" ? "scroll-y" : "scroll-y-reverse")
-            : (direction === "left" ? "scroll" : "scroll-reverse")
-        } ${duration}s linear infinite;
+            isVertical
+              ? direction === 'up'
+                ? 'scroll-y'
+                : 'scroll-y-reverse'
+              : direction === 'left'
+                ? 'scroll'
+                : 'scroll-reverse'
+          } ${duration}s linear infinite;
         }
 
         .marquee-scroller.paused {
@@ -82,59 +86,43 @@ export function Marquee({
       `}
       </style>
       <div
+        className={cn('flex w-full overflow-hidden', isVertical && 'flex-col', className)}
+        onMouseEnter={() => pauseOnHover && setIsPaused(true)}
+        onMouseLeave={() => pauseOnHover && setIsPaused(false)}
         ref={containerRef}
-        className={cn(
-          "flex w-full overflow-hidden",
-          isVertical && "flex-col",
-          className,
-        )}
         style={{
           ...(fade && {
             maskImage: isVertical
               ? `linear-gradient(to bottom, transparent 0%, black ${fadeAmount}%, black ${
-                100 - fadeAmount
-              }%, transparent 100%)`
+                  100 - fadeAmount
+                }%, transparent 100%)`
               : `linear-gradient(to right, transparent 0%, black ${fadeAmount}%, black ${
-                100 - fadeAmount
-              }%, transparent 100%)`,
+                  100 - fadeAmount
+                }%, transparent 100%)`,
             WebkitMaskImage: isVertical
               ? `linear-gradient(to bottom, transparent 0%, black ${fadeAmount}%, black ${
-                100 - fadeAmount
-              }%, transparent 100%)`
+                  100 - fadeAmount
+                }%, transparent 100%)`
               : `linear-gradient(to right, transparent 0%, black ${fadeAmount}%, black ${
-                100 - fadeAmount
-              }%, transparent 100%)`,
+                  100 - fadeAmount
+                }%, transparent 100%)`,
           }),
         }}
-        onMouseEnter={() => pauseOnHover && setIsPaused(true)}
-        onMouseLeave={() => pauseOnHover && setIsPaused(false)}
         {...props}
       >
-        <div
-          className={cn(
-            "marquee-scroller flex shrink-0",
-            isVertical && "flex-col",
-            isPaused && "paused",
-          )}
-        >
+        <div className={cn('marquee-scroller flex shrink-0', isVertical && 'flex-col', isPaused && 'paused')}>
           {items.map((item, index) => (
-            <div
-              key={`first-${index}`}
-              className={cn("flex shrink-0", isVertical && "w-full")}
-            >
+            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`first-${index}`}>
               {item}
             </div>
           ))}
           {items.map((item, index) => (
-            <div
-              key={`second-${index}`}
-              className={cn("flex shrink-0", isVertical && "w-full")}
-            >
+            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`second-${index}`}>
               {item}
             </div>
           ))}
         </div>
       </div>
     </>
-  );
+  )
 }

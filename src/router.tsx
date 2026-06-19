@@ -1,6 +1,6 @@
-import { createRouter } from "@tanstack/react-router"
+import { createRouter } from '@tanstack/react-router'
 
-import { routeTree } from "./routeTree.gen"
+import { routeTree } from './routeTree.gen'
 
 /** Create a router instance for each TanStack Start request. */
 export function getRouter() {
@@ -10,7 +10,7 @@ export function getRouter() {
   })
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof getRouter>
   }
