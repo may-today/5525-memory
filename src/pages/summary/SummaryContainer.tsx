@@ -12,11 +12,11 @@ import { SummaryCardOverview } from './cards/SummaryCardOverview'
 const CARDS = [SummaryCardOverview, SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
 
 /** Must match the CSS animation duration so the exiting card is cleaned up after it finishes. */
-const ANIM_DURATION = 700
+const ANIM_DURATION = 1000
 
 interface AnimState {
-  prevIndex: number
   direction: 'forward' | 'backward'
+  prevIndex: number
 }
 
 export function SummaryContainer() {
@@ -117,9 +117,13 @@ export function SummaryContainer() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const ActiveCard = CARDS[currentIndex]!
-  const OutgoingCard = animState ? CARDS[animState.prevIndex]! : null
   const isLast = currentIndex === CARDS.length - 1
+  const visibleCards = animState
+    ? [
+        { index: animState.prevIndex, isOutgoing: true },
+        { index: currentIndex, isOutgoing: false },
+      ]
+    : [{ index: currentIndex, isOutgoing: false }]
 
   return (
     <div
@@ -128,31 +132,30 @@ export function SummaryContainer() {
       onTouchStart={handleTouchStart}
       onWheel={handleWheel}
     >
-      {/* Exiting page — slides out with pointer-events disabled */}
-      {animState && OutgoingCard && (
-        <div
-          className={`pointer-events-none absolute inset-0 overflow-hidden ${
-            animState.direction === 'forward' ? 'animate-page-exit-up' : 'animate-page-exit-down'
-          }`}
-        >
-          <OutgoingCard />
-        </div>
-      )}
+      {visibleCards.map(({ index, isOutgoing }) => {
+        const Card = CARDS[index]
+        if (!Card) return null
+        let animationClass = ''
+        if (animState) {
+          if (isOutgoing) {
+            animationClass = animState.direction === 'forward' ? 'animate-page-exit-up' : 'animate-page-exit-down'
+          } else {
+            animationClass = animState.direction === 'forward' ? 'animate-page-enter-up' : 'animate-page-enter-down'
+          }
+        }
 
-      {/* Entering page — slides in from the opposite direction */}
-      <div
-        className={`absolute inset-0 overflow-hidden ${
-          animState
-            ? animState.direction === 'forward'
-              ? 'animate-page-enter-up'
-              : 'animate-page-enter-down'
-            : ''
-        }`}
-        key={currentIndex}
-        ref={cardWrapperRef}
-      >
-        <ActiveCard />
-      </div>
+        return (
+          <div
+            className={`summary-card-layer absolute inset-0 overflow-hidden ${
+              isOutgoing ? 'pointer-events-none' : ''
+            } ${animationClass}`}
+            key={index}
+            ref={isOutgoing ? undefined : cardWrapperRef}
+          >
+            {index === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
+          </div>
+        )
+      })}
 
       {/* Floating bottom indicator — rendered above both cards */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-8">

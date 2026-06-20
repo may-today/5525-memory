@@ -1,5 +1,5 @@
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   type Activity,
@@ -28,6 +28,8 @@ const YEAR_END: Record<Year, string> = {
 }
 
 const MONTH_LABELS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+const SHOWS_PER_TICK = 4
+const LIT_TICK_MS = 60
 
 function buildYearData(year: Year): Activity[] {
   const startDate = `${year}-01-01`
@@ -64,21 +66,22 @@ const YEAR_SHOW_COUNTS: Record<Year, number> = Object.fromEntries(
 
 export function SummaryCardOverview() {
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
-  const [litDates, setLitDates] = useState<Set<string>>(new Set())
+  const [litShowCount, setLitShowCount] = useState(0)
   const [highlightedDates, setHighlightedDates] = useState<Set<string>>(new Set())
   const highlightIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const litDates = useMemo(
+    () => new Set(ALL_SHOWS.slice(0, litShowCount).map((show) => show.showDate)),
+    [litShowCount]
+  )
 
   useEffect(() => {
-    let i = 0
     const litInterval = setInterval(() => {
-      if (i >= ALL_SHOWS.length) {
-        clearInterval(litInterval)
-        return
-      }
-      const date = ALL_SHOWS[i]!.showDate
-      setLitDates((prev) => new Set([...prev, date]))
-      i++
-    }, 15)
+      setLitShowCount((count) => {
+        const nextCount = Math.min(count + SHOWS_PER_TICK, ALL_SHOWS.length)
+        if (nextCount === ALL_SHOWS.length) clearInterval(litInterval)
+        return nextCount
+      })
+    }, LIT_TICK_MS)
 
     const selectedSorted = [...selectedShows].sort((a, b) => a.showDate.localeCompare(b.showDate))
     let j = 0

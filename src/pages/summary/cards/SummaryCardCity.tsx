@@ -112,8 +112,13 @@ function formatCoord(value: number, posLabel: string, negLabel: string) {
   return `${Math.abs(value).toFixed(2)}° ${value >= 0 ? posLabel : negLabel}`
 }
 
-export function SummaryCardCity() {
+interface SummaryCardCityProps {
+  isPaused?: boolean
+}
+
+export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const isPausedRef = useRef(isPaused)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const currentMarker = showcaseDefaultMarkers[currentIndex]
@@ -123,12 +128,21 @@ export function SummaryCardCity() {
   const handleNext = () => setCurrentIndex((i) => (i + 1) % total)
 
   useEffect(() => {
-    let phi = 0
+    isPausedRef.current = isPaused
+  }, [isPaused])
 
-    const globe = createGlobe(canvasRef.current!, {
-      devicePixelRatio: 2,
-      width: 600 * 2,
-      height: 600 * 2,
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    let phi = 0
+    let animationFrame = 0
+    const devicePixelRatio = Math.min(window.devicePixelRatio, 1.5)
+
+    const globe = createGlobe(canvas, {
+      devicePixelRatio,
+      width: 600 * devicePixelRatio,
+      height: 600 * devicePixelRatio,
       phi: 0,
       theta: 0.2,
       dark: 1.1,
@@ -136,20 +150,23 @@ export function SummaryCardCity() {
       baseColor: [1, 1, 1],
       markerColor: [0.3, 0.3, 0.3],
       markerElevation: 0,
-      mapSamples: 16_000,
+      mapSamples: 12_000,
       mapBrightness: 6,
       glowColor: [0.1, 0.1, 0.1],
       markers: showcaseDefaultMarkers,
     })
 
     function animate() {
-      phi += 0.003
-      globe.update({ phi })
-      requestAnimationFrame(animate)
+      if (!isPausedRef.current) {
+        phi += 0.003
+        globe.update({ phi })
+      }
+      animationFrame = requestAnimationFrame(animate)
     }
     animate()
 
     return () => {
+      cancelAnimationFrame(animationFrame)
       globe.destroy()
     }
   }, [])
@@ -161,7 +178,7 @@ export function SummaryCardCity() {
       </p>
 
       <div className="min-h-0 flex-1">
-        <div className="summary-globe-container">
+        <div className="summary-globe-container" data-paused={isPaused || undefined}>
           <canvas className="summary-globe-canvas" ref={canvasRef} />
           <div aria-hidden="true" className="summary-globe-orbit-ring">
             <svg className="summary-globe-orbit-svg" viewBox="0 0 300 300">

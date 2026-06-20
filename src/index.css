@@ -200,6 +200,10 @@
     fade-in 1.7s ease 0.5s both;
 }
 
+.summary-globe-container[data-paused] .summary-globe-orbit-svg {
+  animation-play-state: paused;
+}
+
 .summary-globe-orbit-text {
   font-family: var(--font-mono), monospace;
   font-size: 6px;
@@ -245,6 +249,12 @@
 
 /* Page transition — exit and enter must share the same easing so the two
    pages appear physically connected (no gap or overlap at their seam). */
+.summary-card-layer {
+  contain: layout paint;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
 @keyframes page-exit-up {
   from { transform: translateY(0); }
   to   { transform: translateY(-100%); }
@@ -262,10 +272,10 @@
   to   { transform: translateY(0); }
 }
 
-.animate-page-exit-up   { animation: page-exit-up   0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
-.animate-page-enter-up  { animation: page-enter-up  0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
-.animate-page-exit-down { animation: page-exit-down 0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
-.animate-page-enter-down{ animation: page-enter-down 0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.animate-page-exit-up   { animation: page-exit-up   1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+.animate-page-enter-up  { animation: page-enter-up  1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+.animate-page-exit-down { animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+.animate-page-enter-down{ animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
 
 @keyframes orbit-spin {
   from {
