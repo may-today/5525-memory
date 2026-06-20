@@ -243,6 +243,30 @@
   border-top-color: #191919;
 }
 
+/* Page transition — exit and enter must share the same easing so the two
+   pages appear physically connected (no gap or overlap at their seam). */
+@keyframes page-exit-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+@keyframes page-enter-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes page-exit-down {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+@keyframes page-enter-down {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+.animate-page-exit-up   { animation: page-exit-up   0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.animate-page-enter-up  { animation: page-enter-up  0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.animate-page-exit-down { animation: page-exit-down 0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.animate-page-enter-down{ animation: page-enter-down 0.7s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+
 @keyframes orbit-spin {
   from {
     transform: rotateX(62deg) rotateZ(0deg);

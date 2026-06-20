@@ -37,11 +37,23 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ### 统计回顾使用单路由和内部状态
 
-`/summary` 渲染 `SummaryContainer`，由其通过 `currentIndex` 管理当前统计页面。每个统计页面是独立组件，而不是独立路由，以便实现横向切换动画，并避免滑动手势导致 URL 频繁变化。
+`/summary` 渲染 `SummaryContainer`，由其通过 `currentIndex` 管理当前统计页面。每个统计页面是独立组件，而不是独立路由，以便实现切换动画，并避免滑动手势导致 URL 频繁变化。
 
-### 区分横向切页与页面内纵向滚动
+### 竖向切页与页面内纵向滚动的优先级
 
-`SummaryContainer` 的触摸处理只有在横向位移大于纵向位移，且横向位移超过 40px 时才触发切页。其他手势交给浏览器进行正常纵向滚动。统计页面可以独立滚动。
+`SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
+
+需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCard1`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
+
+### 切页过渡动画
+
+切页时同时渲染旧页（outgoing）和新页（incoming），两者均为 `absolute inset-0`，使用相同的 easing 函数和时长（0.7s，`cubic-bezier(0.45, 0, 0.55, 1)`）做对向滑动，任意时刻两页恰好首尾相接（无缝衔接）。动画结束后（750ms）清除旧页。旧页加 `pointer-events-none` 防止误触。
+
+### 桌面端适配
+
+- **滚轮 / 触控板**：监听 `onWheel`，`deltaY` 方向决定切页方向；`isTransitioning` 锁防止动量余惯导致连续切页。
+- **键盘**：监听 `ArrowDown/Up`、`PageDown/Up`，效果同滑动。
+- 两者均遵循 `data-scroll-container` 的滚动优先逻辑。
 
 ## 统计页面设计
 

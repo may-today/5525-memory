@@ -112,11 +112,14 @@ export function SummaryCardOverview() {
   }, []) // intentionally captured at mount
 
   return (
-    <div className="flex min-h-svh flex-col bg-zinc-950 px-6 py-8">
-      <p className="mb-2 shrink-0 text-muted-foreground text-xs uppercase tracking-widest">00 / 场次概览</p>
-      <h1 className="mb-8 font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
+    <div className="flex h-svh flex-col bg-zinc-950">
+      <div className="shrink-0 px-6 pt-8 pb-4">
+        <p className="mb-2 text-muted-foreground text-xs uppercase tracking-widest">00 / 场次概览</p>
+        <h1 className="font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
+      </div>
 
-      <div className="flex flex-col gap-8">
+      <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
+        <div className="flex flex-col gap-8">
         {YEARS.map((year) => (
           <div key={year}>
             <div className="mb-2 flex items-baseline justify-between">
@@ -169,16 +172,17 @@ export function SummaryCardOverview() {
             </ContributionGraph>
           </div>
         ))}
-      </div>
-
-      {selectedShows.length > 0 && (
-        <div className="mt-8 border-zinc-800 border-t pt-6">
-          <p className="font-mono text-xs text-zinc-500">
-            <span className="font-bold text-sm text-yellow-300">{selectedShows.length}</span>
-            <span className="ml-1 text-zinc-400">场属于你</span>
-          </p>
         </div>
-      )}
+
+        {selectedShows.length > 0 && (
+          <div className="mt-8 border-zinc-800 border-t pt-6">
+            <p className="font-mono text-xs text-zinc-500">
+              <span className="font-bold text-sm text-yellow-300">{selectedShows.length}</span>
+              <span className="ml-1 text-zinc-400">场属于你</span>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

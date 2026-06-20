@@ -10,6 +10,13 @@
     "ultracite/biome/react",
     "ultracite/biome/tanstack"
   ],
+  "linter": {
+    "rules": {
+      "style": {
+        "useBlockStatements": "off"
+      }
+    }
+  },
   "formatter": {
     "indentStyle": "space",
     "lineWidth": 120
