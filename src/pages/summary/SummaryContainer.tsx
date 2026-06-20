@@ -6,8 +6,9 @@ import { SummaryCard1 } from './cards/SummaryCard1'
 import { SummaryCard2 } from './cards/SummaryCard2'
 import { SummaryCard3 } from './cards/SummaryCard3'
 import { SummaryCardCity } from './cards/SummaryCardCity'
+import { SummaryCardOverview } from './cards/SummaryCardOverview'
 
-const CARDS = [SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
+const CARDS = [SummaryCardOverview, SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
 
 export function SummaryContainer() {
   const navigate = useNavigate()
