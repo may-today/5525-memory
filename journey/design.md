@@ -33,7 +33,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ### 场次目录与表单状态
 
-`data/shows.json` 是当前场次目录。表单按城市对可见场次分组，支持多选，并在进入 `/loading` 前将所选数字 ID 以 `concert-form-data` 为键写入 `sessionStorage`。
+`data/shows.json` 是当前场次目录。表单按城市对可见场次分组并支持多选。已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；进入 `/loading` 前仍会将所选数字 ID 以 `concert-form-data` 为键写入 `sessionStorage`，作为后续实现刷新恢复和渐进迁移的兼容快照。
 
 ### 统计回顾使用单路由和内部状态
 
@@ -62,7 +62,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **设计目标**：概括用户参加 #5525 巡演的整体规模。
 - **主要内容**：参加总场次、到访城市数，以及后续扩展的场次统计项。
 - **交互方式**：内容较长时支持页面内纵向滚动。
-- **数据来源**：根据 `sessionStorage` 中的已选场次 ID 关联 `data/shows.json` 后计算。
+- **数据来源**：优先使用 TanStack Store 中的已选场次；页面刷新后可根据 `sessionStorage` 中的已选场次 ID 关联 `data/shows.json` 恢复。
 - **数据状态**：当前均为占位值，真实统计和扩展统计项尚未实现。
 
 ### 3. 里程追踪
@@ -84,7 +84,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 ## 待确认与后续工作
 
 - 实现统计数据模型和计算逻辑。
-- 将 `sessionStorage` 中的已选场次 ID 接入各统计页面。
+- 将 TanStack Store 中的已选场次接入各统计页面，并补充从 `sessionStorage` 恢复 Store 的逻辑。
 - 确定里程统计的出发地采集方式与计算口径。
 - 补充场次对应的歌单数据。
 - 设计统计页面内的视差或滚动动画。

@@ -1,7 +1,9 @@
 import { useNavigate } from '@tanstack/react-router'
+import { useSelector } from '@tanstack/react-store'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { concertStore, toggleSelectedShow } from '@/stores/concert-store'
 import type { Show } from '@/types'
 import showsRaw from '../../data/shows.json'
 
@@ -16,10 +18,12 @@ interface CityGroup {
 function buildCityGroups(): CityGroup[] {
   const map = new Map<string, CityGroup>()
   for (const show of allShows) {
-    if (!map.has(show.city)) {
-      map.set(show.city, { city: show.city, venue: show.venue, shows: [] })
+    const existingGroup = map.get(show.city)
+    if (existingGroup) {
+      existingGroup.shows.push(show)
+    } else {
+      map.set(show.city, { city: show.city, venue: show.venue, shows: [show] })
     }
-    map.get(show.city)!.shows.push(show)
   }
   const groups = Array.from(map.values())
   for (const g of groups) {
@@ -30,6 +34,7 @@ function buildCityGroups(): CityGroup[] {
 }
 
 const CITY_GROUPS = buildCityGroups()
+const DEFAULT_EXPANDED_CITY = CITY_GROUPS.at(-1)?.city
 
 const DAY_ABBR = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -43,7 +48,7 @@ function formatShowDate(dateStr: string): string {
 }
 
 function getDayAbbr(dateStr: string): string {
-  return DAY_ABBR[new Date(dateStr + 'T12:00:00').getDay()]
+  return DAY_ABBR[new Date(`${dateStr}T12:00:00`).getDay()]
 }
 
 function SubThemeTag({ theme }: { theme: string }) {
@@ -56,22 +61,11 @@ function SubThemeTag({ theme }: { theme: string }) {
 
 export function FormPage() {
   const navigate = useNavigate()
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
+  const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
   const [expandedCities, setExpandedCities] = useState<Set<string>>(
-    () => new Set(CITY_GROUPS.length > 0 ? [CITY_GROUPS[CITY_GROUPS.length - 1].city] : [])
+    () => new Set(DEFAULT_EXPANDED_CITY ? [DEFAULT_EXPANDED_CITY] : [])
   )
-
-  function toggleShow(id: number) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
 
   function toggleCity(city: string) {
     setExpandedCities((prev) => {
@@ -109,7 +103,7 @@ export function FormPage() {
   }, [selectedIds])
 
   function handleSubmit() {
-    sessionStorage.setItem('concert-form-data', JSON.stringify({ showIds: Array.from(selectedIds) }))
+    sessionStorage.setItem('concert-form-data', JSON.stringify({ showIds: selectedShows.map((show) => show.id) }))
     navigate({ to: '/loading' })
   }
 
@@ -159,7 +153,7 @@ export function FormPage() {
                       <button
                         className="flex w-full items-center gap-3 border-border border-b border-dashed px-4 py-2.5 transition-colors last:border-b-0 hover:bg-muted/20 active:bg-muted/30"
                         key={show.id}
-                        onClick={() => toggleShow(show.id)}
+                        onClick={() => toggleSelectedShow(show)}
                         type="button"
                       >
                         {/* Square checkbox */}
