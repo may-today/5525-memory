@@ -14,6 +14,8 @@ import showsRaw from '../../../../data/shows.json'
 const YEARS = ['2023', '2024', '2025', '2026'] as const
 type Year = (typeof YEARS)[number]
 
+const TODAY = new Date().toISOString().slice(0, 10)
+
 const ALL_SHOWS = (showsRaw as unknown as Show[])
   .filter((s) => !s.isHidden)
   .sort((a, b) => a.showDate.localeCompare(b.showDate))
@@ -22,7 +24,7 @@ const YEAR_END: Record<Year, string> = {
   '2023': '2023-12-31',
   '2024': '2024-12-31',
   '2025': '2025-12-31',
-  '2026': '2026-07-12',
+  '2026': '2026-12-31',
 }
 
 const MONTH_LABELS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
@@ -125,17 +127,22 @@ export function SummaryCardOverview() {
               blockMargin={2}
               blockRadius={2}
               blockSize={8}
+              className="w-full"
               data={YEAR_DATA[year]!}
               fontSize={10}
               labels={{ months: MONTH_LABELS_ZH }}
             >
-              <ContributionGraphCalendar>
+              <ContributionGraphCalendar className="overflow-x-hidden [&_svg]:h-auto [&_svg]:w-full">
                 {({ activity, dayIndex, weekIndex }) => {
-                  const isHighlighted = highlightedDates.has(activity.date)
-                  const isLit = litDates.has(activity.date)
+                  const isFuture = activity.date > TODAY
+                  const isHighlighted = !isFuture && highlightedDates.has(activity.date)
+                  const isLit = !isFuture && litDates.has(activity.date)
                   let fill: string
                   let filter: string
-                  if (isHighlighted) {
+                  if (isFuture) {
+                    fill = 'transparent'
+                    filter = 'none'
+                  } else if (isHighlighted) {
                     fill = '#fde047'
                     filter = 'drop-shadow(0 0 4px #fde04799)'
                   } else if (isLit) {
@@ -152,7 +159,7 @@ export function SummaryCardOverview() {
                       style={{
                         fill,
                         filter,
-                        transition: 'fill 0.4s ease, filter 0.4s ease',
+                        transition: isFuture ? 'none' : 'fill 0.4s ease, filter 0.4s ease',
                       }}
                       weekIndex={weekIndex}
                     />
