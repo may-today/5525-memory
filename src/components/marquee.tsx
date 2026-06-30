@@ -111,13 +111,13 @@ export function Marquee({
         {...props}
       >
         <div className={cn('marquee-scroller flex shrink-0', isVertical && 'flex-col', isPaused && 'paused')}>
-          {items.map((item, index) => (
-            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`first-${index}`}>
+          {items.map((item) => (
+            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`first-${(item as React.ReactElement).key}`}>
               {item}
             </div>
           ))}
-          {items.map((item, index) => (
-            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`second-${index}`}>
+          {items.map((item) => (
+            <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`second-${(item as React.ReactElement).key}`}>
               {item}
             </div>
           ))}

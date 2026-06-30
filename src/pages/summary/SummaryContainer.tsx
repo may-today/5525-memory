@@ -132,8 +132,8 @@ export function SummaryContainer() {
       onTouchStart={handleTouchStart}
       onWheel={handleWheel}
     >
-      {visibleCards.map(({ index, isOutgoing }) => {
-        const Card = CARDS[index]
+      {visibleCards.map(({ index: cardIndex, isOutgoing }) => {
+        const Card = CARDS[cardIndex]
         if (!Card) return null
         let animationClass = ''
         if (animState) {
@@ -149,10 +149,10 @@ export function SummaryContainer() {
             className={`summary-card-layer absolute inset-0 overflow-hidden ${
               isOutgoing ? 'pointer-events-none' : ''
             } ${animationClass}`}
-            key={index}
+            key={cardIndex}
             ref={isOutgoing ? undefined : cardWrapperRef}
           >
-            {index === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
+            {cardIndex === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
           </div>
         )
       })}
@@ -166,7 +166,7 @@ export function SummaryContainer() {
         ) : (
           <div className="flex flex-col items-center gap-1">
             <span className="text-muted-foreground/70 text-xs">滑动探索</span>
-            <ChevronDown className="animate-bounce text-muted-foreground/70" size={16} />
+            <ChevronDown className="animate-hint-down text-muted-foreground/70" size={16} />
           </div>
         )}
       </div>

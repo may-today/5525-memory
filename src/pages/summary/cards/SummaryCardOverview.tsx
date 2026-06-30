@@ -34,9 +34,12 @@ const LIT_TICK_MS = 60
 function buildYearData(year: Year): Activity[] {
   const startDate = `${year}-01-01`
   const endDate = YEAR_END[year]
-  const showActivities = ALL_SHOWS.filter((s) => s.showDate.startsWith(year)).map(
-    (s): Activity => ({ date: s.showDate, count: 1, level: 0 })
-  )
+  const showActivities = ALL_SHOWS.reduce<Activity[]>((acc, s) => {
+    if (s.showDate.startsWith(year)) {
+      acc.push({ date: s.showDate, count: 1, level: 0 })
+    }
+    return acc
+  }, [])
 
   const seenDates = new Set<string>()
   const unique: Activity[] = []
@@ -68,7 +71,9 @@ export function SummaryCardOverview() {
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const [litShowCount, setLitShowCount] = useState(0)
   const [highlightedDates, setHighlightedDates] = useState<Set<string>>(new Set())
-  const highlightIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Snapshot selectedShows at mount time so the animation sequences run once
+  // on entry and are not affected by store updates while the card is visible.
+  const selectedShowsAtMount = useRef(selectedShows)
   const litDates = useMemo(
     () => new Set(ALL_SHOWS.slice(0, litShowCount).map((show) => show.showDate)),
     [litShowCount]
@@ -83,18 +88,24 @@ export function SummaryCardOverview() {
       })
     }, LIT_TICK_MS)
 
-    const selectedSorted = [...selectedShows].sort((a, b) => a.showDate.localeCompare(b.showDate))
+    // Read the mount-time snapshot — stable ref, no stale closure issue.
+    const selectedSorted = selectedShowsAtMount.current.toSorted((a, b) =>
+      a.showDate.localeCompare(b.showDate)
+    )
     let j = 0
+    // Track highlight interval in a local variable so the cleanup closure
+    // always reads the correct, final ID rather than a ref that may have changed.
+    let highlightInterval: ReturnType<typeof setInterval> | null = null
 
     const highlightTimeout = setTimeout(() => {
       if (selectedSorted.length === 0) {
         return
       }
-      highlightIntervalRef.current = setInterval(() => {
+      highlightInterval = setInterval(() => {
         if (j >= selectedSorted.length) {
-          if (highlightIntervalRef.current) {
-            clearInterval(highlightIntervalRef.current)
-            highlightIntervalRef.current = null
+          if (highlightInterval) {
+            clearInterval(highlightInterval)
+            highlightInterval = null
           }
           return
         }
@@ -107,12 +118,12 @@ export function SummaryCardOverview() {
     return () => {
       clearInterval(litInterval)
       clearTimeout(highlightTimeout)
-      if (highlightIntervalRef.current) {
-        clearInterval(highlightIntervalRef.current)
-        highlightIntervalRef.current = null
+      if (highlightInterval) {
+        clearInterval(highlightInterval)
+        highlightInterval = null
       }
     }
-  }, []) // intentionally captured at mount
+  }, []) // runs once on mount — animation is intentionally a one-shot sequence
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950">

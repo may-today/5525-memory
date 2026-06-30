@@ -103,7 +103,7 @@ export function FormPage() {
   }, [selectedIds])
 
   function handleSubmit() {
-    sessionStorage.setItem('concert-form-data', JSON.stringify({ showIds: selectedShows.map((show) => show.id) }))
+    sessionStorage.setItem('concert-form-data:v1', JSON.stringify({ showIds: selectedShows.map((show) => show.id) }))
     navigate({ to: '/loading' })
   }
 

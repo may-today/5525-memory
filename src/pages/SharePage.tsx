@@ -23,6 +23,7 @@ export function SharePage() {
         <button
           className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4"
           onClick={() => navigate({ to: '/summary' })}
+          type="button"
         >
           返回总结
         </button>

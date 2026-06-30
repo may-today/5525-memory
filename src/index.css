@@ -277,11 +277,49 @@
 .animate-page-exit-down { animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
 .animate-page-enter-down{ animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
 
+/* Subtle downward nudge hint — replaces Tailwind's animate-bounce for the
+   swipe-to-explore indicator. Ease-out-expo feels physical; the bounce does not. */
+@keyframes hint-down {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(5px); }
+}
+
+.animate-hint-down {
+  animation: hint-down 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
 @keyframes orbit-spin {
   from {
     transform: rotateX(62deg) rotateZ(0deg);
   }
   to {
     transform: rotateX(62deg) rotateZ(-360deg);
+  }
+}
+
+/* Accessibility: respect the OS "Reduce Motion" preference (WCAG 2.3.3).
+   Collapse all page-transition animations to an instant cross-fade so users
+   with vestibular disorders are not made ill by full-screen sliding. */
+@media (prefers-reduced-motion: reduce) {
+  /* Page slide transitions → instant swap */
+  .animate-page-exit-up,
+  .animate-page-exit-down,
+  .animate-page-enter-up,
+  .animate-page-enter-down {
+    animation: none;
+  }
+
+  /* Globe orbit ring spin */
+  .summary-globe-orbit-svg {
+    animation: none;
+  }
+
+  /* Tailwind utility animations (e.g. animate-bounce, animate-spin) */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
