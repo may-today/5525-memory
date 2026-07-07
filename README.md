@@ -6,7 +6,29 @@ A mobile-first replay webapp for the Mayday #5525 live tour, built with TanStack
 
 ```bash
 bun install
+bunx wrangler d1 migrations apply 5525-memory-db --local
 bun run dev
+```
+
+The `d1 migrations apply --local` step seeds a local D1 database under `.wrangler/state/v3/d1` (gitignored, one per machine). It's fully emulated by Miniflare — no Cloudflare account or credentials needed for local development.
+
+## Database (Cloudflare D1)
+
+Tour/show/setlist data lives in Cloudflare D1, not in a static JSON file — see `src/server/` for the data-access layer and `journey/plans/2026-07-08-d1-data-migration.md` for the full design.
+
+**Schema and seed changes are append-only.** Never edit an already-applied migration file. To change the schema or seed data, create a new one:
+
+```bash
+bunx wrangler d1 migrations create 5525-memory-db <name>
+```
+
+Then apply it locally the same way as above. Anyone who pulls new commits touching `migrations/` just re-runs `wrangler d1 migrations apply 5525-memory-db --local` — it only applies what's new.
+
+**Deploying schema changes to production** is manual for now: someone with Cloudflare account access runs
+
+```bash
+bunx wrangler d1 migrations apply 5525-memory-db --remote
+bun run deploy
 ```
 
 ## Checks
