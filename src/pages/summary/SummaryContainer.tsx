@@ -3,11 +3,13 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { useSummaryData } from '@/hooks/useSummaryData'
 import { SummaryCard1 } from './cards/SummaryCard1'
 import { SummaryCard2 } from './cards/SummaryCard2'
 import { SummaryCard3 } from './cards/SummaryCard3'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
+import { SummaryDataContext } from './summary-data-context'
 
 const CARDS = [SummaryCardOverview, SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3]
 
@@ -21,6 +23,7 @@ interface AnimState {
 
 export function SummaryContainer() {
   const navigate = useNavigate()
+  const { data, ready } = useSummaryData()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animState, setAnimState] = useState<AnimState | null>(null)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
@@ -117,6 +120,14 @@ export function SummaryContainer() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  if (!ready || !data) {
+    return (
+      <div className="flex h-svh flex-col items-center justify-center gap-6">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
   const isLast = currentIndex === CARDS.length - 1
   const visibleCards = animState
     ? [
@@ -126,50 +137,52 @@ export function SummaryContainer() {
     : [{ index: currentIndex, isOutgoing: false }]
 
   return (
-    <div
-      className="relative h-svh overflow-hidden"
-      onTouchEnd={handleTouchEnd}
-      onTouchStart={handleTouchStart}
-      onWheel={handleWheel}
-    >
-      {visibleCards.map(({ index: cardIndex, isOutgoing }) => {
-        const Card = CARDS[cardIndex]
-        if (!Card) return null
-        let animationClass = ''
-        if (animState) {
-          if (isOutgoing) {
-            animationClass = animState.direction === 'forward' ? 'animate-page-exit-up' : 'animate-page-exit-down'
-          } else {
-            animationClass = animState.direction === 'forward' ? 'animate-page-enter-up' : 'animate-page-enter-down'
+    <SummaryDataContext value={data}>
+      <div
+        className="relative h-svh overflow-hidden"
+        onTouchEnd={handleTouchEnd}
+        onTouchStart={handleTouchStart}
+        onWheel={handleWheel}
+      >
+        {visibleCards.map(({ index: cardIndex, isOutgoing }) => {
+          const Card = CARDS[cardIndex]
+          if (!Card) return null
+          let animationClass = ''
+          if (animState) {
+            if (isOutgoing) {
+              animationClass = animState.direction === 'forward' ? 'animate-page-exit-up' : 'animate-page-exit-down'
+            } else {
+              animationClass = animState.direction === 'forward' ? 'animate-page-enter-up' : 'animate-page-enter-down'
+            }
           }
-        }
 
-        return (
-          <div
-            className={`summary-card-layer absolute inset-0 overflow-hidden ${
-              isOutgoing ? 'pointer-events-none' : ''
-            } ${animationClass}`}
-            key={cardIndex}
-            ref={isOutgoing ? undefined : cardWrapperRef}
-          >
-            {cardIndex === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
-          </div>
-        )
-      })}
+          return (
+            <div
+              className={`summary-card-layer absolute inset-0 overflow-hidden ${
+                isOutgoing ? 'pointer-events-none' : ''
+              } ${animationClass}`}
+              key={cardIndex}
+              ref={isOutgoing ? undefined : cardWrapperRef}
+            >
+              {cardIndex === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
+            </div>
+          )
+        })}
 
-      {/* Floating bottom indicator — rendered above both cards */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-8">
-        {isLast ? (
-          <Button className="pointer-events-auto" onClick={() => navigate({ to: '/share' })} size="lg">
-            生成总结
-          </Button>
-        ) : (
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-muted-foreground/70 text-xs">滑动探索</span>
-            <ChevronDown className="animate-hint-down text-muted-foreground/70" size={16} />
-          </div>
-        )}
+        {/* Floating bottom indicator — rendered above both cards */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-8">
+          {isLast ? (
+            <Button className="pointer-events-auto" onClick={() => navigate({ to: '/share' })} size="lg">
+              生成总结
+            </Button>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-muted-foreground/70 text-xs">滑动探索</span>
+              <ChevronDown className="animate-hint-down text-muted-foreground/70" size={16} />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SummaryDataContext>
   )
 }

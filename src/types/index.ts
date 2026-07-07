@@ -23,8 +23,6 @@ export interface Show {
   isAnnounced: number
   /** 是否隐藏 */
   isHidden: number
-  /** 是否打碟/灯光场 */
-  isLighted: number
   /** 演出阵容 */
   lineup: string[]
   /** 歌单长图 URL */
@@ -40,7 +38,7 @@ export interface Show {
   /** 散场时间 */
   showEndTime: null | string
   /** 实际开场时间（HH:MM） */
-  showStartTime: string
+  showStartTime: null | string
   /** 子主题，如「5525回到1999」 */
   subTheme: string
   /** 主题色 */

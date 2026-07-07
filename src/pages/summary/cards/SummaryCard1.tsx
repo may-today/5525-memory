@@ -1,4 +1,8 @@
+import { useSummaryDataContext } from '../summary-data-context'
+
 export function SummaryCard1() {
+  const { overview } = useSummaryDataContext()
+
   return (
     <div className="flex h-svh flex-col">
       <div className="shrink-0 px-6 pt-6">
@@ -10,11 +14,11 @@ export function SummaryCard1() {
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-muted p-5">
             <p className="text-muted-foreground text-xs">总场次</p>
-            <p className="mt-1 font-bold text-4xl">—</p>
+            <p className="mt-1 font-bold text-4xl">{overview.totalShows}</p>
           </div>
           <div className="rounded-xl bg-muted p-5">
             <p className="text-muted-foreground text-xs">城市</p>
-            <p className="mt-1 font-bold text-4xl">—</p>
+            <p className="mt-1 font-bold text-4xl">{overview.cityCount}</p>
           </div>
           {/* Extra content to demonstrate in-page vertical scroll */}
           {Array.from({ length: 6 }).map((_, i) => (

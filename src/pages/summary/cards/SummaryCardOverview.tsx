@@ -9,16 +9,12 @@ import {
 } from '@/components/kibo-ui/contribution-graph'
 import { concertStore } from '@/stores/concert-store'
 import type { Show } from '@/types'
-import showsRaw from '../../../../data/shows.json'
+import { useSummaryDataContext } from '../summary-data-context'
 
 const YEARS = ['2023', '2024', '2025', '2026'] as const
 type Year = (typeof YEARS)[number]
 
 const TODAY = new Date().toISOString().slice(0, 10)
-
-const ALL_SHOWS = (showsRaw as unknown as Show[])
-  .filter((s) => !s.isHidden)
-  .sort((a, b) => a.showDate.localeCompare(b.showDate))
 
 const YEAR_END: Record<Year, string> = {
   '2023': '2023-12-31',
@@ -31,10 +27,10 @@ const MONTH_LABELS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月',
 const SHOWS_PER_TICK = 4
 const LIT_TICK_MS = 60
 
-function buildYearData(year: Year): Activity[] {
+function buildYearData(year: Year, allShows: Show[]): Activity[] {
   const startDate = `${year}-01-01`
   const endDate = YEAR_END[year]
-  const showActivities = ALL_SHOWS.reduce<Activity[]>((acc, s) => {
+  const showActivities = allShows.reduce<Activity[]>((acc, s) => {
     if (s.showDate.startsWith(year)) {
       acc.push({ date: s.showDate, count: 1, level: 0 })
     }
@@ -58,32 +54,36 @@ function buildYearData(year: Year): Activity[] {
   return unique.sort((a, b) => a.date.localeCompare(b.date))
 }
 
-const YEAR_DATA: Record<Year, Activity[]> = Object.fromEntries(YEARS.map((y) => [y, buildYearData(y)])) as Record<
-  Year,
-  Activity[]
->
-
-const YEAR_SHOW_COUNTS: Record<Year, number> = Object.fromEntries(
-  YEARS.map((y) => [y, ALL_SHOWS.filter((s) => s.showDate.startsWith(y)).length])
-) as Record<Year, number>
-
 export function SummaryCardOverview() {
+  const { allShows } = useSummaryDataContext()
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const [litShowCount, setLitShowCount] = useState(0)
   const [highlightedDates, setHighlightedDates] = useState<Set<string>>(new Set())
   // Snapshot selectedShows at mount time so the animation sequences run once
   // on entry and are not affected by store updates while the card is visible.
   const selectedShowsAtMount = useRef(selectedShows)
+  const yearData = useMemo(
+    () => Object.fromEntries(YEARS.map((y) => [y, buildYearData(y, allShows)])) as Record<Year, Activity[]>,
+    [allShows]
+  )
+  const yearShowCounts = useMemo(
+    () =>
+      Object.fromEntries(YEARS.map((y) => [y, allShows.filter((s) => s.showDate.startsWith(y)).length])) as Record<
+        Year,
+        number
+      >,
+    [allShows]
+  )
   const litDates = useMemo(
-    () => new Set(ALL_SHOWS.slice(0, litShowCount).map((show) => show.showDate)),
-    [litShowCount]
+    () => new Set(allShows.slice(0, litShowCount).map((show) => show.showDate)),
+    [litShowCount, allShows]
   )
 
   useEffect(() => {
     const litInterval = setInterval(() => {
       setLitShowCount((count) => {
-        const nextCount = Math.min(count + SHOWS_PER_TICK, ALL_SHOWS.length)
-        if (nextCount === ALL_SHOWS.length) clearInterval(litInterval)
+        const nextCount = Math.min(count + SHOWS_PER_TICK, allShows.length)
+        if (nextCount === allShows.length) clearInterval(litInterval)
         return nextCount
       })
     }, LIT_TICK_MS)
@@ -138,14 +138,14 @@ export function SummaryCardOverview() {
           <div key={year}>
             <div className="mb-2 flex items-baseline justify-between">
               <span className="font-mono text-sm text-zinc-300">{year}</span>
-              <span className="font-mono text-xs text-zinc-500">{YEAR_SHOW_COUNTS[year]} 场</span>
+              <span className="font-mono text-xs text-zinc-500">{yearShowCounts[year]} 场</span>
             </div>
             <ContributionGraph
               blockMargin={2}
               blockRadius={2}
               blockSize={8}
               className="w-full"
-              data={YEAR_DATA[year]!}
+              data={yearData[year]!}
               fontSize={10}
               labels={{ months: MONTH_LABELS_ZH }}
             >

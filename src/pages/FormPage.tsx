@@ -1,13 +1,12 @@
-import { useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { concertStore, toggleSelectedShow } from '@/stores/concert-store'
 import type { Show } from '@/types'
-import showsRaw from '../../data/shows.json'
 
-const allShows = (showsRaw as unknown as Show[]).filter((s) => !s.isHidden)
+const routeApi = getRouteApi('/form')
 
 interface CityGroup {
   city: string
@@ -15,7 +14,7 @@ interface CityGroup {
   venue: string
 }
 
-function buildCityGroups(): CityGroup[] {
+function buildCityGroups(allShows: Show[]): CityGroup[] {
   const map = new Map<string, CityGroup>()
   for (const show of allShows) {
     const existingGroup = map.get(show.city)
@@ -32,9 +31,6 @@ function buildCityGroups(): CityGroup[] {
   groups.sort((a, b) => a.shows[0].showDate.localeCompare(b.shows[0].showDate))
   return groups
 }
-
-const CITY_GROUPS = buildCityGroups()
-const DEFAULT_EXPANDED_CITY = CITY_GROUPS.at(-1)?.city
 
 const DAY_ABBR = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -61,10 +57,12 @@ function SubThemeTag({ theme }: { theme: string }) {
 
 export function FormPage() {
   const navigate = useNavigate()
+  const allShows = routeApi.useLoaderData()
+  const CITY_GROUPS = useMemo(() => buildCityGroups(allShows), [allShows])
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
   const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
   const [expandedCities, setExpandedCities] = useState<Set<string>>(
-    () => new Set(DEFAULT_EXPANDED_CITY ? [DEFAULT_EXPANDED_CITY] : [])
+    () => new Set(CITY_GROUPS.at(-1) ? [CITY_GROUPS.at(-1)!.city] : [])
   )
 
   function toggleCity(city: string) {
@@ -86,10 +84,8 @@ export function FormPage() {
     }
 
     const cityCountMap = new Map<string, number>()
-    for (const show of allShows) {
-      if (selectedIds.has(show.id)) {
-        cityCountMap.set(show.city, (cityCountMap.get(show.city) ?? 0) + 1)
-      }
+    for (const show of selectedShows) {
+      cityCountMap.set(show.city, (cityCountMap.get(show.city) ?? 0) + 1)
     }
     let maxCount = 0
     let primaryCity = ''
@@ -100,7 +96,7 @@ export function FormPage() {
       }
     }
     return { totalCount, primaryCity }
-  }, [selectedIds])
+  }, [selectedShows])
 
   function handleSubmit() {
     sessionStorage.setItem('concert-form-data:v1', JSON.stringify({ showIds: selectedShows.map((show) => show.id) }))

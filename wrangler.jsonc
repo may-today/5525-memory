@@ -6,5 +6,13 @@
   "main": "@tanstack/react-start/server-entry",
   "observability": {
     "enabled": true
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "5525-memory-db",
+      "database_id": "d8893eb8-63dd-4299-a905-7322f1f7b425",
+      "migrations_dir": "migrations"
+    }
+  ]
 }

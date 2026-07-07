@@ -1,112 +1,11 @@
+import { useSelector } from '@tanstack/react-store'
 import type { Marker } from 'cobe'
 import createGlobe from 'cobe'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-const showcaseDefaultMarkers = [
-  {
-    id: 'taoyuan',
-    location: [24.99, 121.3],
-    label: '桃园',
-    size: 0.03,
-  },
-  {
-    id: 'singapore',
-    location: [1.21, 103.49],
-    label: '新加坡',
-    size: 0.03,
-  },
-  {
-    id: 'sydney',
-    location: [-33.51, 151.12],
-    label: '悉尼',
-    size: 0.03,
-  },
-  {
-    id: 'lasvegas',
-    location: [36.17, -115.14],
-    label: '拉斯维加斯',
-    size: 0.03,
-  },
-  {
-    id: 'tianjin',
-    location: [39.08, 117.2],
-    label: '天津',
-    size: 0.03,
-  },
-  {
-    id: 'hongkong',
-    location: [22.32, 114.17],
-    label: '香港',
-    size: 0.03,
-  },
-  {
-    id: 'hangzhou',
-    location: [30.16, 120.12],
-    label: '杭州',
-    size: 0.03,
-  },
-  {
-    id: 'herbin',
-    location: [45.75, 126.64],
-    label: '哈尔滨',
-    size: 0.03,
-  },
-  {
-    id: 'taipei',
-    location: [25.02, 121.33],
-    label: '台北',
-    size: 0.03,
-  },
-  {
-    id: 'beijing',
-    location: [39.92, 116.36],
-    label: '北京',
-    size: 0.03,
-  },
-  {
-    id: 'shanghai',
-    location: [31.22, 121.48],
-    label: '上海',
-    size: 0.03,
-  },
-  {
-    id: 'guiyang',
-    location: [26.34, 106.42],
-    label: '贵阳',
-    size: 0.03,
-  },
-  {
-    id: 'changsha',
-    location: [28.11, 112.58],
-    label: '长沙',
-    size: 0.03,
-  },
-  {
-    id: 'zhengzhou',
-    location: [34.45, 113.38],
-    label: '郑州',
-    size: 0.03,
-  },
-  {
-    id: 'xiamen',
-    location: [24.46, 118.1],
-    label: '厦门',
-    size: 0.03,
-  },
-  {
-    id: 'guangzhou',
-    location: [23.16, 113.23],
-    label: '广州',
-    size: 0.03,
-  },
-  {
-    id: 'taizhong',
-    location: [24.08, 120.4],
-    label: '台中',
-    size: 0.03,
-  },
-] as (Marker & { label: string })[]
+import { concertStore } from '@/stores/concert-store'
+import { useSummaryDataContext } from '../summary-data-context'
 
 function formatCoord(value: number, posLabel: string, negLabel: string) {
   return `${Math.abs(value).toFixed(2)}° ${value >= 0 ? posLabel : negLabel}`
@@ -117,12 +16,36 @@ interface SummaryCardCityProps {
 }
 
 export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
+  const { cityMarkers } = useSummaryDataContext()
+  const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const isPausedRef = useRef(isPaused)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const currentMarker = showcaseDefaultMarkers[currentIndex]
-  const total = showcaseDefaultMarkers.length
+  const markers = useMemo(
+    () =>
+      cityMarkers.map((c) => ({
+        id: c.cityName,
+        location: [c.latitude, c.longitude] as [number, number],
+        label: c.cityName,
+        size: 0.03,
+      })) as (Marker & { label: string })[],
+    [cityMarkers]
+  )
+
+  const currentMarker = markers[currentIndex]
+  const total = markers.length
+
+  const showsInCurrentCity = useMemo(
+    () =>
+      currentMarker
+        ? selectedShows
+            .filter((s) => s.city === currentMarker.label)
+            .slice()
+            .sort((a, b) => a.showDate.localeCompare(b.showDate))
+        : [],
+    [selectedShows, currentMarker]
+  )
 
   const handlePrev = () => setCurrentIndex((i) => (i - 1 + total) % total)
   const handleNext = () => setCurrentIndex((i) => (i + 1) % total)
@@ -133,7 +56,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || markers.length === 0) return
 
     let phi = 0
     let animationFrame = 0
@@ -153,7 +76,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
       mapSamples: 12_000,
       mapBrightness: 6,
       glowColor: [0.1, 0.1, 0.1],
-      markers: showcaseDefaultMarkers,
+      markers,
     })
 
     function animate() {
@@ -169,7 +92,15 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
       cancelAnimationFrame(animationFrame)
       globe.destroy()
     }
-  }, [])
+  }, [markers])
+
+  if (!currentMarker) {
+    return (
+      <div className="flex h-svh flex-col items-center justify-center bg-zinc-950 text-zinc-500 text-sm">
+        暂无城市数据
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
@@ -190,7 +121,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
               </text>
             </svg>
           </div>
-          {showcaseDefaultMarkers.map((m, i) => (
+          {markers.map((m, i) => (
             <button
               className="summary-globe-marker-label"
               key={m.id}
@@ -239,25 +170,19 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
         </p>
 
         <div className="grid grid-cols-1 gap-3">
-          {/* <div className="rounded-lg bg-zinc-900 p-3">
-						<p className="mb-1 text-xs tracking-widest text-zinc-500 uppercase">
-							纬度
-						</p>
-						<p className="font-mono text-sm text-white">
-							{formatCoord(currentMarker.location[0], "N", "S")}
-						</p>
-					</div>
-					<div className="rounded-lg bg-zinc-900 p-3">
-						<p className="mb-1 text-xs tracking-widest text-zinc-500 uppercase">
-							经度
-						</p>
-						<p className="font-mono text-sm text-white">
-							{formatCoord(currentMarker.location[1], "E", "W")}
-						</p>
-					</div> */}
           <div className="rounded-lg bg-zinc-900 p-3">
-            <p className="mb-1 text-xs text-zinc-500 uppercase tracking-widest">PLACEHOLDER</p>
-            <div className="h-24" />
+            <p className="mb-1 text-xs text-zinc-500 uppercase tracking-widest">你在这里的场次</p>
+            {showsInCurrentCity.length === 0 ? (
+              <p className="mt-1 font-mono text-sm text-zinc-600">—</p>
+            ) : (
+              <div className="mt-1 flex flex-col gap-1">
+                {showsInCurrentCity.map((show) => (
+                  <p className="font-mono text-sm text-white" key={show.id}>
+                    {show.dateSlash} · {show.dayLabel}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
