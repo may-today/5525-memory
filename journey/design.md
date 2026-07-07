@@ -29,11 +29,19 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ### 使用 Cloudflare Workers 运行时
 
-应用通过 Cloudflare Vite 插件使用 TanStack Start 默认服务端入口。Wrangler 已启用 `nodejs_compat` 和可观测性，目前不需要 Cloudflare 数据绑定。
+应用通过 Cloudflare Vite 插件使用 TanStack Start 默认服务端入口。Wrangler 已启用 `nodejs_compat` 和可观测性，并绑定了 Cloudflare D1（见下方「场次数据与 D1」）。
 
-### 场次目录与表单状态
+### 场次数据与 D1（2026-07-08）
 
-`data/shows.json` 是当前场次目录。表单按城市对可见场次分组并支持多选。已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；进入 `/loading` 前仍会将所选数字 ID 以 `concert-form-data` 为键写入 `sessionStorage`，作为后续实现刷新恢复和渐进迁移的兼容快照。
+场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3；Card2 里程暂缓）。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md`。
+
+表单按城市对可见场次分组并支持多选。已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；进入 `/loading` 前仍会将所选数字 ID 以 `concert-form-data:v1` 为键写入 `sessionStorage`。`/summary` 挂载时通过 `useSummaryData` hook 用 store 或 sessionStorage 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题。
+
+**本地开发**：D1 的本地状态是每台机器独立的 SQLite 文件（`.wrangler/state/v3/d1`，已 gitignore），完全由 Miniflare 模拟，不需要 Cloudflare 账号权限。新拉仓库或换机器只需要 `bunx wrangler d1 migrations apply 5525-memory-db --local` 再 `bun run dev`。
+
+**多人协作**：`migrations/` 下的文件一旦被应用过就不能再改，schema 或数据的任何调整都通过 `wrangler d1 migrations create 5525-memory-db <name>` 新增下一个编号的文件；谁拉到新 migration 就本地重新 apply 一次即可，`wrangler` 只会应用尚未跑过的文件。
+
+**远程（生产）D1**：迁移应用方式目前选择手动执行——有权限的人在需要发布时手动跑 `wrangler d1 migrations apply 5525-memory-db --remote`，再 `bun run deploy`。规模变大或发布频率变高后可以再考虑接入 CI 自动化。
 
 ### 统计回顾使用单路由和内部状态
 
@@ -71,18 +79,19 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
   1. 页面挂载后，按日期顺序以等效 15ms/场的批量更新将所有场次依次点亮（橙色），减少全量 SVG 的 React 协调次数。
   2. 3 秒后，按日期顺序以 120ms/场 将用户已选场次依次点亮（黄色 + 光晕）。
 - **视觉方向**：深色背景（`zinc-950`）、橙色场次格（`#f97316`）、黄色选中格（`#fde047` + `drop-shadow` 光晕）、中文月份标签。
-- **数据来源**：全量场次直接读取 `data/shows.json`（模块级预计算，稳定引用）；用户选中场次来自 TanStack Store，在组件挂载时一次性捕获用于动画序列。
+- **数据来源**：全量场次通过 `getSummaryData` server function 从 D1 读取（`SummaryDataContext` 提供，`useSummaryData` hook 在 `/summary` 挂载时获取一次）；用户选中场次来自 TanStack Store，在组件挂载时一次性捕获用于动画序列。
 - **数据状态**：全量场次和用户选中场次均已接入，动画逻辑完整实现。
 
 ### 2. 城市地图
 
 - **组件**：`SummaryCardCity`
 - **设计目标**：用全球视角呈现 #5525 巡演覆盖的城市，建立统计回顾的空间感和开场氛围。
-- **主要内容**：旋转地球、城市标记、当前城市名称、经纬度、城市序号。
+- **主要内容**：旋转地球、城市标记、当前城市名称、经纬度、城市序号；底部详情面板列出当前聚焦城市里用户选中的场次（日期 + 场次标签）。
 - **交互方式**：点击城市标记切换当前城市；使用底部左右按钮循环浏览城市。
 - **视觉方向**：深色背景、发光地球、环形巡演文字和等宽坐标信息。
 - **性能约束**：地球卸载时必须停止 RAF；渲染像素比最高为 1.5，避免移动端高分屏产生过大的 WebGL 帧缓冲；切页期间暂停 WebGL 绘制和装饰动画，但保留实例及旋转角度。
-- **数据状态**：当前使用组件内置的巡演城市列表，尚未根据用户选择的场次筛选；底部详情区域仍为占位内容。
+- **数据来源**：`getSummaryData` 返回的 `cityMarkers`（按用户选中场次的城市去重后，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出；未选择任何场次时兜底展示全部巡演城市）。
+- **数据状态**：地球标记和底部详情面板均已接入真实数据。
 
 ### 4. 场次回顾
 
@@ -90,8 +99,8 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **设计目标**：概括用户参加 #5525 巡演的整体规模。
 - **主要内容**：参加总场次、到访城市数，以及后续扩展的场次统计项。
 - **交互方式**：内容较长时支持页面内纵向滚动。
-- **数据来源**：优先使用 TanStack Store 中的已选场次；页面刷新后可根据 `sessionStorage` 中的已选场次 ID 关联 `data/shows.json` 恢复。
-- **数据状态**：当前均为占位值，真实统计和扩展统计项尚未实现。
+- **数据来源**：`getSummaryData` 返回的 `overview`（总场次/城市数/场馆数，服务端按用户选中场次聚合）。
+- **数据状态**：总场次、城市数已接入真实数据；其余 6 个扩展统计项仍为占位值，尚未实现。
 
 ### 5. 里程追踪
 
@@ -99,21 +108,19 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **设计目标**：用旅途距离呈现用户追随巡演的投入和跨城经历。
 - **主要内容**：估算总里程、距离最远的城市。
 - **数据来源**：待明确用户出发地、城市坐标和里程计算规则后，由所选场次计算。
-- **数据状态**：当前均为占位值；出发地采集方式和距离口径尚未确定。
+- **数据状态**：当前均为占位值；出发地采集方式和距离口径尚未确定（D1 里的城市经纬度已具备，缺的是出发地采集入口）。
 
 ### 6. 歌曲回顾
 
 - **组件**：`SummaryCard3`
 - **设计目标**：从曲目角度回顾用户在所选场次中听到的内容。
 - **主要内容**：听到的歌曲总数、出现次数最多的歌曲。
-- **数据来源**：所选场次与对应歌单数据；当前场次目录尚未包含完整歌单关联。
-- **数据状态**：当前均为占位值，歌单数据和统计逻辑尚未实现。
+- **数据来源**：`getSummaryData` 返回的 `songStats`（服务端对 D1 `setlist_items` 按选中场次 ID 聚合，口径为 `item_type='song'`，含安可段落、排除串烧/VCR/talking 等非歌曲条目）。
+- **数据状态**：总歌曲数、最常出现的歌均已接入真实数据。
 
 ## 待确认与后续工作
 
-- 实现统计数据模型和计算逻辑。
-- 将 TanStack Store 中的已选场次接入各统计页面，并补充从 `sessionStorage` 恢复 Store 的逻辑。
-- 确定里程统计的出发地采集方式与计算口径。
-- 补充场次对应的歌单数据。
+- 确定里程统计的出发地采集方式与计算口径（D1 城市经纬度已就绪）。
 - 设计统计页面内的视差或滚动动画。
 - 评估使用 `html2canvas` 或同类方案生成分享图片。
+- 评估在统计数据之上接入 AI 自然语言查询能力（用户输入想探索的统计项，如「秋天唱过最多的歌」）。
