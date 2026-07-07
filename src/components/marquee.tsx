@@ -11,6 +11,13 @@ interface MarqueeProps extends React.HTMLAttributes<HTMLDivElement> {
   pauseOnHover?: boolean
 }
 
+const SCROLL_ANIMATIONS: Record<NonNullable<MarqueeProps['direction']>, string> = {
+  left: 'scroll',
+  right: 'scroll-reverse',
+  up: 'scroll-y',
+  down: 'scroll-y-reverse',
+}
+
 export function Marquee({
   children,
   className,
@@ -22,7 +29,6 @@ export function Marquee({
   ...props
 }: MarqueeProps) {
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const [isPaused, setIsPaused] = React.useState(false)
 
   const items = React.Children.toArray(children)
   const isVertical = direction === 'up' || direction === 'down'
@@ -69,26 +75,18 @@ export function Marquee({
 
         .marquee-scroller {
           display: flex;
-          animation: ${
-            isVertical
-              ? direction === 'up'
-                ? 'scroll-y'
-                : 'scroll-y-reverse'
-              : direction === 'left'
-                ? 'scroll'
-                : 'scroll-reverse'
-          } ${duration}s linear infinite;
+          animation: ${SCROLL_ANIMATIONS[direction]} ${duration}s linear infinite;
         }
 
-        .marquee-scroller.paused {
-          animation-play-state: paused;
+        ${
+          pauseOnHover
+            ? '.marquee-container:hover .marquee-scroller { animation-play-state: paused; }'
+            : ''
         }
       `}
       </style>
       <div
-        className={cn('flex w-full overflow-hidden', isVertical && 'flex-col', className)}
-        onMouseEnter={() => pauseOnHover && setIsPaused(true)}
-        onMouseLeave={() => pauseOnHover && setIsPaused(false)}
+        className={cn('marquee-container flex w-full overflow-hidden', isVertical && 'flex-col', className)}
         ref={containerRef}
         style={{
           ...(fade && {
@@ -110,7 +108,7 @@ export function Marquee({
         }}
         {...props}
       >
-        <div className={cn('marquee-scroller flex shrink-0', isVertical && 'flex-col', isPaused && 'paused')}>
+        <div className={cn('marquee-scroller flex shrink-0', isVertical && 'flex-col')}>
           {items.map((item) => (
             <div className={cn('flex shrink-0', isVertical && 'w-full')} key={`first-${(item as React.ReactElement).key}`}>
               {item}

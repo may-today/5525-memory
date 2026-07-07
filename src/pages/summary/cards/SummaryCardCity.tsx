@@ -96,7 +96,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
 
   if (!currentMarker) {
     return (
-      <div className="flex h-svh flex-col items-center justify-center bg-zinc-950 text-zinc-500 text-sm">
+      <div className="flex h-svh flex-col items-center justify-center bg-zinc-950 text-sm text-zinc-500">
         暂无城市数据
       </div>
     )
@@ -112,7 +112,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
         <div className="summary-globe-container" data-paused={isPaused || undefined}>
           <canvas className="summary-globe-canvas" ref={canvasRef} />
           <div aria-hidden="true" className="summary-globe-orbit-ring">
-            <svg className="summary-globe-orbit-svg" viewBox="0 0 300 300">
+            <svg aria-hidden="true" className="summary-globe-orbit-svg" viewBox="0 0 300 300">
               <defs>
                 <path d="M 150,150 m -130,0 a 130,130 0 1,0 260,0 a 130,130 0 1,0 -260,0" id="orbitPath" />
               </defs>

@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
@@ -35,24 +35,24 @@ export function SummaryContainer() {
     currentIndexRef.current = currentIndex
   }, [currentIndex])
 
-  function getScrollEl(): HTMLElement | null {
+  const getScrollEl = useCallback((): HTMLElement | null => {
     const el = cardWrapperRef.current?.querySelector('[data-scroll-container]')
     return el ? (el as HTMLElement) : null
-  }
+  }, [])
 
-  function canAdvanceForward(): boolean {
+  const canAdvanceForward = useCallback((): boolean => {
     const scrollEl = getScrollEl()
     if (!scrollEl) return true
     return scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10
-  }
+  }, [getScrollEl])
 
-  function canGoBack(): boolean {
+  const canGoBack = useCallback((): boolean => {
     const scrollEl = getScrollEl()
     if (!scrollEl) return true
     return scrollEl.scrollTop <= 10
-  }
+  }, [getScrollEl])
 
-  function goForward() {
+  const goForward = useCallback(() => {
     const prev = currentIndexRef.current
     setAnimState({ prevIndex: prev, direction: 'forward' })
     setCurrentIndex((i) => i + 1)
@@ -61,9 +61,9 @@ export function SummaryContainer() {
       setAnimState(null)
       isTransitioning.current = false
     }, ANIM_DURATION + 50)
-  }
+  }, [])
 
-  function goBack() {
+  const goBack = useCallback(() => {
     const prev = currentIndexRef.current
     setAnimState({ prevIndex: prev, direction: 'backward' })
     setCurrentIndex((i) => i - 1)
@@ -72,7 +72,7 @@ export function SummaryContainer() {
       setAnimState(null)
       isTransitioning.current = false
     }, ANIM_DURATION + 50)
-  }
+  }, [])
 
   function handleTouchStart(e: React.TouchEvent) {
     const touch = e.touches[0]
@@ -118,9 +118,9 @@ export function SummaryContainer() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [canAdvanceForward, canGoBack, goForward, goBack])
 
-  if (!ready || !data) {
+  if (!(ready && data)) {
     return (
       <div className="flex h-svh flex-col items-center justify-center gap-6">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />

@@ -79,6 +79,7 @@ export function SummaryCardOverview() {
     [litShowCount, allShows]
   )
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once on mount — animation is intentionally a one-shot sequence
   useEffect(() => {
     const litInterval = setInterval(() => {
       setLitShowCount((count) => {
@@ -109,8 +110,10 @@ export function SummaryCardOverview() {
           }
           return
         }
-        const date = selectedSorted[j]!.showDate
-        setHighlightedDates((prev) => new Set([...prev, date]))
+        const nextShow = selectedSorted[j]
+        if (nextShow) {
+          setHighlightedDates((prev) => new Set([...prev, nextShow.showDate]))
+        }
         j++
       }, 120)
     }, 3000)
@@ -123,7 +126,7 @@ export function SummaryCardOverview() {
         highlightInterval = null
       }
     }
-  }, []) // runs once on mount — animation is intentionally a one-shot sequence
+  }, [])
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
@@ -145,7 +148,7 @@ export function SummaryCardOverview() {
               blockRadius={2}
               blockSize={8}
               className="w-full"
-              data={yearData[year]!}
+              data={yearData[year]}
               fontSize={10}
               labels={{ months: MONTH_LABELS_ZH }}
             >

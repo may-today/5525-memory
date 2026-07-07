@@ -38,11 +38,11 @@ export function CoverPage() {
         <Marquee>
           <div className="mx-1 flex flex-row items-baseline gap-2">
             <div>MAYDAY 5525</div>
-            <img alt="Mayday Icon" className="size-3.5" src={MaydayIcon} />
+            <img alt="Mayday Icon" className="size-3.5" height={14} src={MaydayIcon} width={14} />
             <div>MAYDAY 5525+1</div>
-            <img alt="Mayday Icon" className="size-3.5" src={MaydayIcon} />
+            <img alt="Mayday Icon" className="size-3.5" height={14} src={MaydayIcon} width={14} />
             <div>MAYDAY 5525+2</div>
-            <img alt="Mayday Icon" className="size-3.5" src={MaydayIcon} />
+            <img alt="Mayday Icon" className="size-3.5" height={14} src={MaydayIcon} width={14} />
           </div>
         </Marquee>
       </div>

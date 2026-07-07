@@ -22,8 +22,3 @@ export function toggleSelectedShow(show: Show): void {
     }
   })
 }
-
-/** Remove all shows from the global concert selection. */
-function clearSelectedShows(): void {
-  concertStore.setState(() => ({ selectedShows: [] }))
-}

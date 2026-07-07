@@ -22,7 +22,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
     "@cloudflare/vite-plugin": "^1.42.0",
-    "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -36,8 +35,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && bun run typecheck",
-    "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "deploy": "bun run build && wrangler deploy",

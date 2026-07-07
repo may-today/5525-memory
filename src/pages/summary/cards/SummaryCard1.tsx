@@ -22,6 +22,7 @@ export function SummaryCard1() {
           </div>
           {/* Extra content to demonstrate in-page vertical scroll */}
           {Array.from({ length: 6 }).map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder list, index is the item identity
             <div className="rounded-xl bg-muted p-5 opacity-40" key={i}>
               <p className="text-muted-foreground text-xs">统计项 {i + 1}</p>
               <p className="mt-1 font-semibold text-2xl">—</p>

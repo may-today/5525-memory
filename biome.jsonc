@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
     "includes": [
-      "!src/components/ui/*"
+      "!src/components/ui/*",
+      "!raw-data"
     ]
   },
   "extends": [
@@ -13,7 +14,8 @@
   "linter": {
     "rules": {
       "style": {
-        "useBlockStatements": "off"
+        "useBlockStatements": "off",
+        "useFilenamingConvention": "off"
       }
     }
   },

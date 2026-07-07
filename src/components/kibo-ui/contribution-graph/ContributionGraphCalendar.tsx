@@ -68,7 +68,7 @@ export const ContributionGraphCalendar = ({
             }
 
             return (
-              <Fragment key={`${weekIndex}-${dayIndex}`}>
+              <Fragment key={activity.date}>
                 {children({ activity, dayIndex, weekIndex })}
               </Fragment>
             );

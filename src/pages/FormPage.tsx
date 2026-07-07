@@ -61,9 +61,10 @@ export function FormPage() {
   const CITY_GROUPS = useMemo(() => buildCityGroups(allShows), [allShows])
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
   const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
-  const [expandedCities, setExpandedCities] = useState<Set<string>>(
-    () => new Set(CITY_GROUPS.at(-1) ? [CITY_GROUPS.at(-1)!.city] : [])
-  )
+  const [expandedCities, setExpandedCities] = useState<Set<string>>(() => {
+    const lastGroup = CITY_GROUPS.at(-1)
+    return new Set(lastGroup ? [lastGroup.city] : [])
+  })
 
   function toggleCity(city: string) {
     setExpandedCities((prev) => {
@@ -78,7 +79,7 @@ export function FormPage() {
   }
 
   const { totalCount, primaryCity } = useMemo(() => {
-    const totalCount = selectedIds.size
+    const totalCount = selectedShows.length
     if (totalCount === 0) {
       return { totalCount: 0, primaryCity: '' }
     }
