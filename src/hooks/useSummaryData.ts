@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getSummaryData } from '@/server/summary'
 import type { SummaryData } from '@/server/summary'
+import { getSummaryData } from '@/server/summary'
 import { concertStore, getPersistedShowIds } from '@/stores/concert-store'
 
 /** Reads showIds from the store first, then the localStorage persistence snapshot. */
@@ -25,7 +25,7 @@ export function useSummaryData(): { data: SummaryData | null; ready: boolean } {
 
     getSummaryData({ data: showIds }).then((result) => {
       if (cancelled) return
-      concertStore.setState(() => ({ selectedShows: result.selectedShows }))
+      concertStore.setState((state) => ({ ...state, selectedShows: result.selectedShows }))
       setData(result)
     })
 
