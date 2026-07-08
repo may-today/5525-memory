@@ -11,17 +11,45 @@ export interface CityMarker {
 }
 
 export interface SongStats {
-  totalSongs: number
   topSong: { title: string; count: number } | null
+  totalSongs: number
+}
+
+export interface GuestShowInfo {
+  city: string
+  dateSlash: string
+  dayLabel: string
+  id: number
+  posterUrl: string
+  showEndTime: string | null
+  showStartTime: string | null
+  subTheme: string
+  themeColor: string
+  tourName: string
+  tourTypeId: number
+  venue: string
+  versionName: string
+}
+
+export interface GuestShow {
+  guests: string[]
+  isVisited: boolean
+  show: GuestShowInfo
+  showDate: string
+}
+
+export interface GuestStats {
+  guestShows: GuestShow[]
 }
 
 export interface SummaryData {
   /** Full non-hidden show catalog — feeds the Overview timeline and the City globe's no-selection fallback. */
   allShows: Show[]
+  cityMarkers: CityMarker[]
+  guestStats: GuestStats
+  overview: { totalShows: number; cityCount: number; venueCount: number }
   /** Shows resolved from the requested ids — also used to rehydrate concertStore after a hard refresh. */
   selectedShows: Show[]
-  overview: { totalShows: number; cityCount: number; venueCount: number }
-  cityMarkers: CityMarker[]
   songStats: SongStats
 }
 
@@ -33,6 +61,36 @@ function buildCityMarkers(cityNames: string[]): CityMarker[] {
     if (coord) markers.push({ cityName, ...coord })
   }
   return markers
+}
+
+function buildGuestStats(allShows: Show[], selectedShows: Show[]): GuestStats {
+  const selectedShowIds = new Set(selectedShows.map((show) => show.id))
+  const guestShows = allShows
+    .filter((show) => show.guests.length > 0)
+    .map(
+      (show): GuestShow => ({
+        showDate: show.showDate,
+        show: {
+          id: show.id,
+          tourName: show.tourName,
+          subTheme: show.subTheme,
+          versionName: show.versionName,
+          city: show.city,
+          venue: show.venue,
+          dayLabel: show.dayLabel,
+          dateSlash: show.dateSlash,
+          posterUrl: show.posterUrl,
+          themeColor: show.themeColor,
+          showStartTime: show.showStartTime,
+          showEndTime: show.showEndTime,
+          tourTypeId: show.tourTypeId,
+        },
+        guests: show.guests,
+        isVisited: selectedShowIds.has(show.id),
+      })
+    )
+
+  return { guestShows }
 }
 
 /**
@@ -98,5 +156,6 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       },
       cityMarkers: buildCityMarkers(citiesForMarkers),
       songStats,
+      guestStats: buildGuestStats(allShows, selectedShows),
     }
   })
