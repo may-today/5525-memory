@@ -9,10 +9,19 @@ import { SummaryCard2 } from './cards/SummaryCard2'
 import { SummaryCard3 } from './cards/SummaryCard3'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
+import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryDataContext } from './summary-data-context'
 
-const CARDS = [SummaryCardOverview, SummaryCardCity, SummaryCard1, SummaryCard2, SummaryCard3, SummaryCardGuests]
+const CARDS = [
+  SummaryCardOverview,
+  SummaryCardCity,
+  SummaryCard1,
+  SummaryCard2,
+  SummaryCard3,
+  SummaryCardGuests,
+  SummaryCardMemories,
+]
 
 /** Must match the CSS animation duration so the exiting card is cleaned up after it finishes. */
 const ANIM_DURATION = 1000

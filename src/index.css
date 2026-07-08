@@ -591,6 +591,129 @@
   transform: rotate(-18deg) scaleY(0.38);
 }
 
+/* "Your Memories" parallax gallery: each entry exposes --parallax (viewport-
+   centered scroll progress in [-1, 1], written by a rAF scroll handler) and
+   --memory-color (the show's themeColor). Decorative layers translate at
+   different rates for depth; transform-only so scrolling stays cheap. */
+.summary-memory-entry {
+  --parallax: 0;
+}
+
+/* Oversized outlined index floating behind the entry — fastest layer. */
+.summary-memory-ghost {
+  position: absolute;
+  top: -0.4em;
+  right: -0.06em;
+  z-index: 0;
+  font-size: 7.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px
+    color-mix(in oklab, var(--memory-color), transparent 45%);
+  pointer-events: none;
+  opacity: 0.55;
+  transform: translate3d(0, calc(var(--parallax) * 90px), 0);
+  will-change: transform;
+}
+
+/* Theme-colored nebula glow drifting behind the entry — mid-speed layer. */
+.summary-memory-glow {
+  position: absolute;
+  top: 8%;
+  left: -30%;
+  width: 80vw;
+  max-width: 420px;
+  height: 80vw;
+  max-height: 420px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--memory-color), transparent 50%),
+    transparent 70%
+  );
+  opacity: 0.35;
+  filter: blur(48px);
+  transform: translate3d(0, calc(var(--parallax) * 140px), 0);
+  will-change: transform;
+}
+
+/* The photo counter-scrolls slightly; the quote trails a touch behind it. */
+.summary-memory-photo {
+  transform: translate3d(0, calc(var(--parallax) * -36px), 0);
+  will-change: transform;
+}
+
+.summary-memory-quote {
+  transform: translate3d(0, calc(var(--parallax) * -14px), 0);
+  will-change: transform;
+}
+
+.summary-memory-date {
+  color: color-mix(in oklab, var(--memory-color), white 30%);
+  text-shadow: 0 0 24px
+    color-mix(in oklab, var(--memory-color), transparent 40%);
+}
+
+.summary-memory-caption {
+  border-left: 2px solid
+    color-mix(in oklab, var(--memory-color), transparent 30%);
+}
+
+/* Placeholder photo frame: theme-tinted gradient + a periodic light sweep
+   (transform-only ::after inside the clipped frame). */
+.summary-memory-photo-frame {
+  background:
+    radial-gradient(
+      circle at 18% 12%,
+      color-mix(in oklab, var(--memory-color), transparent 40%),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 92%,
+      color-mix(in oklab, var(--memory-color), black 55%),
+      transparent 60%
+    ),
+    #18181b;
+}
+
+.summary-memory-photo-frame::after {
+  position: absolute;
+  inset: -60%;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 58%
+  );
+  transform: translateX(-70%);
+  animation: memory-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes memory-shimmer {
+  0%,
+  50% {
+    transform: translateX(-70%);
+  }
+  100% {
+    transform: translateX(70%);
+  }
+}
+
+/* Giant opening quote mark behind the talking excerpt. */
+.summary-memory-quote-mark {
+  position: absolute;
+  top: -0.42em;
+  left: -0.08em;
+  font-size: 5rem;
+  line-height: 1;
+  color: color-mix(in oklab, var(--memory-color), transparent 40%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 /* Accessibility: respect the OS "Reduce Motion" preference (WCAG 2.3.3).
    Collapse all page-transition animations to an instant cross-fade so users
    with vestibular disorders are not made ill by full-screen sliding. */
@@ -605,6 +728,18 @@
 
   /* Globe orbit ring spin */
   .summary-globe-orbit-svg {
+    animation: none;
+  }
+
+  /* Memories: parallax layers freeze in place, photo light sweep stops */
+  .summary-memory-ghost,
+  .summary-memory-glow,
+  .summary-memory-photo,
+  .summary-memory-quote {
+    transform: none;
+  }
+
+  .summary-memory-photo-frame::after {
     animation: none;
   }
 
