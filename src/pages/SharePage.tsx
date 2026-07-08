@@ -20,6 +20,9 @@ export function SharePage() {
         <Button className="w-full" disabled size="lg" variant="outline">
           分享
         </Button>
+        <Button className="w-full" onClick={() => navigate({ to: '/report' })} size="lg" variant="outline">
+          你的专属报告
+        </Button>
         <button
           className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4"
           onClick={() => navigate({ to: '/summary' })}

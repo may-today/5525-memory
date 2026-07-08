@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as SplatRouteImport } from './routes/$'
@@ -24,6 +25,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoadingRoute = LoadingRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
 }
@@ -69,15 +77,31 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$' | '/form' | '/loading' | '/share' | '/summary'
+  fullPaths:
+    | '/'
+    | '/$'
+    | '/form'
+    | '/loading'
+    | '/report'
+    | '/share'
+    | '/summary'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/form' | '/loading' | '/share' | '/summary'
-  id: '__root__' | '/' | '/$' | '/form' | '/loading' | '/share' | '/summary'
+  to: '/' | '/$' | '/form' | '/loading' | '/report' | '/share' | '/summary'
+  id:
+    | '__root__'
+    | '/'
+    | '/$'
+    | '/form'
+    | '/loading'
+    | '/report'
+    | '/share'
+    | '/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -85,6 +109,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   FormRoute: typeof FormRoute
   LoadingRoute: typeof LoadingRoute
+  ReportRoute: typeof ReportRoute
   ShareRoute: typeof ShareRoute
   SummaryRoute: typeof SummaryRoute
 }
@@ -103,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/share'
       fullPath: '/share'
       preLoaderRoute: typeof ShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loading': {
@@ -141,6 +173,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   FormRoute: FormRoute,
   LoadingRoute: LoadingRoute,
+  ReportRoute: ReportRoute,
   ShareRoute: ShareRoute,
   SummaryRoute: SummaryRoute,
 }

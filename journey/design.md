@@ -19,6 +19,7 @@
 
 ```text
 /（封面）→ /form（场次选择）→ /loading（生成过渡）→ /summary（统计回顾）→ /share（分享）
+                                                                        └→ /report（专属报告，效果图）
 ```
 
 ## 关键设计决策
@@ -143,6 +144,14 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **视觉方向**：`zinc-950` 深色底，复用嘉宾星球的两层星点背景延续宇宙氛围；所有主题色效果由场次 `themeColor` 通过 `--memory-color` 驱动（日期颜色/光晕、辉光、caption 左边线、引用符、占位图渐变）；照片占位框带周期性斜向扫光（transform-only ::after），交替微倾斜。
 - **数据来源**：条目由 `SummaryDataContext` 的 `selectedShows` 按日期排序生成（每场一条）；照片、caption、talking 均为占位（常量表循环取用）。
 - **数据状态**：场次信息为真实数据；照片与文字内容全部为占位，真实回忆数据的来源和建模（用户上传 / 运营维护的场次 talking 精选）尚未确定。
+
+## 报告页「你的专属报告」（/report，效果图）
+
+- **组件**：`src/pages/report/`（`ReportPage` 聊天状态机、`ReportCard` 结果卡片、`report-mock.ts` 假数据）；入口为 `/share` 页的「你的专属报告」按钮。
+- **定位**：design.md 原待办「AI 自然语言查询」的 UI 效果图。agent 聊天界面（意象「5525 数据电台」）：用户输入统计问题 → 逐条点亮的假「计算步骤」（约 2.5s）→ 打印出一张数据卡片。**无任何真实 AI / 统计逻辑**。
+- **mock 规则**：3 个建议 chips 精确匹配各自的预设卡片；自由输入按提问次数轮换 3 套卡片。卡片形态两种：排行条（单色系横向条 + 直接标注）和日期时间线；均含流水号（REPORT №00X）、主答案（数字用 Doto 点阵体、中文用 WJH，带 themeColor 辉光）、虚线小票分隔的口径脚注和「示例数据」徽标。
+- **签名动画**：卡片以「热敏打印」clip-path 自上而下显现（1.1s），排行条随后逐条生长；消息入场为轻微上滑淡入；`prefers-reduced-motion` 下全部停用。复用嘉宾星球的星空背景类延续深空氛围。
+- **后续接入真实逻辑时**：把 `resolveReportCard` 换成 server function（自然语言 → D1 统计），`ReportCardData` 已按「问题复述 + 主答案 + 排行/时间线 + 口径脚注」建模，可直接作为 AI 输出的结构化 schema。
 
 ## 待确认与后续工作
 
