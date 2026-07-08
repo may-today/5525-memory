@@ -1,23 +1,14 @@
 import { useEffect, useState } from 'react'
 import { getSummaryData } from '@/server/summary'
 import type { SummaryData } from '@/server/summary'
-import { concertStore } from '@/stores/concert-store'
+import { concertStore, getPersistedShowIds } from '@/stores/concert-store'
 
-const STORAGE_KEY = 'concert-form-data:v1'
-
-/** Reads the showIds to fetch stats for: the store if already populated (normal /form -> /loading -> /summary flow), otherwise the sessionStorage snapshot written by FormPage (hard refresh on /summary). */
+/** Reads showIds from the store first, then the localStorage persistence snapshot. */
 function resolveInitialShowIds(): number[] {
   const storeIds = concertStore.state.selectedShows.map((show) => show.id)
   if (storeIds.length > 0) return storeIds
 
-  const raw = sessionStorage.getItem(STORAGE_KEY)
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw) as { showIds?: number[] }
-    return parsed.showIds ?? []
-  } catch {
-    return []
-  }
+  return getPersistedShowIds()
 }
 
 /**

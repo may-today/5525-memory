@@ -1,9 +1,14 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { concertStore, toggleSelectedShow } from '@/stores/concert-store'
+import {
+  clearSelectedShows,
+  concertStore,
+  hydrateSelectedShows,
+  toggleSelectedShow,
+} from '@/stores/concert-store'
 import type { Show } from '@/types'
 
 const routeApi = getRouteApi('/form')
@@ -61,10 +66,15 @@ export function FormPage() {
   const CITY_GROUPS = useMemo(() => buildCityGroups(allShows), [allShows])
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
   const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
+  const totalCount = selectedShows.length
   const [expandedCities, setExpandedCities] = useState<Set<string>>(() => {
     const lastGroup = CITY_GROUPS.at(-1)
     return new Set(lastGroup ? [lastGroup.city] : [])
   })
+
+  useEffect(() => {
+    hydrateSelectedShows(allShows)
+  }, [allShows])
 
   function toggleCity(city: string) {
     setExpandedCities((prev) => {
@@ -78,29 +88,7 @@ export function FormPage() {
     })
   }
 
-  const { totalCount, primaryCity } = useMemo(() => {
-    const totalCount = selectedShows.length
-    if (totalCount === 0) {
-      return { totalCount: 0, primaryCity: '' }
-    }
-
-    const cityCountMap = new Map<string, number>()
-    for (const show of selectedShows) {
-      cityCountMap.set(show.city, (cityCountMap.get(show.city) ?? 0) + 1)
-    }
-    let maxCount = 0
-    let primaryCity = ''
-    for (const [city, count] of cityCountMap) {
-      if (count > maxCount) {
-        maxCount = count
-        primaryCity = city
-      }
-    }
-    return { totalCount, primaryCity }
-  }, [selectedShows])
-
   function handleSubmit() {
-    sessionStorage.setItem('concert-form-data:v1', JSON.stringify({ showIds: selectedShows.map((show) => show.id) }))
     navigate({ to: '/loading' })
   }
 
@@ -166,9 +154,9 @@ export function FormPage() {
                           <SubThemeTag theme={show.subTheme} />
                         </div>
 
-                        {/* Day · Time */}
+                        {/* Day */}
                         <span className="text-[11px] text-muted-foreground tabular-nums">
-                          {getDayAbbr(show.showDate)} · {show.showStartTime}
+                          {getDayAbbr(show.showDate)}
                         </span>
                       </button>
                     )
@@ -182,9 +170,20 @@ export function FormPage() {
 
       {/* Sticky bottom bar */}
       <div className="sticky bottom-0 border-border border-t bg-background/95 px-4 pt-3 pb-8 backdrop-blur-sm">
-        <p className="mb-2.5 text-[11px] text-muted-foreground tabular-nums">
-          {totalCount === 0 ? '尚未选择场次' : `已选 ${totalCount} 场${primaryCity ? ` · ${primaryCity}` : ''}`}
-        </p>
+        <div className="mb-2.5 flex items-center justify-between gap-3">
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {totalCount === 0 ? '尚未选择场次' : `已选 ${totalCount} 场`}
+          </p>
+          {totalCount > 0 && (
+            <button
+              className="shrink-0 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
+              onClick={clearSelectedShows}
+              type="button"
+            >
+              清空
+            </button>
+          )}
+        </div>
         <Button className="w-full" disabled={totalCount === 0} onClick={handleSubmit} size="lg" type="button">
           下一步
         </Button>
