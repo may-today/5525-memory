@@ -157,25 +157,25 @@
 }
 
 .summary-globe-container {
-  width: 100%;
   position: relative;
-  user-select: none;
+  width: 100%;
   contain: layout style;
+  user-select: none;
 }
 
 .summary-globe-canvas {
+  position: relative;
   width: 100%;
   height: 100%;
-  position: relative;
-  user-select: none;
   contain: layout style;
+  user-select: none;
 }
 
 .summary-globe-orbit-ring {
   position: absolute;
   inset: -2%;
-  pointer-events: none;
   z-index: 1;
+  pointer-events: none;
   -webkit-mask-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.1) 40%,
@@ -207,44 +207,44 @@
 .summary-globe-orbit-text {
   font-family: var(--font-mono), monospace;
   font-size: 6px;
-  fill: #ffffff;
-  letter-spacing: 0.11em;
   text-transform: uppercase;
+  letter-spacing: 0.11em;
+  fill: #ffffff;
 }
 
 .summary-globe-marker-label {
   position: absolute;
   bottom: anchor(top);
   left: anchor(center);
-  translate: -50% 0;
-  margin-bottom: 8px;
+  z-index: 2;
   padding: 0.15rem 0.35rem;
-  background: #191919;
-  color: #ffffff;
+  margin-bottom: 8px;
   font-family: var(--font-mono), monospace;
   font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  color: #ffffff;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
   white-space: nowrap;
+  appearance: none;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  background: #191919;
+  border: none;
+  translate: -50% 0;
   transition:
     opacity 0.8s,
     filter 0.8s;
-  pointer-events: auto;
-  cursor: pointer;
-  z-index: 2;
-  border: none;
-  outline: none;
-  appearance: none;
 }
 
 .summary-globe-marker-label::after {
-  content: "";
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translate3d(-50%, -1px, 0);
+  content: "";
   border: 5px solid transparent;
   border-top-color: #191919;
+  transform: translate3d(-50%, -1px, 0);
 }
 
 /* Page transition — exit and enter must share the same easing so the two
@@ -256,32 +256,61 @@
 }
 
 @keyframes page-exit-up {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-100%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
 }
 @keyframes page-enter-up {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 @keyframes page-exit-down {
-  from { transform: translateY(0); }
-  to   { transform: translateY(100%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 @keyframes page-enter-down {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
-.animate-page-exit-up   { animation: page-exit-up   1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
-.animate-page-enter-up  { animation: page-enter-up  1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
-.animate-page-exit-down { animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
-.animate-page-enter-down{ animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+.animate-page-exit-up {
+  animation: page-exit-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.animate-page-enter-up {
+  animation: page-enter-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.animate-page-exit-down {
+  animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+.animate-page-enter-down {
+  animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
 
 /* Subtle downward nudge hint — replaces Tailwind's animate-bounce for the
    swipe-to-explore indicator. Ease-out-expo feels physical; the bounce does not. */
 @keyframes hint-down {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
 }
 
 .animate-hint-down {
@@ -295,6 +324,271 @@
   to {
     transform: rotateX(62deg) rotateZ(-360deg);
   }
+}
+
+/* Guest Planets card — deep-space background. Stars are tiny radial-gradient
+   dots tiled with co-prime background-sizes so the repetition is imperceptible;
+   pure CSS keeps the card SSR-stable with no RAF lifecycle to manage. All
+   layers animate transform/opacity only (compositor-only), and are oversized
+   past the card edges so slow drifts never expose a gap. */
+.summary-space-bg {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60% 45% at 18% 12%,
+      rgba(99, 102, 241, 0.14),
+      transparent 70%
+    ),
+    radial-gradient(
+      55% 40% at 85% 70%,
+      rgba(168, 85, 247, 0.12),
+      transparent 70%
+    );
+  animation: space-nebula-drift 45s ease-in-out infinite alternate;
+}
+
+@keyframes space-nebula-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-3%, 2%, 0) scale(1.08);
+  }
+}
+
+.summary-space-stars {
+  position: absolute;
+  inset: -80px;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 22px 34px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(
+      1px 1px at 118px 90px,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    ),
+    radial-gradient(
+      1.5px 1.5px at 65px 151px,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    ),
+    radial-gradient(
+      1px 1px at 160px 12px,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+  background-size:
+    173px 211px,
+    229px 191px,
+    251px 163px,
+    199px 227px;
+  animation: space-drift 90s linear infinite alternate;
+}
+
+.summary-space-stars-twinkle {
+  background-image:
+    radial-gradient(1px 1px at 45px 67px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(
+      1.5px 1.5px at 150px 130px,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    ),
+    radial-gradient(
+      1px 1px at 90px 200px,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    );
+  background-size:
+    181px 239px,
+    211px 173px,
+    233px 197px;
+  /* Opposite, slower drift than the base layer — a subtle parallax depth cue. */
+  animation:
+    space-twinkle 5s ease-in-out infinite alternate,
+    space-drift 140s linear infinite alternate-reverse;
+}
+
+@keyframes space-twinkle {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+@keyframes space-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-60px, 30px, 0);
+  }
+}
+
+/* One faint meteor streaking across every ~9s; base opacity is 0 so with
+   animation: none (reduced motion) it simply never appears. */
+.summary-space-shooting-star {
+  position: absolute;
+  top: 18%;
+  left: -12%;
+  width: 90px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9));
+  opacity: 0;
+  animation: shooting-star 9s linear infinite;
+  animation-delay: 3s;
+}
+
+@keyframes shooting-star {
+  0%,
+  92% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(16deg);
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(120vw, 34vw, 0) rotate(16deg);
+  }
+}
+
+/* Horizontal planet-field scroller: hidden scrollbar + edge fades that both
+   soften clipping and hint at more content off-screen. */
+.summary-space-scroller {
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 6%,
+    black 94%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 6%,
+    black 94%,
+    transparent
+  );
+}
+
+.summary-space-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Negative delay pre-staggers the phase so planets never sync up on mount;
+   per-row duration desyncs their periods. Compositor-only (transform), so the
+   card stays cheap during page transitions — no isPaused plumbing needed. */
+@keyframes guest-planet-float {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(5px, -14px, 0);
+  }
+}
+
+@keyframes guest-planet-float-far {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-4px, -8px, 0);
+  }
+}
+
+.summary-guest-planet-row {
+  animation: guest-planet-float calc(6s + var(--i, 0) * 0.4s) ease-in-out
+    infinite alternate;
+  animation-delay: calc(var(--i, 0) * -1.7s);
+}
+
+/* Depth layer: "far" planets are smaller, dimmer, softer and float slower. */
+.summary-guest-planet-row--far {
+  opacity: 0.7;
+  filter: blur(1px);
+  scale: 0.85;
+  animation-name: guest-planet-float-far;
+  animation-duration: calc(9s + var(--i, 0) * 0.5s);
+}
+
+.summary-guest-planet {
+  position: relative;
+  width: var(--planet-size);
+  height: var(--planet-size);
+  border-radius: 9999px;
+  box-shadow: 0 0 28px color-mix(in oklab, var(--planet-color), transparent 65%);
+  /* Contain the negative-z glow so it can't slip behind the card background. */
+  isolation: isolate;
+}
+
+/* Breathing halo behind the planet face (opacity-only, compositor-friendly). */
+.summary-guest-planet::after {
+  position: absolute;
+  inset: -22%;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--planet-color), transparent 55%),
+    transparent 70%
+  );
+  border-radius: 9999px;
+  filter: blur(14px);
+  animation: guest-planet-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes guest-planet-glow {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.summary-guest-planet > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  object-fit: cover;
+  border-radius: 9999px;
+}
+
+/* Sphere shading: top-left highlight + bottom-right terminator + a themeColor
+   wash that tints any flat avatar (or the shared placeholder) into a planet. */
+.summary-guest-planet-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 30% 28%,
+      rgba(255, 255, 255, 0.35),
+      transparent 45%
+    ),
+    radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.55), transparent 60%),
+    color-mix(in oklab, var(--planet-color), transparent 55%);
+  border-radius: 9999px;
+}
+
+.summary-guest-planet-ring {
+  position: absolute;
+  inset: -18%;
+  pointer-events: none;
+  border: 1px solid color-mix(in oklab, var(--planet-color), white 40%);
+  border-radius: 9999px;
+  opacity: 0.5;
+  transform: rotate(-18deg) scaleY(0.38);
 }
 
 /* Accessibility: respect the OS "Reduce Motion" preference (WCAG 2.3.3).
@@ -314,12 +608,22 @@
     animation: none;
   }
 
+  /* Guest Planets: float, glow, star drift/twinkle, nebula, meteor */
+  .summary-guest-planet-row,
+  .summary-guest-planet::after,
+  .summary-space-stars,
+  .summary-space-stars-twinkle,
+  .summary-space-bg,
+  .summary-space-shooting-star {
+    animation: none;
+  }
+
   /* Tailwind utility animations (e.g. animate-bounce, animate-spin) */
   *,
   *::before,
   *::after {
+    transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
