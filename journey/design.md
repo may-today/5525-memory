@@ -36,7 +36,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md`。
 
-表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题。
+表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题。
 
 **本地开发**：D1 的本地状态是每台机器独立的 SQLite 文件（`.wrangler/state/v3/d1`，已 gitignore），完全由 Miniflare 模拟，不需要 Cloudflare 账号权限。新拉仓库或换机器只需要 `bunx wrangler d1 migrations apply 5525-memory-db --local` 再 `bun run dev`。
 

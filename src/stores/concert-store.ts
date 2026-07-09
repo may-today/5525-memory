@@ -40,6 +40,8 @@ export const concertStore = new Store<ConcertState>({
   selectedShows: [],
 })
 
+let isHydratingConcertState = false
+
 function isBrowser(): boolean {
   return typeof window !== 'undefined'
 }
@@ -114,8 +116,28 @@ function persistConcertState(state: ConcertState): void {
 }
 
 concertStore.subscribe((state) => {
+  if (isHydratingConcertState) {
+    return
+  }
+
   persistConcertState(state)
 })
+
+function hydrateConcertStore(
+  updater: (state: ConcertState) => ConcertState,
+  shouldPersistAfterHydration = false
+): void {
+  isHydratingConcertState = true
+  try {
+    concertStore.setState(updater)
+  } finally {
+    isHydratingConcertState = false
+  }
+
+  if (shouldPersistAfterHydration) {
+    persistConcertState(concertStore.state)
+  }
+}
 
 /** Hydrate selected shows from localStorage using the loaded show catalog. */
 export function hydrateSelectedShows(allShows: Show[]): void {
@@ -125,13 +147,13 @@ export function hydrateSelectedShows(allShows: Show[]): void {
   }
 
   const selectedShows = allShows.filter((show) => persistedIds.has(show.id))
-  concertStore.setState((state) => ({ ...state, selectedShows }))
+  hydrateConcertStore((state) => ({ ...state, selectedShows }), true)
 }
 
 /** Hydrate profile fields from localStorage. */
 export function hydrateConcertProfile(): void {
   const profile = readPersistedProfile()
-  concertStore.setState((state) => ({ ...state, profile }))
+  hydrateConcertStore((state) => ({ ...state, profile }))
 }
 
 /** Update the persisted profile collected before show selection. */
