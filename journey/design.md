@@ -4,9 +4,9 @@
 
 5525 Memory 是一个移动端优先的五月天 #5525 巡回演唱会回顾网页应用。用户选择自己参加过的场次后，应用会生成可视化、可分享的个人巡演总结。
 
-## 当前状态（2026-06-20）
+## 当前状态（2026-07-09）
 
-项目已迁移至 TanStack Start，完整页面流程可以正常跳转。表单使用真实场次目录，并为后续统计流程保存用户选择的场次 ID。统计页面新增「场次概览」作为首屏，使用 contribution graph 动画呈现全部巡演场次及用户已选场次；其余统计页面的框架和部分视觉效果已完成，真实统计逻辑仍待接入。
+项目已迁移至 TanStack Start，完整页面流程可以正常跳转。表单使用真实场次目录，并为后续统计流程保存用户选择的场次 ID。统计页面使用 D1 真实数据生成场次、城市、歌曲和嘉宾统计；报告页已从 mock 效果图升级为 TanStack AI 驱动的结构化报告卡片，基于用户已选场次调用受控统计工具生成结果。
 
 ## 技术架构
 
@@ -145,17 +145,19 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：条目由 `SummaryDataContext` 的 `selectedShows` 按日期排序生成（每场一条）；照片、caption、talking 均为占位（常量表循环取用）。
 - **数据状态**：场次信息为真实数据；照片与文字内容全部为占位，真实回忆数据的来源和建模（用户上传 / 运营维护的场次 talking 精选）尚未确定。
 
-## 报告页「你的专属报告」（/report，效果图）
+## 报告页「你的专属报告」（/report）
 
-- **组件**：`src/pages/report/`（`ReportPage` 聊天状态机、`ReportCard` 结果卡片、`report-mock.ts` 假数据）；入口为 `/share` 页的「你的专属报告」按钮。
-- **定位**：design.md 原待办「AI 自然语言查询」的 UI 效果图。agent 聊天界面（意象「5525 数据电台」）：用户输入统计问题 → 逐条点亮的假「计算步骤」（约 2.5s）→ 打印出一张数据卡片。**无任何真实 AI / 统计逻辑**。
-- **mock 规则**：3 个建议 chips 精确匹配各自的预设卡片；自由输入按提问次数轮换 3 套卡片。卡片形态两种：排行条（单色系横向条 + 直接标注）和日期时间线；均含流水号（REPORT №00X）、主答案（数字用 Doto 点阵体、中文用 WJH，带 themeColor 辉光）、虚线小票分隔的口径脚注和「示例数据」徽标。
-- **签名动画**：卡片以「热敏打印」clip-path 自上而下显现（1.1s），排行条随后逐条生长；消息入场为轻微上滑淡入；`prefers-reduced-motion` 下全部停用。复用嘉宾星球的星空背景类延续深空氛围。
-- **后续接入真实逻辑时**：把 `resolveReportCard` 换成 server function（自然语言 → D1 统计），`ReportCardData` 已按「问题复述 + 主答案 + 排行/时间线 + 口径脚注」建模，可直接作为 AI 输出的结构化 schema。
+- **组件**：`src/pages/report/`（`ReportPage` TanStack AI 聊天 UI、`ReportCard` 结果卡片、`report-schema.ts` 结构化卡片 schema）；入口为 `/share` 页的「你的专属报告」按钮。
+- **定位**：AI 自然语言查询入口。用户输入统计问题后，前端通过 `@tanstack/ai-react` 的 `useChat` 连接 `/api/report-chat`，服务端用 TanStack AI `chat()`、OpenAI-compatible adapter 和 D1 统计工具生成一张数据卡片。
+- **模型配置**：页面不暴露模型选择；服务端通过 `REPORT_AI_BASE_URL`、`REPORT_AI_API_KEY`、`REPORT_AI_MODEL` 和可选 `REPORT_AI_PROVIDER_NAME` 配置 OpenAI-compatible 模型。密钥只在服务端读取。
+- **统计边界**：AI 不能自由生成 SQL；只能调用受控工具：出席概览、城市排行、歌曲排行、单曲时间线、嘉宾排行、按月份/季节歌曲排行。工具默认基于用户已选场次 ID 查询 D1；当用户明确询问「所有场次 / 全巡演 / 全部场次」时，同一套统计维度可切换到所有未隐藏场次。歌曲类工具还支持主歌单、点歌、安可分段过滤，所以「所有场次中唱过最多的点歌」会走全场次 + 点歌分段统计。空选择且未要求全场次时生成提示用户先选场次的零状态卡片。由于当前 OpenAI-compatible 模型端（如 DeepSeek）不一定支持 `response_format`，服务端不把 `outputSchema` 传给 provider，而是要求模型输出 JSON 文本，服务端用 `ReportCardSchema` 校验后再合成为 TanStack AI structured-output SSE 事件给客户端。
+- **文件组织**：`src/routes/api.report-chat.ts` 只保留 TanStack Start route 壳；`src/server/report-chat.ts` 组装一次请求；`src/server/report-prompt.ts` 维护支持维度和系统提示词；`src/server/report-stream.ts` 负责 JSON 文本解析、schema 校验和 structured-output SSE 合成；`src/server/report-stats.ts` / `report-tools.ts` 负责 D1 聚合和 TanStack AI 工具定义。
+- **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注、流水号和「实时统计」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
+- **动画与状态**：卡片继续使用「热敏打印」clip-path 显现，排行条随后生长；消息入场轻微上滑淡入；工具调用期间显示逐步点亮的计算状态；`prefers-reduced-motion` 下动画停用。
 
 ## 待确认与后续工作
 
 - 确定里程统计的计算口径（表单已采集用户城市与可选浏览器定位坐标，D1 城市经纬度已就绪）。
 - 设计统计页面内的视差或滚动动画。
 - 评估使用 `html2canvas` 或同类方案生成分享图片。
-- 评估在统计数据之上接入 AI 自然语言查询能力（用户输入想探索的统计项，如「秋天唱过最多的歌」）。
+- 扩展报告页统计工具覆盖面，并为 AI 输出增加更系统的回归测试。

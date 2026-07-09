@@ -16,6 +16,7 @@ import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiReportChatRouteImport } from './routes/api.report-chat'
 
 const SummaryRoute = SummaryRouteImport.update({
   id: '/summary',
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReportChatRoute = ApiReportChatRouteImport.update({
+  id: '/api/report-chat',
+  path: '/api/report-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,8 +100,17 @@ export interface FileRouteTypes {
     | '/report'
     | '/share'
     | '/summary'
+    | '/api/report-chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/form' | '/loading' | '/report' | '/share' | '/summary'
+  to:
+    | '/'
+    | '/$'
+    | '/form'
+    | '/loading'
+    | '/report'
+    | '/share'
+    | '/summary'
+    | '/api/report-chat'
   id:
     | '__root__'
     | '/'
@@ -102,6 +120,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/share'
     | '/summary'
+    | '/api/report-chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -112,6 +131,7 @@ export interface RootRouteChildren {
   ReportRoute: typeof ReportRoute
   ShareRoute: typeof ShareRoute
   SummaryRoute: typeof SummaryRoute
+  ApiReportChatRoute: typeof ApiReportChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -165,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/report-chat': {
+      id: '/api/report-chat'
+      path: '/api/report-chat'
+      fullPath: '/api/report-chat'
+      preLoaderRoute: typeof ApiReportChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -176,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportRoute: ReportRoute,
   ShareRoute: ShareRoute,
   SummaryRoute: SummaryRoute,
+  ApiReportChatRoute: ApiReportChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
