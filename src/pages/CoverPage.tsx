@@ -33,11 +33,10 @@ export function CoverPage() {
   const { staticFileHost } = rootRouteApi.useLoaderData()
 
   return (
-    <div className="flex min-h-svh flex-col items-stretch justify-stretch">
-      <div className="relative flex-1">
-        <CoverBackground staticFileHost={staticFileHost} />
-      </div>
-      <div className="border-t py-1 font-geist">
+    <div className="relative flex min-h-svh flex-col items-stretch justify-stretch">
+      <CoverBackground staticFileHost={staticFileHost} />
+      <div className="flex-1" />
+      <div className="relative border-t bg-background/55 py-1 font-geist">
         <Marquee>
           <div className="mx-1 flex flex-row items-baseline gap-2">
             <div>MAYDAY 5525</div>
@@ -49,7 +48,7 @@ export function CoverPage() {
           </div>
         </Marquee>
       </div>
-      <div className="relative flex flex-col items-start gap-2 border-t px-5 py-6">
+      <div className="relative flex flex-col items-start gap-2 border-t bg-linear-to-b bg-transparent from-background/65 to-background to-33% px-5 py-6">
         <p className="text-muted-foreground text-sm">五月天「5525 回到那一天」</p>
         <h1 className="mb-6 font-extrabold font-wjh text-5xl">
           你的

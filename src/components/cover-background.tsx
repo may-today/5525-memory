@@ -45,6 +45,7 @@ export function CoverBackground({ staticFileHost }: CoverBackgroundProps) {
           </div>
         ))}
       </div>
+      <div className="cover-background-fade" />
     </div>
   )
 }
