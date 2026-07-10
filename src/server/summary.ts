@@ -39,6 +39,28 @@ export interface RandomSongStats {
   uniqueCount: number
 }
 
+export interface RareSongEntry {
+  /** 用户第一次听到该曲目的场次城市，作为纸条落款。 */
+  heardCity: string
+  /** 该曲目在用户选中场次中的出现次数（点歌 + 安可行数之和）。 */
+  heardCount: number
+  /** 用户第一次听到该曲目的场次日期 MM/DD 格式。 */
+  heardDateSlash: string
+  /** setlist_items.title 的精确值，按标题精确分组。 */
+  title: string
+  /** 该曲目在全巡演所有非隐藏场次中的出现次数（点歌 + 安可）。 */
+  tourCount: number
+}
+
+export interface RareSongStats {
+  /**
+   * 冷门榜前 7 首：heardCount 升序 → tourCount 升序 → 标题排序保证 SSR 稳定。
+   * 排行第一名即用户的「沧海遗珠」，无条件保留；其余条目需满足全巡演出现
+   * 次数不超过 RARE_SONG_TOUR_COUNT_MAX，避免把巡演常驻曲当成冷门曲展示。
+   */
+  entries: RareSongEntry[]
+}
+
 export interface GuestShowInfo {
   /** 嘉宾场次所在城市，复制自完整 Show 记录。 */
   city: string
@@ -128,6 +150,13 @@ export interface SummaryData {
    * （section = 'main'）不计入。
    */
   randomSongStats: RandomSongStats
+  /**
+   * 选中场次的冷门随机曲目统计（「最小众歌单」卡）。
+   *
+   * 与 randomSongStats 同一随机曲目口径，但按用户听到次数升序取最少的几首，
+   * 并附上该曲目在全巡演非隐藏场次中的出现次数与用户第一次听到它的场次落款。
+   */
+  rareSongStats: RareSongStats
   /**
    * 选中场次的歌曲统计。
    *
@@ -258,6 +287,91 @@ async function queryRandomSongStats(db: D1Database, showIds: number[]): Promise<
   }
 }
 
+/** How many rare-song "paper slips" the rare-songs card shows (1 hero + 6 small notes). */
+const RARE_SONG_RANK_LIMIT = 7
+
+/**
+ * A song only qualifies as "冷门" for the small-notes grid if the whole tour
+ * sang it at most this many times (~5% of shows). Without this, a one-show
+ * user — whose every song is heard exactly once — would get tour staples like
+ * 顽固 (tour count 30+) presented as rarities. The hero slip is exempt: the
+ * rarest thing the user heard is always worth showing.
+ */
+const RARE_SONG_TOUR_COUNT_MAX = 8
+
+/** Byte-wise title comparison matching the SQL BINARY collation of queryRandomSongStats' tie-break. */
+function compareTitles(a: string, b: string): number {
+  if (a < b) return -1
+  if (a > b) return 1
+  return 0
+}
+
+/**
+ * The mirror of queryRandomSongStats: the user's LEAST-heard random songs
+ * (same request/encore condition), ranked by heard count ascending, then by
+ * how rarely the song appeared across the whole tour, then by title so the
+ * ranking is deterministic across SSR/CSR. Tour-wide counts only consider
+ * non-hidden shows; each entry carries the first show (city + date) where the
+ * user heard the song, which the card prints as the slip's signature line.
+ */
+async function queryRareSongStats(db: D1Database, showIds: number[]): Promise<RareSongStats> {
+  if (showIds.length === 0) return { entries: [] }
+  const placeholders = showIds.map(() => '?').join(',')
+  const randomSongFilter = `si.item_type = 'song' AND (si.section = 'request' OR si.section LIKE 'encore_%')`
+
+  const heardStmt = db
+    .prepare(
+      `SELECT si.title, s.city, s.show_date FROM setlist_items si
+       JOIN shows s ON s.id = si.show_id
+       WHERE si.show_id IN (${placeholders}) AND ${randomSongFilter}
+       ORDER BY s.show_date ASC`
+    )
+    .bind(...showIds)
+  const tourStmt = db.prepare(
+    `SELECT si.title, COUNT(*) AS cnt FROM setlist_items si
+     JOIN shows s ON s.id = si.show_id
+     WHERE s.is_hidden = 0 AND ${randomSongFilter}
+     GROUP BY si.title`
+  )
+
+  const [heardResult, tourResult] = await db.batch<
+    { title: string; city: string; show_date: string } | { title: string; cnt: number }
+  >([heardStmt, tourStmt])
+
+  const tourCounts = new Map(
+    (tourResult.results as { title: string; cnt: number }[]).map((row) => [row.title, row.cnt])
+  )
+
+  const heardByTitle = new Map<string, { heardCount: number; heardCity: string; heardDate: string }>()
+  for (const row of heardResult.results as { title: string; city: string; show_date: string }[]) {
+    const existing = heardByTitle.get(row.title)
+    if (existing) {
+      existing.heardCount += 1
+    } else {
+      heardByTitle.set(row.title, { heardCount: 1, heardCity: row.city, heardDate: row.show_date })
+    }
+  }
+
+  const ranked = [...heardByTitle.entries()]
+    .map(
+      ([title, heard]): RareSongEntry => ({
+        title,
+        heardCount: heard.heardCount,
+        heardCity: heard.heardCity,
+        heardDateSlash: heard.heardDate.slice(5).replace('-', '/'),
+        // A selected show is always in the non-hidden catalog, so the fallback never fires in practice.
+        tourCount: tourCounts.get(title) ?? heard.heardCount,
+      })
+    )
+    .sort((a, b) => a.heardCount - b.heardCount || a.tourCount - b.tourCount || compareTitles(a.title, b.title))
+
+  const entries = ranked
+    .filter((entry, index) => index === 0 || entry.tourCount <= RARE_SONG_TOUR_COUNT_MAX)
+    .slice(0, RARE_SONG_RANK_LIMIT)
+
+  return { entries }
+}
+
 /**
  * Single consolidated query for everything the /summary cards need (Card2's
  * mileage is out of scope — no home-city capture yet). Called once per
@@ -268,11 +382,12 @@ export const getSummaryData = createServerFn({ method: 'POST' })
   .handler(async ({ data: showIds }): Promise<SummaryData> => {
     const db = await getDb()
 
-    const [allShows, selectedShows, songStats, randomSongStats] = await Promise.all([
+    const [allShows, selectedShows, songStats, randomSongStats, rareSongStats] = await Promise.all([
       queryAllShows(db),
       queryShowsByIds(db, showIds),
       querySongStats(db, showIds),
       queryRandomSongStats(db, showIds),
+      queryRareSongStats(db, showIds),
     ])
 
     const citiesForMarkers = selectedShows.length > 0 ? selectedShows.map((s) => s.city) : allShows.map((s) => s.city)
@@ -288,6 +403,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       cityMarkers: buildCityMarkers(citiesForMarkers),
       songStats,
       randomSongStats,
+      rareSongStats,
       guestStats: buildGuestStats(allShows, selectedShows),
     }
   })

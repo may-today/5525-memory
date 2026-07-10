@@ -905,6 +905,106 @@
   }
 }
 
+/* 最小众歌单卡：被抽中的点歌纸条。暖白纸片带两道折痕阴影（展开的三折
+   纸条），逐张飘落入位；主纸条贴一段半透明和纸胶带，「仅此一次」盖橙色
+   印章；顶部一束静态追光。全部 transform/opacity。 */
+.summary-note {
+  --note-tilt: -1.6deg;
+  border-radius: 4px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0 32%,
+      rgba(120, 100, 70, 0.1) 33%,
+      transparent 34.5%,
+      transparent 65%,
+      rgba(120, 100, 70, 0.08) 66%,
+      transparent 67.5%
+    ),
+    linear-gradient(180deg, #f7f2e7 0%, #efe8d8 100%);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 14px 32px -18px rgba(0, 0, 0, 0.85);
+  transform: rotate(var(--note-tilt));
+  animation: summary-note-drop 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  animation-delay: calc(0.15s + var(--i, 0) * 0.09s);
+}
+
+.summary-note-hero {
+  --note-tilt: -2deg;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 24px 48px -20px rgba(0, 0, 0, 0.9),
+    0 30px 70px -30px color-mix(in oklab, var(--rare-color), transparent 55%);
+}
+
+@keyframes summary-note-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) rotate(calc(var(--note-tilt) + 4deg));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--note-tilt));
+  }
+}
+
+.summary-note-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 72px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: color-mix(in oklab, var(--rare-color), transparent 68%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.summary-note-seal {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 2px solid color-mix(in oklab, var(--rare-color), transparent 22%);
+  border-radius: 9999px;
+  color: color-mix(in oklab, var(--rare-color), #7c2d12 18%);
+  font-size: 13px;
+  line-height: 1.05;
+  text-align: center;
+  transform: rotate(9deg);
+  /* 印泥不匀的手工感：局部轻微缺墨 */
+  mask-image: radial-gradient(
+    circle at 32% 26%,
+    rgba(0, 0, 0, 0.65) 0 18%,
+    black 42%
+  );
+}
+
+.summary-note-spotlight {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 340px;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 62% 78% at 50% -12%,
+    color-mix(in oklab, var(--rare-color), transparent 82%) 0%,
+    transparent 70%
+  );
+  animation: summary-spotlight-in 1.2s ease-out both;
+}
+
+@keyframes summary-spotlight-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .report-timeline-dot {
   flex-shrink: 0;
   width: 6px;
@@ -986,6 +1086,12 @@
   .summary-playlist-row,
   .summary-vinyl,
   .summary-vinyl-disc {
+    animation: none;
+  }
+
+  /* 最小众歌单卡：纸条飘落与追光淡入停用 */
+  .summary-note,
+  .summary-note-spotlight {
     animation: none;
   }
 

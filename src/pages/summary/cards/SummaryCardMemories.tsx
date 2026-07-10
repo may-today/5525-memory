@@ -152,7 +152,7 @@ export function SummaryCardMemories() {
         ref={scrollerRef}
       >
         <header className="px-6 pt-6 pb-20">
-          <p className="text-xs text-zinc-500 uppercase tracking-widest">06 / 你的回忆</p>
+          <p className="text-xs text-zinc-500 uppercase tracking-widest">07 / 你的回忆</p>
           <h3 className="mt-4 font-bold text-3xl text-white leading-snug">
             有些瞬间，
             <br />
