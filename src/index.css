@@ -159,6 +159,90 @@
     line-height: 1.125;
 }
 
+.cover-background-strip {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    animation-duration: 60s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    will-change: transform;
+}
+
+.cover-background-image {
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    height: 100%;
+    max-width: none;
+}
+
+.cover-background-row {
+    width: 100%;
+    height: calc(100% / 9);
+    overflow: hidden;
+    line-height: 0;
+}
+
+.cover-background-vertical-track {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 360%;
+    animation: cover-strip-drift-up 60s linear infinite;
+    will-change: transform;
+}
+
+.cover-background-group {
+    flex: 0 0 50%;
+    height: 50%;
+    width: 100%;
+}
+
+.cover-background-strip--right {
+    animation-name: cover-strip-drift-right;
+}
+
+.cover-background-strip--left {
+    animation-name: cover-strip-drift-left;
+}
+
+@media (max-width: 767px) {
+    .cover-background-strip {
+        animation-duration: 90s;
+    }
+}
+
+@keyframes cover-strip-drift-right {
+    from {
+        transform: translateX(-33.333333%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes cover-strip-drift-left {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-33.333333%);
+    }
+}
+
+@keyframes cover-strip-drift-up {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-50%);
+    }
+}
+
 .summary-globe-container {
     position: relative;
     width: 100%;
@@ -1028,6 +1112,14 @@
    Collapse all page-transition animations to an instant cross-fade so users
    with vestibular disorders are not made ill by full-screen sliding. */
 @media (prefers-reduced-motion: reduce) {
+
+    .cover-background-strip {
+        animation: none;
+    }
+
+    .cover-background-vertical-track {
+        animation: none;
+    }
 
     /* Page slide transitions → instant swap */
     .animate-page-exit-up,

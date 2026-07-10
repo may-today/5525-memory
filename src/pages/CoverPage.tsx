@@ -1,9 +1,11 @@
-import { useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { ArrowRight } from 'lucide-react'
 import MaydayIcon from '@/assets/mayday.svg'
+import { CoverBackground } from '@/components/cover-background'
 import { Marquee } from '@/components/marquee'
-import { TextureOverlay } from '@/components/ui/texture-overlay'
+
+const rootRouteApi = getRouteApi('__root__')
 
 const Logos = () => (
   <div className="flex flex-row items-center gap-2">
@@ -28,11 +30,12 @@ const NextButton: React.FC<{ onClick: () => void; className?: string }> = ({ onC
 
 export function CoverPage() {
   const navigate = useNavigate()
+  const { staticFileHost } = rootRouteApi.useLoaderData()
 
   return (
     <div className="flex min-h-svh flex-col items-stretch justify-stretch">
       <div className="relative flex-1">
-        <TextureOverlay className="invert" opacity={0.2} texture="grid" />
+        <CoverBackground staticFileHost={staticFileHost} />
       </div>
       <div className="border-t py-1 font-geist">
         <Marquee>
