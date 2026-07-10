@@ -34,7 +34,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ### 场次数据与 D1（2026-07-08）
 
-场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md`。
+场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。`getSummaryData` 每次调用只用一条 `shows` + `setlist_items` 联表语句读取所有未隐藏场次的完整快照（歌单数通过 window count 计算，避免相关子查询重复扫描），随后仅在 Worker 内存里按用户所选场次计算所有指标；原始歌单行不会传到浏览器。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md` 与 `journey/plans/2026-07-10-summary-single-query.md`。
 
 表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题。
 
@@ -116,7 +116,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **组件**：`SummaryCard3`
 - **设计目标**：从曲目角度回顾用户在所选场次中听到的内容。
 - **主要内容**：听到的歌曲总数、出现次数最多的歌曲。
-- **数据来源**：`getSummaryData` 返回的 `songStats`（服务端对 D1 `setlist_items` 按选中场次 ID 聚合，口径为 `item_type='song'`，含安可段落、排除串烧/VCR/talking 等非歌曲条目）。
+- **数据来源**：`getSummaryData` 返回的 `songStats`（服务端从同一份全巡演快照按选中场次 ID 在内存聚合，口径为 `item_type='song'`，含安可段落、排除串烧/VCR/talking 等非歌曲条目）。
 - **数据状态**：总歌曲数、最常出现的歌均已接入真实数据。
 
 ### 7. 专属歌单
@@ -129,7 +129,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **动画逻辑**：唱片 wrapper 淡入 + 轻微 scale 入场（旋转在内层互不干扰）、盘面 12s 匀速旋转、tracklist 逐行错峰淡入上移，全部 compositor-only；`prefers-reduced-motion` 下停转停入场停淡入。
 - **交互方式**：内容区带 `data-scroll-container`，复用容器滚动优先切页逻辑。
 - **零状态**：标题「你的黑胶还是一张空白母盘」；未选场次时提示「选好你去过的场次，点歌与安可会替你刻下第一道纹」；已选场次但无点歌/安可记录时提示「这些场次还没有留下点歌与安可的记录」。
-- **数据来源**：`getSummaryData` 返回的 `randomSongStats`（服务端对 D1 `setlist_items` 按选中场次聚合，口径为 `item_type = 'song'` 且 `section = 'request'` 或 `section LIKE 'encore_%'`，与报告页 `report-stats.ts` 分段过滤一致；返回 Top 10 `entries` + `totalPlays` + `uniqueCount`）。
+- **数据来源**：`getSummaryData` 返回的 `randomSongStats`（服务端从同一份全巡演快照按选中场次聚合，口径为 `item_type = 'song'` 且 `section = 'request'` 或 `section LIKE 'encore_%'`，与报告页 `report-stats.ts` 分段过滤一致；返回 Top 10 `entries` + `totalPlays` + `uniqueCount`）。
 - **数据状态**：已接入真实数据（本地 D1 实测每场随机曲目 7–17 首，跨场次自然产生重复计数）。
 
 ### 8. 最小众歌单
@@ -141,7 +141,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **动画逻辑**：纸条逐张「飘落入位」（translateY + 旋转过冲收敛 + 淡入，`--i` 错峰）、追光淡入；全部 transform/opacity；`prefers-reduced-motion` 下全部停用。
 - **交互方式**：内容区带 `data-scroll-container`，复用容器滚动优先切页逻辑。
 - **零状态**：标题「纸条箱里还是空的」；未选场次时提示「选好你去过的场次，第一张纸条才会被抽出来」；已选场次但无记录时提示「这些场次还没有留下点歌与安可的记录」。
-- **数据来源**：`getSummaryData` 返回的 `rareSongStats`（服务端 `queryRareSongStats` 两条语句 batch：选中场次随机曲目行 join shows 取城市/日期，全巡演非隐藏场次按标题分组计数，JS 侧合并排序）。
+- **数据来源**：`getSummaryData` 返回的 `rareSongStats`（服务端从同一份全巡演快照在内存计算选中场次随机曲目、首次听到场次，以及全巡演出现次数，再合并排序）。
 - **数据状态**：已接入真实数据（headless 走查验证多场/单场/零状态三分支）。
 
 ### 9. 嘉宾星球

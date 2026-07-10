@@ -2,7 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
-import { queryAllShows, queryShowsByIds } from './shows'
+import type { SummarySetlistItem } from './shows'
+import { querySummarySnapshot } from './shows'
 
 export interface CityMarker {
   /** 城市展示名；有选中场次时来自选中场次城市去重，未选择任何场次时来自所有非隐藏场次城市去重。 */
@@ -102,7 +103,7 @@ export interface GuestShow {
 }
 
 export interface GuestStats {
-  /** 所有包含嘉宾的非隐藏巡演场次；继承 queryAllShows 的日期排序，并为每场标记 isVisited。 */
+  /** 所有包含嘉宾的非隐藏巡演场次；继承巡演快照日期排序，并为每场标记 isVisited。 */
   guestShows: GuestShow[]
 }
 
@@ -110,7 +111,7 @@ export interface SummaryData {
   /**
    * 按演出日期排序的完整非隐藏场次目录。
    *
-   * 由 queryAllShows 计算，用于 Overview 时间线、City 地球在未选择场次时的兜底城市，
+   * 由单次巡演快照读取计算，用于 Overview 时间线、City 地球在未选择场次时的兜底城市，
    * 以及嘉宾场次统计。
    */
   allShows: Show[]
@@ -136,13 +137,6 @@ export interface SummaryData {
    */
   overview: { totalShows: number; cityCount: number; venueCount: number }
   /**
-   * 根据请求传入的场次 id 解析出的完整 Show 记录。
-   *
-   * 由 queryShowsByIds 计算；useSummaryData 也会用它在 /summary 硬刷新后回填
-   * concertStore。
-   */
-  selectedShows: Show[]
-  /**
    * 选中场次的随机曲目统计（「专属歌单」卡）。
    *
    * 口径：item_type = 'song' 且 section = 'request'（点歌）或 section LIKE
@@ -157,6 +151,13 @@ export interface SummaryData {
    * 并附上该曲目在全巡演非隐藏场次中的出现次数与用户第一次听到它的场次落款。
    */
   rareSongStats: RareSongStats
+  /**
+   * 根据请求传入的场次 id 解析出的完整 Show 记录。
+   *
+   * 由完整巡演快照过滤计算；useSummaryData 也会用它在 /summary 硬刷新后回填
+   * concertStore。
+   */
+  selectedShows: Show[]
   /**
    * 选中场次的歌曲统计。
    *
@@ -207,38 +208,11 @@ function buildGuestStats(allShows: Show[], selectedShows: Show[]): GuestStats {
 }
 
 /**
- * A row counts toward "songs heard" iff item_type = 'song'. This INCLUDES
- * encore-section songs (section LIKE 'encore_%') since those are still songs
- * performed, and EXCLUDES medley/vcr/talking/event/special_guest/interaction
- * rows, since those are not literal songs.
+ * Whether a setlist row counts toward "songs heard". This INCLUDES encore
+ * songs and EXCLUDES medley/vcr/talking/event/special_guest/interaction rows.
  */
-async function querySongStats(db: D1Database, showIds: number[]): Promise<SongStats> {
-  if (showIds.length === 0) return { totalSongs: 0, topSong: null }
-  const placeholders = showIds.map(() => '?').join(',')
-
-  const totalStmt = db
-    .prepare(`SELECT COUNT(*) AS total FROM setlist_items WHERE show_id IN (${placeholders}) AND item_type = 'song'`)
-    .bind(...showIds)
-  const topStmt = db
-    .prepare(
-      `SELECT title, COUNT(*) AS cnt FROM setlist_items
-       WHERE show_id IN (${placeholders}) AND item_type = 'song'
-       GROUP BY title ORDER BY cnt DESC LIMIT 1`
-    )
-    .bind(...showIds)
-
-  const [totalResult, topResult] = await db.batch<{ total: number } | { title: string; cnt: number }>([
-    totalStmt,
-    topStmt,
-  ])
-
-  const total = (totalResult.results[0] as { total: number } | undefined)?.total ?? 0
-  const top = topResult.results[0] as { title: string; cnt: number } | undefined
-
-  return {
-    totalSongs: total,
-    topSong: top ? { title: top.title, count: top.cnt } : null,
-  }
+function isSong(item: SummarySetlistItem): boolean {
+  return item.itemType === 'song'
 }
 
 /** How many ranked entries the playlist card shows. */
@@ -249,42 +223,9 @@ const RANDOM_SONG_RANK_LIMIT = 10
  * encore-section songs (section = 'request' OR section LIKE 'encore_%'),
  * matching the segment filters in report-stats.ts. Main-setlist songs are
  * excluded — they are identical across shows and would drown out the signal.
- * Ties are broken by title so the ranking is deterministic across SSR/CSR.
  */
-async function queryRandomSongStats(db: D1Database, showIds: number[]): Promise<RandomSongStats> {
-  if (showIds.length === 0) return { entries: [], totalPlays: 0, uniqueCount: 0 }
-  const placeholders = showIds.map(() => '?').join(',')
-  const randomSongCondition = `show_id IN (${placeholders}) AND item_type = 'song' AND (section = 'request' OR section LIKE 'encore_%')`
-
-  const rankStmt = db
-    .prepare(
-      `SELECT title, COUNT(*) AS cnt FROM setlist_items
-       WHERE ${randomSongCondition}
-       GROUP BY title ORDER BY cnt DESC, title LIMIT ${RANDOM_SONG_RANK_LIMIT}`
-    )
-    .bind(...showIds)
-  const totalsStmt = db
-    .prepare(
-      `SELECT COUNT(*) AS totalPlays, COUNT(DISTINCT title) AS uniqueCount FROM setlist_items
-       WHERE ${randomSongCondition}`
-    )
-    .bind(...showIds)
-
-  const [rankResult, totalsResult] = await db.batch<
-    { title: string; cnt: number } | { totalPlays: number; uniqueCount: number }
-  >([rankStmt, totalsStmt])
-
-  const entries = (rankResult.results as { title: string; cnt: number }[]).map((row) => ({
-    title: row.title,
-    count: row.cnt,
-  }))
-  const totals = totalsResult.results[0] as { totalPlays: number; uniqueCount: number } | undefined
-
-  return {
-    entries,
-    totalPlays: totals?.totalPlays ?? 0,
-    uniqueCount: totals?.uniqueCount ?? 0,
-  }
+function isRandomSong(item: SummarySetlistItem): boolean {
+  return isSong(item) && (item.section === 'request' || item.section.startsWith('encore_'))
 }
 
 /** How many rare-song "paper slips" the rare-songs card shows (1 hero + 6 small notes). */
@@ -299,7 +240,7 @@ const RARE_SONG_RANK_LIMIT = 7
  */
 const RARE_SONG_TOUR_COUNT_MAX = 8
 
-/** Byte-wise title comparison matching the SQL BINARY collation of queryRandomSongStats' tie-break. */
+/** Byte-wise title comparison matching the SQL BINARY collation used by previous query tie-breaks. */
 function compareTitles(a: string, b: string): number {
   if (a < b) return -1
   if (a > b) return 1
@@ -307,48 +248,75 @@ function compareTitles(a: string, b: string): number {
 }
 
 /**
- * The mirror of queryRandomSongStats: the user's LEAST-heard random songs
+ * Counts titles in a setlist collection so every summary metric can reuse the
+ * same one-query snapshot.
+ */
+function countTitles(items: SummarySetlistItem[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const item of items) {
+    counts.set(item.title, (counts.get(item.title) ?? 0) + 1)
+  }
+  return counts
+}
+
+/** Builds the songs-heard card statistics from the complete in-memory snapshot. */
+function buildSongStats(items: SummarySetlistItem[]): SongStats {
+  const songs = items.filter(isSong)
+  const entries = [...countTitles(songs)].map(([title, count]) => ({ title, count }))
+  entries.sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))
+
+  return {
+    totalSongs: songs.length,
+    topSong: entries[0] ?? null,
+  }
+}
+
+/** Builds the playlist-card ranking from the complete in-memory snapshot. */
+function buildRandomSongStats(items: SummarySetlistItem[]): RandomSongStats {
+  const randomSongs = items.filter(isRandomSong)
+  const entries = [...countTitles(randomSongs)]
+    .map(([title, count]) => ({ title, count }))
+    .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))
+    .slice(0, RANDOM_SONG_RANK_LIMIT)
+
+  return {
+    entries,
+    totalPlays: randomSongs.length,
+    uniqueCount: new Set(randomSongs.map((item) => item.title)).size,
+  }
+}
+
+/**
+ * The mirror of the playlist ranking: the user's LEAST-heard random songs
  * (same request/encore condition), ranked by heard count ascending, then by
  * how rarely the song appeared across the whole tour, then by title so the
  * ranking is deterministic across SSR/CSR. Tour-wide counts only consider
  * non-hidden shows; each entry carries the first show (city + date) where the
  * user heard the song, which the card prints as the slip's signature line.
  */
-async function queryRareSongStats(db: D1Database, showIds: number[]): Promise<RareSongStats> {
-  if (showIds.length === 0) return { entries: [] }
-  const placeholders = showIds.map(() => '?').join(',')
-  const randomSongFilter = `si.item_type = 'song' AND (si.section = 'request' OR si.section LIKE 'encore_%')`
-
-  const heardStmt = db
-    .prepare(
-      `SELECT si.title, s.city, s.show_date FROM setlist_items si
-       JOIN shows s ON s.id = si.show_id
-       WHERE si.show_id IN (${placeholders}) AND ${randomSongFilter}
-       ORDER BY s.show_date ASC`
-    )
-    .bind(...showIds)
-  const tourStmt = db.prepare(
-    `SELECT si.title, COUNT(*) AS cnt FROM setlist_items si
-     JOIN shows s ON s.id = si.show_id
-     WHERE s.is_hidden = 0 AND ${randomSongFilter}
-     GROUP BY si.title`
-  )
-
-  const [heardResult, tourResult] = await db.batch<
-    { title: string; city: string; show_date: string } | { title: string; cnt: number }
-  >([heardStmt, tourStmt])
-
-  const tourCounts = new Map(
-    (tourResult.results as { title: string; cnt: number }[]).map((row) => [row.title, row.cnt])
-  )
-
+function buildRareSongStats(
+  allItems: SummarySetlistItem[],
+  selectedShowIds: Set<number>,
+  showsById: Map<number, Show>
+): RareSongStats {
+  const tourCounts = countTitles(allItems.filter(isRandomSong))
   const heardByTitle = new Map<string, { heardCount: number; heardCity: string; heardDate: string }>()
-  for (const row of heardResult.results as { title: string; city: string; show_date: string }[]) {
-    const existing = heardByTitle.get(row.title)
+
+  for (const item of allItems) {
+    if (!(selectedShowIds.has(item.showId) && isRandomSong(item))) continue
+
+    const show = showsById.get(item.showId)
+    if (!show) continue
+
+    const existing = heardByTitle.get(item.title)
     if (existing) {
       existing.heardCount += 1
+      if (show.showDate < existing.heardDate) {
+        existing.heardCity = show.city
+        existing.heardDate = show.showDate
+      }
     } else {
-      heardByTitle.set(row.title, { heardCount: 1, heardCity: row.city, heardDate: row.show_date })
+      heardByTitle.set(item.title, { heardCount: 1, heardCity: show.city, heardDate: show.showDate })
     }
   }
 
@@ -359,7 +327,7 @@ async function queryRareSongStats(db: D1Database, showIds: number[]): Promise<Ra
         heardCount: heard.heardCount,
         heardCity: heard.heardCity,
         heardDateSlash: heard.heardDate.slice(5).replace('-', '/'),
-        // A selected show is always in the non-hidden catalog, so the fallback never fires in practice.
+        // Selected shows come from the non-hidden catalog, so this fallback is defensive only.
         tourCount: tourCounts.get(title) ?? heard.heardCount,
       })
     )
@@ -382,13 +350,12 @@ export const getSummaryData = createServerFn({ method: 'POST' })
   .handler(async ({ data: showIds }): Promise<SummaryData> => {
     const db = await getDb()
 
-    const [allShows, selectedShows, songStats, randomSongStats, rareSongStats] = await Promise.all([
-      queryAllShows(db),
-      queryShowsByIds(db, showIds),
-      querySongStats(db, showIds),
-      queryRandomSongStats(db, showIds),
-      queryRareSongStats(db, showIds),
-    ])
+    const { shows: allShows, setlistItems } = await querySummarySnapshot(db)
+    const selectedShowIds = new Set(showIds)
+    const selectedShows = allShows.filter((show) => selectedShowIds.has(show.id))
+    const selectedShowIdSet = new Set(selectedShows.map((show) => show.id))
+    const selectedSetlistItems = setlistItems.filter((item) => selectedShowIdSet.has(item.showId))
+    const showsById = new Map(allShows.map((show) => [show.id, show]))
 
     const citiesForMarkers = selectedShows.length > 0 ? selectedShows.map((s) => s.city) : allShows.map((s) => s.city)
 
@@ -401,9 +368,9 @@ export const getSummaryData = createServerFn({ method: 'POST' })
         venueCount: new Set(selectedShows.map((s) => s.venue)).size,
       },
       cityMarkers: buildCityMarkers(citiesForMarkers),
-      songStats,
-      randomSongStats,
-      rareSongStats,
+      songStats: buildSongStats(selectedSetlistItems),
+      randomSongStats: buildRandomSongStats(selectedSetlistItems),
+      rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),
       guestStats: buildGuestStats(allShows, selectedShows),
     }
   })

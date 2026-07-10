@@ -3,28 +3,49 @@ import type { Show } from '@/types'
 import { getDb } from './db'
 
 interface ShowRow {
-  id: number
-  tour_type_id: number
-  tour_name: string
-  sub_theme: string
-  version_name: string
   city: string
-  venue: string
-  show_date: string
-  day_label: string
-  lineup: string
-  guests: string
-  global_effects: string
   contributor: string | null
-  poster_url: string
-  playlist_img: string
-  theme_color: string
-  show_start_time: string | null
-  show_end_time: string | null
+  day_label: string
+  global_effects: string
+  guests: string
+  id: number
   is_announced: number
   is_hidden: number
-  setlist_visible: number
+  lineup: string
+  playlist_img: string
+  poster_url: string
   setlist_count: number
+  setlist_visible: number
+  show_date: string
+  show_end_time: string | null
+  show_start_time: string | null
+  sub_theme: string
+  theme_color: string
+  tour_name: string
+  tour_type_id: number
+  venue: string
+  version_name: string
+}
+
+interface SummarySnapshotRow extends ShowRow {
+  setlist_item_type: string | null
+  setlist_section: string | null
+  setlist_show_id: number | null
+  setlist_title: string | null
+}
+
+/** The minimal setlist fields used to calculate summary-card statistics. */
+export interface SummarySetlistItem {
+  itemType: string
+  section: string
+  showId: number
+  title: string
+}
+
+/** A complete non-hidden tour snapshot for one in-memory summary calculation. */
+export interface SummarySnapshot {
+  setlistItems: SummarySetlistItem[]
+  shows: Show[]
 }
 
 /** The raw export stores some missing values as the literal string 'NULL'. */
@@ -70,9 +91,7 @@ const SHOW_SELECT = `
 
 /** All non-hidden shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
 export async function queryAllShows(db: D1Database): Promise<Show[]> {
-  const { results } = await db
-    .prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC`)
-    .all<ShowRow>()
+  const { results } = await db.prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC`).all<ShowRow>()
   return results.map(mapShowRow)
 }
 
@@ -85,6 +104,48 @@ export async function queryShowsByIds(db: D1Database, ids: number[]): Promise<Sh
     .bind(...ids)
     .all<ShowRow>()
   return results.map(mapShowRow)
+}
+
+/**
+ * Reads every non-hidden show and its setlist rows with one D1 statement.
+ * Summary statistics are then calculated from this snapshot in Worker memory.
+ */
+export async function querySummarySnapshot(db: D1Database): Promise<SummarySnapshot> {
+  const { results } = await db
+    .prepare(
+      `SELECT s.*, COUNT(si.id) OVER (PARTITION BY s.id) AS setlist_count,
+       si.show_id AS setlist_show_id,
+       si.section AS setlist_section,
+       si.item_type AS setlist_item_type,
+       si.title AS setlist_title
+       FROM shows s
+       LEFT JOIN setlist_items si ON si.show_id = s.id
+       WHERE s.is_hidden = 0
+       ORDER BY s.show_date ASC, s.id ASC, si.sort_order ASC`
+    )
+    .all<SummarySnapshotRow>()
+
+  const shows: Show[] = []
+  const showIds = new Set<number>()
+  const setlistItems: SummarySetlistItem[] = []
+
+  for (const row of results) {
+    if (!showIds.has(row.id)) {
+      showIds.add(row.id)
+      shows.push(mapShowRow(row))
+    }
+
+    if (row.setlist_show_id !== null) {
+      setlistItems.push({
+        showId: row.setlist_show_id,
+        section: row.setlist_section ?? '',
+        itemType: row.setlist_item_type ?? '',
+        title: row.setlist_title ?? '',
+      })
+    }
+  }
+
+  return { shows, setlistItems }
 }
 
 export const getAllShows = createServerFn({ method: 'GET' }).handler(async (): Promise<Show[]> => {
