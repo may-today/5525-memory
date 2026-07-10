@@ -787,6 +787,124 @@
   }
 }
 
+/* 专属歌单卡：时光黑胶。盘面 12s 匀速旋转——沟槽纹旋转对称，环形蚀刻文字
+   是「唱片在转」的视觉证据；高光层静止在盘面之上，模拟固定光源。常驻曲
+   hero 带主题色辉光；tracklist 逐行错峰淡入。全部 transform/opacity。 */
+.summary-playlist-hero {
+  color: color-mix(in oklab, var(--playlist-color), white 35%);
+  text-shadow: 0 0 28px
+    color-mix(in oklab, var(--playlist-color), transparent 45%);
+}
+
+.summary-vinyl {
+  position: relative;
+  animation: summary-vinyl-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes summary-vinyl-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.summary-vinyl-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background:
+    radial-gradient(
+      circle closest-side,
+      transparent 53%,
+      rgba(255, 255, 255, 0.06) 53.8% 54.6%,
+      transparent 55.4%,
+      transparent 67%,
+      rgba(255, 255, 255, 0.055) 67.8% 68.6%,
+      transparent 69.4%,
+      transparent 81%,
+      rgba(255, 255, 255, 0.05) 81.8% 82.6%,
+      transparent 83.4%
+    ),
+    repeating-radial-gradient(
+      circle closest-side,
+      #0a0a0c 0 1.6px,
+      #141417 1.6px 3.2px
+    );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 0 24px rgba(0, 0, 0, 0.85),
+    0 30px 60px -28px color-mix(in oklab, var(--playlist-color), transparent 50%);
+  animation: summary-vinyl-spin 12s linear infinite;
+}
+
+@keyframes summary-vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.summary-vinyl-etch {
+  fill: rgba(212, 212, 216, 0.45);
+  font-family: "Doto", monospace;
+  letter-spacing: 0.14em;
+}
+
+.summary-vinyl-label {
+  position: absolute;
+  inset: 31%;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #fb923c 0%, #f97316 52%, #c2410c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 0 14px rgba(124, 45, 18, 0.55);
+}
+
+.summary-vinyl-hole {
+  position: absolute;
+  inset: 46%;
+  border-radius: 9999px;
+  background: #09090b;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+}
+
+.summary-vinyl-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 205deg,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.09) 18deg,
+    rgba(255, 255, 255, 0.02) 40deg,
+    transparent 65deg,
+    transparent 175deg,
+    rgba(255, 255, 255, 0.07) 195deg,
+    rgba(255, 255, 255, 0.015) 215deg,
+    transparent 245deg
+  );
+}
+
+.summary-playlist-row {
+  animation: playlist-row-in 0.5s ease-out both;
+  animation-delay: calc(0.2s + var(--i, 0) * 0.08s);
+}
+
+@keyframes playlist-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .report-timeline-dot {
   flex-shrink: 0;
   width: 6px;
@@ -861,6 +979,13 @@
   .report-card-print,
   .report-bar,
   .report-thinking-dot {
+    animation: none;
+  }
+
+  /* 专属歌单卡：黑胶停转、盘面入场与排行行淡入停用 */
+  .summary-playlist-row,
+  .summary-vinyl,
+  .summary-vinyl-disc {
     animation: none;
   }
 

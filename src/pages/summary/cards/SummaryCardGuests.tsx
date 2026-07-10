@@ -115,7 +115,7 @@ export function SummaryCardGuests() {
       <div className="relative flex h-svh flex-col overflow-hidden bg-zinc-950">
         <SpaceBackground />
         <p className="relative shrink-0 px-6 pt-6 pb-2 text-xs text-zinc-500 uppercase tracking-widest">
-          04 / 嘉宾星球
+          05 / 嘉宾星球
         </p>
         <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-8 px-6 pb-24">
           <div
@@ -140,7 +140,7 @@ export function SummaryCardGuests() {
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-zinc-950">
       <SpaceBackground />
-      <p className="relative shrink-0 px-6 pt-6 pb-2 text-xs text-zinc-500 uppercase tracking-widest">04 / 嘉宾星球</p>
+      <p className="relative shrink-0 px-6 pt-6 pb-2 text-xs text-zinc-500 uppercase tracking-widest">05 / 嘉宾星球</p>
       <h3 className="relative shrink-0 px-6 font-bold text-white text-xl">
         在 5525 的多重宇宙里，有些星球你只撞见过一次。
       </h3>

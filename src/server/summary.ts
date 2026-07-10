@@ -20,6 +20,25 @@ export interface SongStats {
   totalSongs: number
 }
 
+export interface RandomSongEntry {
+  /** 随机曲目在选中场次中的出现次数（点歌 + 安可行数之和）。 */
+  count: number
+  /** setlist_items.title 的精确值，按标题精确分组。 */
+  title: string
+}
+
+export interface RandomSongStats {
+  /**
+   * 出现次数 Top 10 的随机曲目，按次数降序、平票按标题排序保证 SSR 稳定。
+   * 排行第一名即用户的「常驻曲」。
+   */
+  entries: RandomSongEntry[]
+  /** 选中场次中随机曲目行的总数（含重复）。 */
+  totalPlays: number
+  /** 选中场次中随机曲目去重后的曲目数。 */
+  uniqueCount: number
+}
+
 export interface GuestShowInfo {
   /** 嘉宾场次所在城市，复制自完整 Show 记录。 */
   city: string
@@ -101,6 +120,14 @@ export interface SummaryData {
    * concertStore。
    */
   selectedShows: Show[]
+  /**
+   * 选中场次的随机曲目统计（「专属歌单」卡）。
+   *
+   * 口径：item_type = 'song' 且 section = 'request'（点歌）或 section LIKE
+   * 'encore_%'（安可），与报告页 report-stats.ts 的分段过滤一致；主歌单
+   * （section = 'main'）不计入。
+   */
+  randomSongStats: RandomSongStats
   /**
    * 选中场次的歌曲统计。
    *
@@ -185,6 +212,52 @@ async function querySongStats(db: D1Database, showIds: number[]): Promise<SongSt
   }
 }
 
+/** How many ranked entries the playlist card shows. */
+const RANDOM_SONG_RANK_LIMIT = 10
+
+/**
+ * "Random songs" are the non-fixed part of a show: request-section songs and
+ * encore-section songs (section = 'request' OR section LIKE 'encore_%'),
+ * matching the segment filters in report-stats.ts. Main-setlist songs are
+ * excluded — they are identical across shows and would drown out the signal.
+ * Ties are broken by title so the ranking is deterministic across SSR/CSR.
+ */
+async function queryRandomSongStats(db: D1Database, showIds: number[]): Promise<RandomSongStats> {
+  if (showIds.length === 0) return { entries: [], totalPlays: 0, uniqueCount: 0 }
+  const placeholders = showIds.map(() => '?').join(',')
+  const randomSongCondition = `show_id IN (${placeholders}) AND item_type = 'song' AND (section = 'request' OR section LIKE 'encore_%')`
+
+  const rankStmt = db
+    .prepare(
+      `SELECT title, COUNT(*) AS cnt FROM setlist_items
+       WHERE ${randomSongCondition}
+       GROUP BY title ORDER BY cnt DESC, title LIMIT ${RANDOM_SONG_RANK_LIMIT}`
+    )
+    .bind(...showIds)
+  const totalsStmt = db
+    .prepare(
+      `SELECT COUNT(*) AS totalPlays, COUNT(DISTINCT title) AS uniqueCount FROM setlist_items
+       WHERE ${randomSongCondition}`
+    )
+    .bind(...showIds)
+
+  const [rankResult, totalsResult] = await db.batch<
+    { title: string; cnt: number } | { totalPlays: number; uniqueCount: number }
+  >([rankStmt, totalsStmt])
+
+  const entries = (rankResult.results as { title: string; cnt: number }[]).map((row) => ({
+    title: row.title,
+    count: row.cnt,
+  }))
+  const totals = totalsResult.results[0] as { totalPlays: number; uniqueCount: number } | undefined
+
+  return {
+    entries,
+    totalPlays: totals?.totalPlays ?? 0,
+    uniqueCount: totals?.uniqueCount ?? 0,
+  }
+}
+
 /**
  * Single consolidated query for everything the /summary cards need (Card2's
  * mileage is out of scope — no home-city capture yet). Called once per
@@ -195,10 +268,11 @@ export const getSummaryData = createServerFn({ method: 'POST' })
   .handler(async ({ data: showIds }): Promise<SummaryData> => {
     const db = await getDb()
 
-    const [allShows, selectedShows, songStats] = await Promise.all([
+    const [allShows, selectedShows, songStats, randomSongStats] = await Promise.all([
       queryAllShows(db),
       queryShowsByIds(db, showIds),
       querySongStats(db, showIds),
+      queryRandomSongStats(db, showIds),
     ])
 
     const citiesForMarkers = selectedShows.length > 0 ? selectedShows.map((s) => s.city) : allShows.map((s) => s.city)
@@ -213,6 +287,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       },
       cityMarkers: buildCityMarkers(citiesForMarkers),
       songStats,
+      randomSongStats,
       guestStats: buildGuestStats(allShows, selectedShows),
     }
   })

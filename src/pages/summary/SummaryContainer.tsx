@@ -11,6 +11,7 @@ import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
 import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
+import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
 import { SummaryDataContext } from './summary-data-context'
 
 const CARDS = [
@@ -19,6 +20,7 @@ const CARDS = [
   SummaryCard1,
   SummaryCard2,
   SummaryCard3,
+  SummaryCardPlaylist,
   SummaryCardGuests,
   SummaryCardMemories,
 ]
