@@ -91,7 +91,7 @@ function SubThemeTag({ theme }: { theme: string }) {
 export function FormPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const allShows = routeApi.useLoaderData()
+  const { gate, shows: allShows } = routeApi.useLoaderData()
   const CITY_GROUPS = useMemo(() => buildCityGroups(allShows), [allShows])
   const profile = useSelector(concertStore, (state) => state.profile)
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
@@ -127,6 +127,16 @@ export function FormPage() {
   }
 
   function handleSubmit() {
+    if (!gate.isOpen) {
+      // The store already mirrors every change into localStorage, so "saving"
+      // only needs to confirm and send the user back to the countdown.
+      toast({
+        description: '开放后回来，直接生成你的时空旅行报告。',
+        title: '已保存你的选择',
+      })
+      navigate({ to: '/warmup' })
+      return
+    }
     navigate({ to: '/loading' })
   }
 
@@ -374,7 +384,7 @@ export function FormPage() {
           )}
         </div>
         <Button className="w-full" disabled={totalCount === 0} onClick={handleSubmit} size="lg" type="button">
-          下一步
+          {gate.isOpen ? '下一步' : '保存，开放后生成'}
         </Button>
       </div>
     </div>

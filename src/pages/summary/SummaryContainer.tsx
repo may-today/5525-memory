@@ -4,9 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
-import { SummaryCard1 } from './cards/SummaryCard1'
-import { SummaryCard2 } from './cards/SummaryCard2'
-import { SummaryCard3 } from './cards/SummaryCard3'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
 import { SummaryCardMemories } from './cards/SummaryCardMemories'
@@ -18,9 +15,6 @@ import { SummaryDataContext } from './summary-data-context'
 const CARDS = [
   SummaryCardOverview,
   SummaryCardCity,
-  SummaryCard1,
-  SummaryCard2,
-  SummaryCard3,
   SummaryCardPlaylist,
   SummaryCardRareSongs,
   SummaryCardGuests,

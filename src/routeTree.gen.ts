@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WarmupRouteImport } from './routes/warmup'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as ReportRouteImport } from './routes/report'
@@ -18,6 +19,11 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiReportChatRouteImport } from './routes/api.report-chat'
 
+const WarmupRoute = WarmupRouteImport.update({
+  id: '/warmup',
+  path: '/warmup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SummaryRoute = SummaryRouteImport.update({
   id: '/summary',
   path: '/summary',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
+  '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/share'
     | '/summary'
+    | '/warmup'
     | '/api/report-chat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/share'
     | '/summary'
+    | '/warmup'
     | '/api/report-chat'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/share'
     | '/summary'
+    | '/warmup'
     | '/api/report-chat'
   fileRoutesById: FileRoutesById
 }
@@ -131,11 +143,19 @@ export interface RootRouteChildren {
   ReportRoute: typeof ReportRoute
   ShareRoute: typeof ShareRoute
   SummaryRoute: typeof SummaryRoute
+  WarmupRoute: typeof WarmupRoute
   ApiReportChatRoute: typeof ApiReportChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/warmup': {
+      id: '/warmup'
+      path: '/warmup'
+      fullPath: '/warmup'
+      preLoaderRoute: typeof WarmupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/summary': {
       id: '/summary'
       path: '/summary'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportRoute: ReportRoute,
   ShareRoute: ShareRoute,
   SummaryRoute: SummaryRoute,
+  WarmupRoute: WarmupRoute,
   ApiReportChatRoute: ApiReportChatRoute,
 }
 export const routeTree = rootRouteImport

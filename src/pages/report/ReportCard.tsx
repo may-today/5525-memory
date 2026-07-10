@@ -54,7 +54,7 @@ function TimelineBlock({ entries }: { entries: ReportTimelineEntry[] }) {
  * A generated report card — a printed "data receipt" for one question.
  * The thermal-print reveal lives on the wrapper class `report-card-print`.
  */
-export function ReportCard({ card, serial }: { card: ReportCardData; serial: number }) {
+export function ReportCard({ card }: { card: ReportCardData }) {
   return (
     <div
       className="report-card-print relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/80 p-5"
@@ -63,11 +63,6 @@ export function ReportCard({ card, serial }: { card: ReportCardData; serial: num
       <div aria-hidden="true" className="report-card-glow" />
 
       <div className="relative">
-        <div className="mb-4 flex items-baseline justify-between gap-4">
-          <p className="text-[10px] text-zinc-500 uppercase tracking-widest">5525 · 你的专属报告</p>
-          <p className="shrink-0 font-geist text-xs text-zinc-500">№{String(serial).padStart(3, '0')}</p>
-        </div>
-
         <h3 className="font-wjh text-lg text-white">{card.question}</h3>
 
         <div className="mt-5 mb-6">

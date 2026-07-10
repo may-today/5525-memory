@@ -137,8 +137,6 @@ export function ReportPage() {
     await sendMessage(trimmed)
   }
 
-  let serial = 0
-
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-zinc-950">
       <div aria-hidden="true" className="summary-space-bg" />
@@ -182,10 +180,9 @@ export function ReportPage() {
               const card = structuredPart ? resolvePartialCard(structuredPart) : null
 
               if (card) {
-                serial += 1
                 return (
                   <div key={message.id}>
-                    <ReportCard card={card} serial={serial} />
+                    <ReportCard card={card} />
                   </div>
                 )
               }

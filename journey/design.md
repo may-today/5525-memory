@@ -20,6 +20,8 @@
 ```text
 /（封面）→ /form（场次选择）→ /loading（生成过渡）→ /summary（统计回顾）→ /share（分享）
                                                                         └→ /report（专属报告，效果图）
+
+开放前：/warmup（预热倒计时）→ /form（提前填写，保存后回到 /warmup）
 ```
 
 ## 关键设计决策
@@ -44,6 +46,14 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 **远程（生产）D1**：迁移应用方式目前选择手动执行——有权限的人在需要发布时手动跑 `wrangler d1 migrations apply 5525-memory-db --remote`，再 `bun run deploy`。规模变大或发布频率变高后可以再考虑接入 CI 自动化。
 
+### 限时开放与预热页（2026-07-10）
+
+统计流程限时开放，开放时间由环境变量 `STATS_OPEN_AT`（ISO 8601，建议带时区）配置，缺失或非法时回退到内置默认 `2026-07-13T00:00:00+08:00`（见 `wrangler.jsonc` vars；本地调试用 `.dev.vars` 覆盖）。开放判定以服务器时钟为准（`src/server/launch-gate.ts` 的 `getLaunchGate` server function），客户端时钟只用于倒计时显示（用 `serverNow` 校正偏差）。
+
+- **门禁**：`/`、`/loading`、`/summary`、`/share`、`/report` 在 `beforeLoad` 里经 `ensureStatsOpen()` 未开放时重定向到 `/warmup`；开放结果在模块级缓存（时间单向，开放后不再回查）。`/warmup` 反向守卫：已开放时在 loader 里重定向回 `/`。已知边界：路由守卫不保护 server function 本身，数据非敏感，接受该边界。
+- **预热页**（`/warmup` + `src/pages/WarmupPage.tsx`）：沿用封面页的编辑排版语言（分区边框、texture、Marquee、WJH 标题），倒计时数字用 Doto 点阵体 + 品牌橙辉光；首帧剩余时间由 loader 的 `serverNow` 算出保证 SSR 一致，挂载后每秒 tick；开放日期以北京时间格式化（`Intl.DateTimeFormat` 固定 `Asia/Shanghai`，SSR/客户端确定性一致）。倒计时归零后就地切换为「进入」按钮（导航到 `/`，服务端守卫复核）。
+- **提前填写**：`/form` 不受门禁限制，loader 并行返回 `{ shows, gate }`；未开放时最后一步按钮变为「保存，开放后生成」，点击后 toast 确认并回到 `/warmup`（数据本就随 store 持久化到 localStorage，无需额外保存动作）。
+
 ### 统计回顾使用单路由和内部状态
 
 `/summary` 渲染 `SummaryContainer`，由其通过 `currentIndex` 管理当前统计页面。每个统计页面是独立组件，而不是独立路由，以便实现切换动画，并避免滑动手势导致 URL 频繁变化。
@@ -52,7 +62,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 `SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
 
-需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCard1`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
+需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
 
 ### 切页过渡动画
 
@@ -94,32 +104,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `cityMarkers`（按用户选中场次的城市去重后，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出；未选择任何场次时兜底展示全部巡演城市）。
 - **数据状态**：地球标记和底部详情面板均已接入真实数据。
 
-### 4. 场次回顾
-
-- **组件**：`SummaryCard1`
-- **设计目标**：概括用户参加 #5525 巡演的整体规模。
-- **主要内容**：参加总场次、到访城市数，以及后续扩展的场次统计项。
-- **交互方式**：内容较长时支持页面内纵向滚动。
-- **数据来源**：`getSummaryData` 返回的 `overview`（总场次/城市数/场馆数，服务端按用户选中场次聚合）。
-- **数据状态**：总场次、城市数已接入真实数据；其余 6 个扩展统计项仍为占位值，尚未实现。
-
-### 5. 里程追踪
-
-- **组件**：`SummaryCard2`
-- **设计目标**：用旅途距离呈现用户追随巡演的投入和跨城经历。
-- **主要内容**：估算总里程、距离最远的城市。
-- **数据来源**：待明确用户出发地、城市坐标和里程计算规则后，由所选场次计算。
-- **数据状态**：当前均为占位值；出发地采集方式和距离口径尚未确定（D1 里的城市经纬度已具备，缺的是出发地采集入口）。
-
-### 6. 歌曲回顾
-
-- **组件**：`SummaryCard3`
-- **设计目标**：从曲目角度回顾用户在所选场次中听到的内容。
-- **主要内容**：听到的歌曲总数、出现次数最多的歌曲。
-- **数据来源**：`getSummaryData` 返回的 `songStats`（服务端从同一份全巡演快照按选中场次 ID 在内存聚合，口径为 `item_type='song'`，含安可段落、排除串烧/VCR/talking 等非歌曲条目）。
-- **数据状态**：总歌曲数、最常出现的歌均已接入真实数据。
-
-### 7. 专属歌单
+### 3. 专属歌单
 
 - **组件**：`SummaryCardPlaylist`
 - **设计目标**：用随机曲目（点歌 + 安可）的出现次数排行，浮现「常驻曲」——那首在用户去过的场次里响起最多次的歌，强化「这份歌单只属于你」的排他感。视觉意象为「时光黑胶」：一张为用户限量压制的旋转唱片纪念品，而不是数据报告（2026-07-10 由排行条版重设计，见 `journey/plans/2026-07-10-playlist-vinyl-redesign.md`）。
@@ -132,7 +117,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `randomSongStats`（服务端从同一份全巡演快照按选中场次聚合，口径为 `item_type = 'song'` 且 `section = 'request'` 或 `section LIKE 'encore_%'`，与报告页 `report-stats.ts` 分段过滤一致；返回 Top 10 `entries` + `totalPlays` + `uniqueCount`）。
 - **数据状态**：已接入真实数据（本地 D1 实测每场随机曲目 7–17 首，跨场次自然产生重复计数）。
 
-### 8. 最小众歌单
+### 4. 最小众歌单
 
 - **组件**：`SummaryCardRareSongs`
 - **设计目标**：专属歌单卡的镜像——统计用户听过次数**最少**的随机曲目，浮现「沧海遗珠」：那些全巡演没唱过几次、偏偏被用户撞见的冷门歌。视觉意象为「被抽中的点歌纸条」：点歌环节的歌本来就来自歌迷写的纸条，全巡演只被唱过一次的歌就是只被抽中过一次的纸条（见 `journey/plans/2026-07-10-rare-songs-card.md`；拍立得方案因与「你的回忆」卡照片意象撞车而放弃，磁带/SIDE B 方案因与前一张黑胶卡意象同族相邻而放弃）。
@@ -144,7 +129,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `rareSongStats`（服务端从同一份全巡演快照在内存计算选中场次随机曲目、首次听到场次，以及全巡演出现次数，再合并排序）。
 - **数据状态**：已接入真实数据（headless 走查验证多场/单场/零状态三分支）。
 
-### 9. 嘉宾星球
+### 5. 嘉宾星球
 
 - **组件**：`SummaryCardGuests`
 - **设计目标**：以"多重宇宙 / 一期一会"的意象回顾用户与特别嘉宾的同场经历——每位嘉宾是一颗只撞见过一次的星球。
@@ -158,7 +143,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部非隐藏场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
 
-### 10. 你的回忆
+### 6. 你的回忆
 
 - **组件**：`SummaryCardMemories`
 - **设计目标**：以长列表 + 视差滚动的形式，逐场回顾用户参加过的演出中值得纪念的内容，作为进入 /share 前的情感收束（当前为最后一张卡片，底部悬浮「生成总结」按钮压在本页上）。
@@ -177,7 +162,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **模型配置**：页面不暴露模型选择；服务端通过 `REPORT_AI_BASE_URL`、`REPORT_AI_API_KEY`、`REPORT_AI_MODEL` 和可选 `REPORT_AI_PROVIDER_NAME` 配置 OpenAI-compatible 模型。密钥只在服务端读取。
 - **统计边界**：AI 不能自由生成 SQL；只能调用受控工具：出席概览、城市排行、歌曲排行、单曲时间线、嘉宾排行。工具默认基于用户已选场次 ID 查询 D1；当用户明确询问「所有场次 / 全巡演 / 全部场次」时，同一套统计维度可切换到所有未隐藏场次。**每种统计工具**都支持可选时间过滤：含端点的 `startDate` / `endDate`（`YYYY-MM-DD`），以及跨年份的 `month`（1–12）或 `season`（春夏秋冬）；可与场次范围、歌曲主歌单/点歌/安可分段组合。歌曲类工具还支持主歌单、点歌、安可分段过滤，所以「所有场次中唱过最多的点歌」会走全场次 + 点歌分段统计。空选择且未要求全场次时生成提示用户先选场次的零状态卡片。由于当前 OpenAI-compatible 模型端（如 DeepSeek）不一定支持 `response_format`，服务端不把 `outputSchema` 传给 provider，而是要求模型输出 JSON 文本，服务端用 `ReportCardSchema` 校验后再合成为 TanStack AI structured-output SSE 事件给客户端。
 - **文件组织**：`src/routes/api.report-chat.ts` 只保留 TanStack Start route 壳；`src/server/report-chat.ts` 组装一次请求；`src/server/report-prompt.ts` 维护支持维度和系统提示词；`src/server/report-stream.ts` 负责 JSON 文本解析、schema 校验和 structured-output SSE 合成；`src/server/report-stats.ts` / `report-tools.ts` 负责 D1 聚合和 TanStack AI 工具定义。
-- **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注、流水号和「实时统计」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
+- **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注和「实时统计」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
 - **动画与状态**：卡片继续使用「热敏打印」clip-path 显现，排行条随后生长；消息入场轻微上滑淡入；工具调用期间显示逐步点亮的计算状态；`prefers-reduced-motion` 下动画停用。
 
 ## 待确认与后续工作
