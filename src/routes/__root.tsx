@@ -1,13 +1,22 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
 import type { ReactNode } from 'react'
-
 import { ThemeProvider } from '@/components/theme-provider'
 import { TextureOverlay } from '@/components/ui/texture-overlay'
 import { ToastProvider } from '@/components/ui/toast'
 import indexCss from '@/index.css?url'
 
+/** Reads the public static-asset host from the current Cloudflare Worker. */
+const getStaticFileHost = createServerFn({ method: 'GET' }).handler(async (): Promise<string> => {
+  const { env } = await import('cloudflare:workers')
+  return env.STATIC_FILE_HOST
+})
+
 export const Route = createRootRoute({
-  head: () => ({
+  loader: async () => ({
+    staticFileHost: await getStaticFileHost(),
+  }),
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: 'utf-8' },
       {
@@ -16,7 +25,18 @@ export const Route = createRootRoute({
       },
       { title: '5525 Memory' },
     ],
-    links: [{ rel: 'stylesheet', href: indexCss }],
+    links: [
+      { rel: 'stylesheet', href: indexCss },
+      ...(loaderData
+        ? [
+            {
+              rel: 'stylesheet' as const,
+              href: `${loaderData.staticFileHost}/5525/font/ChillDINGothic_Std/result.css`,
+              crossOrigin: 'anonymous' as const,
+            },
+          ]
+        : []),
+    ],
   }),
   component: RootComponent,
 })

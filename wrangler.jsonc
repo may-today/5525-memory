@@ -18,7 +18,8 @@
     }
   ],
   "vars": {
-    "STATS_OPEN_AT": "2026-07-13T00:00:00+08:00",
+    "STATIC_FILE_HOST": "//mayday-replay-cdn.ddiu.site",
+    "STATS_OPEN_AT": "2026-07-11T00:00:00+08:00",
     "REPORT_AI_BASE_URL": "https://openrouter.ai/api/v1",
     "REPORT_AI_MODEL": "tencent/hy3:free",
     "REPORT_AI_PROVIDER_NAME": "openrouter"
