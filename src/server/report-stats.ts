@@ -29,12 +29,14 @@ interface StatsScope {
   showCount: number
 }
 
-interface MonthlySongRankInput {
+interface TimeRangeScopeInput {
+  endDate?: string
   month?: number
   season?: 'autumn' | 'spring' | 'summer' | 'winter'
+  startDate?: string
 }
 
-interface ReportScopeInput {
+interface ReportScopeInput extends TimeRangeScopeInput {
   concertScope?: ConcertScope
 }
 
@@ -76,14 +78,57 @@ function createSelectedSetlistWhere(showIds: number[]): string {
   return `si.show_id IN (${showIds.map(() => '?').join(',')})`
 }
 
-function buildShowScopeCondition(showIds: number[], input: ReportScopeInput): { params: number[]; sql: string } {
-  if (input.concertScope === 'all') return { params: [], sql: 's.is_hidden = 0' }
-  return { params: showIds, sql: createSelectedShowsWhere(showIds) }
+function buildShowScopeCondition(
+  showIds: number[],
+  input: ReportScopeInput
+): { params: Array<number | string>; sql: string } {
+  const concertScope =
+    input.concertScope === 'all'
+      ? { params: [], sql: 's.is_hidden = 0' }
+      : { params: showIds, sql: createSelectedShowsWhere(showIds) }
+  const timeRange = buildTimeRangeCondition(input)
+  return {
+    params: [...concertScope.params, ...timeRange.params],
+    sql: `${concertScope.sql} AND ${timeRange.sql}`,
+  }
 }
 
-function buildSetlistScopeCondition(showIds: number[], input: ReportScopeInput): { params: number[]; sql: string } {
-  if (input.concertScope === 'all') return { params: [], sql: 's.is_hidden = 0' }
-  return { params: showIds, sql: createSelectedSetlistWhere(showIds) }
+function buildSetlistScopeCondition(
+  showIds: number[],
+  input: ReportScopeInput
+): { params: Array<number | string>; sql: string } {
+  const concertScope =
+    input.concertScope === 'all'
+      ? { params: [], sql: 's.is_hidden = 0' }
+      : { params: showIds, sql: createSelectedSetlistWhere(showIds) }
+  const timeRange = buildTimeRangeCondition(input)
+  return {
+    params: [...concertScope.params, ...timeRange.params],
+    sql: `${concertScope.sql} AND ${timeRange.sql}`,
+  }
+}
+
+function buildTimeRangeCondition(input: TimeRangeScopeInput): { params: Array<number | string>; sql: string } {
+  const conditions: string[] = []
+  const params: Array<number | string> = []
+
+  if (input.startDate) {
+    conditions.push('s.show_date >= ?')
+    params.push(input.startDate)
+  }
+
+  if (input.endDate) {
+    conditions.push('s.show_date <= ?')
+    params.push(input.endDate)
+  }
+
+  const period = buildSeasonCondition(input)
+  if (period.sql !== '1 = 1') {
+    conditions.push(period.sql)
+    params.push(...period.params)
+  }
+
+  return { params, sql: conditions.length > 0 ? conditions.join(' AND ') : '1 = 1' }
 }
 
 function buildSongSectionCondition(section: SongSectionScope | undefined): string {
@@ -102,7 +147,7 @@ function normalizeShowIds(showIds: number[]): number[] {
   return [...new Set(showIds.filter((id) => Number.isInteger(id) && id > 0))]
 }
 
-function buildSeasonCondition(input: MonthlySongRankInput): { params: number[]; sql: string } {
+function buildSeasonCondition(input: TimeRangeScopeInput): { params: number[]; sql: string } {
   if (input.month) {
     return {
       params: [input.month],
@@ -123,8 +168,12 @@ export function normalizeReportShowIds(showIds: number[]): number[] {
   return normalizeShowIds(showIds)
 }
 
-/** 出席概览：总场次、城市数、场馆数、日期范围和第一场演出；可查已选场次或全量非隐藏场次。 */
-export async function getAttendanceOverview(db: D1Database, rawShowIds: number[], input: ReportScopeInput = {}): Promise<AttendanceOverview> {
+/** 出席概览：总场次、城市数、场馆数、日期范围和第一场演出；可按场次范围和起止日期筛选。 */
+export async function getAttendanceOverview(
+  db: D1Database,
+  rawShowIds: number[],
+  input: ReportScopeInput = {}
+): Promise<AttendanceOverview> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') {
     return { cityCount: 0, dateRange: null, firstShow: null, showCount: 0, venueCount: 0 }
@@ -133,11 +182,15 @@ export async function getAttendanceOverview(db: D1Database, rawShowIds: number[]
   const scope = buildShowScopeCondition(showIds, input)
   const [countResult, rangeResult, cityResult, venueResult, firstResult] = await db.batch([
     db.prepare(`SELECT COUNT(*) AS count FROM shows s WHERE ${scope.sql}`).bind(...scope.params),
-    db.prepare(`SELECT MIN(show_date) AS min_date, MAX(show_date) AS max_date FROM shows s WHERE ${scope.sql}`).bind(...scope.params),
+    db
+      .prepare(`SELECT MIN(show_date) AS min_date, MAX(show_date) AS max_date FROM shows s WHERE ${scope.sql}`)
+      .bind(...scope.params),
     db.prepare(`SELECT COUNT(DISTINCT city) AS count FROM shows s WHERE ${scope.sql}`).bind(...scope.params),
     db.prepare(`SELECT COUNT(DISTINCT venue) AS count FROM shows s WHERE ${scope.sql}`).bind(...scope.params),
     db
-      .prepare(`SELECT city || ' · ' || show_date || ' · ' || day_label AS text FROM shows s WHERE ${scope.sql} ORDER BY show_date ASC LIMIT 1`)
+      .prepare(
+        `SELECT city || ' · ' || show_date || ' · ' || day_label AS text FROM shows s WHERE ${scope.sql} ORDER BY show_date ASC LIMIT 1`
+      )
       .bind(...scope.params),
   ])
 
@@ -157,25 +210,41 @@ export async function getAttendanceOverview(db: D1Database, rawShowIds: number[]
 }
 
 /** 多个排行类工具共用的统计范围：场次数与日期跨度。 */
-export async function getStatsScope(db: D1Database, rawShowIds: number[], input: ReportScopeInput = {}): Promise<StatsScope> {
+export async function getStatsScope(
+  db: D1Database,
+  rawShowIds: number[],
+  input: ReportScopeInput = {}
+): Promise<StatsScope> {
   const overview = await getAttendanceOverview(db, rawShowIds, input)
   return { dateRange: overview.dateRange, showCount: overview.showCount }
 }
 
-/** 城市排行：按城市聚合场次；可查已选场次或全量非隐藏场次。 */
-export async function rankCities(db: D1Database, rawShowIds: number[], input: ReportScopeInput, limit: number): Promise<RankEntry[]> {
+/** 城市排行：按城市聚合场次；可按场次范围和起止日期筛选。 */
+export async function rankCities(
+  db: D1Database,
+  rawShowIds: number[],
+  input: ReportScopeInput,
+  limit: number
+): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
   const scope = buildShowScopeCondition(showIds, input)
   const { results } = await db
-    .prepare(`SELECT city AS label, COUNT(*) AS value FROM shows s WHERE ${scope.sql} GROUP BY city ORDER BY value DESC, city ASC LIMIT ?`)
+    .prepare(
+      `SELECT city AS label, COUNT(*) AS value FROM shows s WHERE ${scope.sql} GROUP BY city ORDER BY value DESC, city ASC LIMIT ?`
+    )
     .bind(...scope.params, limit)
     .all<LabelCountRow>()
   return results
 }
 
-/** 歌曲排行：统计歌曲出现次数；可按场次范围和 main/request/encore 段落过滤。 */
-export async function rankSongs(db: D1Database, rawShowIds: number[], input: SongScopeInput, limit: number): Promise<RankEntry[]> {
+/** 歌曲排行：统计歌曲出现次数；可按场次范围、起止日期和 main/request/encore 段落过滤。 */
+export async function rankSongs(
+  db: D1Database,
+  rawShowIds: number[],
+  input: SongScopeInput,
+  limit: number
+): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
   const scope = buildSetlistScopeCondition(showIds, input)
@@ -192,7 +261,7 @@ export async function rankSongs(db: D1Database, rawShowIds: number[], input: Son
   return results
 }
 
-/** 单曲时间线：查找某首歌的相遇记录；可按场次范围和 main/request/encore 段落过滤。 */
+/** 单曲时间线：查找某首歌的相遇记录；可按场次范围、起止日期和 main/request/encore 段落过滤。 */
 export async function getSongTimeline(
   db: D1Database,
   rawShowIds: number[],
@@ -226,12 +295,20 @@ export async function getSongTimeline(
   }))
 }
 
-/** 嘉宾排行：从 shows.guests JSON 数组统计嘉宾出现次数；可查已选场次或全量非隐藏场次。 */
-export async function rankGuests(db: D1Database, rawShowIds: number[], input: ReportScopeInput, limit: number): Promise<RankEntry[]> {
+/** 嘉宾排行：从 shows.guests JSON 数组统计嘉宾出现次数；可按场次范围和起止日期筛选。 */
+export async function rankGuests(
+  db: D1Database,
+  rawShowIds: number[],
+  input: ReportScopeInput,
+  limit: number
+): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
   const scope = buildShowScopeCondition(showIds, input)
-  const { results } = await db.prepare(`SELECT guests AS text FROM shows s WHERE ${scope.sql}`).bind(...scope.params).all<JsonTextRow>()
+  const { results } = await db
+    .prepare(`SELECT guests AS text FROM shows s WHERE ${scope.sql}`)
+    .bind(...scope.params)
+    .all<JsonTextRow>()
   const counts = new Map<string, number>()
 
   for (const row of results) {
@@ -245,29 +322,4 @@ export async function rankGuests(db: D1Database, rawShowIds: number[], input: Re
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
     .slice(0, limit)
-}
-
-/** 月份/季节歌曲排行：先按场次范围、月份/季节和歌曲段落筛选，再统计歌曲出现次数。 */
-export async function rankSongsByPeriod(
-  db: D1Database,
-  rawShowIds: number[],
-  input: MonthlySongRankInput & SongScopeInput,
-  limit: number
-): Promise<RankEntry[]> {
-  const showIds = normalizeShowIds(rawShowIds)
-  if (showIds.length === 0 && input.concertScope !== 'all') return []
-  const period = buildSeasonCondition(input)
-  const scope = buildSetlistScopeCondition(showIds, input)
-  const section = buildSongSectionCondition(input.section)
-
-  const { results } = await db
-    .prepare(
-      `SELECT si.title AS label, COUNT(*) AS value FROM setlist_items si
-       JOIN shows s ON s.id = si.show_id
-       WHERE ${scope.sql} AND si.item_type = 'song' AND ${section} AND ${period.sql}
-       GROUP BY si.title ORDER BY value DESC, si.title ASC LIMIT ?`
-    )
-    .bind(...scope.params, ...period.params, limit)
-    .all<LabelCountRow>()
-  return results
 }

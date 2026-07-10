@@ -9,7 +9,6 @@ import {
   rankCities,
   rankGuests,
   rankSongs,
-  rankSongsByPeriod,
   type SongSectionScope,
 } from './report-stats'
 
@@ -27,8 +26,25 @@ const ConcertScopeSchema = z.enum(['selected', 'all']).default('selected')
 
 const SongSectionScopeSchema = z.enum(['all', 'main', 'request', 'encore']).default('all')
 
+const TimeRangeInputShape = {
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
+    .optional(),
+  month: z.number().int().min(1).max(12).optional(),
+  season: z.enum(['spring', 'summer', 'autumn', 'winter']).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
+    .optional(),
+}
+
 interface BaseToolInput {
   concertScope?: ConcertScope
+  endDate?: string
+  month?: number
+  season?: 'autumn' | 'spring' | 'summer' | 'winter'
+  startDate?: string
 }
 
 interface SongToolInput extends BaseToolInput {
@@ -38,8 +54,9 @@ interface SongToolInput extends BaseToolInput {
 const AttendanceOverviewTool = toolDefinition({
   name: 'get_attendance_overview',
   description:
-    'Get concert count, city count, venue count, date range, and first show. Use concertScope=all for all non-hidden tour shows.',
+    'Get concert count, city count, venue count, date range, and first show. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for all non-hidden tour shows.',
   inputSchema: z.object({
+    ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
   }),
   outputSchema: z.object({
@@ -53,8 +70,10 @@ const AttendanceOverviewTool = toolDefinition({
 
 const RankCitiesTool = toolDefinition({
   name: 'rank_cities',
-  description: 'Rank concerts by city. Use concertScope=all for questions about all shows or the whole tour.',
+  description:
+    'Rank concerts by city. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for questions about all shows or the whole tour.',
   inputSchema: z.object({
+    ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
     limit: z.number().int().min(1).max(8).default(5),
   }),
@@ -67,8 +86,9 @@ const RankCitiesTool = toolDefinition({
 const RankSongsTool = toolDefinition({
   name: 'rank_songs',
   description:
-    'Rank songs by performance count. Use concertScope=all for all shows. Use section=request for 点歌, section=encore for encore songs, section=main for main set.',
+    'Rank songs by performance count. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for all shows. Use section=request for 点歌, section=encore for encore songs, section=main for main set.',
   inputSchema: z.object({
+    ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
     limit: z.number().int().min(1).max(8).default(5),
     section: SongSectionScopeSchema,
@@ -81,8 +101,10 @@ const RankSongsTool = toolDefinition({
 
 const SongTimelineTool = toolDefinition({
   name: 'song_timeline',
-  description: 'Find every concert where a song title appears, ordered by date. Supports selected/all concert scope and song section filtering.',
+  description:
+    'Find every concert where a song title appears, ordered by date. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Supports selected/all concert scope and song section filtering.',
   inputSchema: z.object({
+    ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
     limit: z.number().int().min(1).max(12).default(12),
     section: SongSectionScopeSchema,
@@ -104,27 +126,12 @@ const SongTimelineTool = toolDefinition({
 
 const RankGuestsTool = toolDefinition({
   name: 'rank_guests',
-  description: 'Rank special guests by appearance count. Use concertScope=all for all non-hidden tour shows.',
-  inputSchema: z.object({
-    concertScope: ConcertScopeSchema,
-    limit: z.number().int().min(1).max(8).default(5),
-  }),
-  outputSchema: z.object({
-    entries: z.array(RankEntrySchema),
-    scope: StatsScopeSchema,
-  }),
-})
-
-const RankSongsByPeriodTool = toolDefinition({
-  name: 'rank_songs_by_period',
   description:
-    'Rank songs within a selected month or season. Supports selected/all concert scope and section=request for 点歌.',
+    'Rank special guests by appearance count. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for all non-hidden tour shows.',
   inputSchema: z.object({
+    ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
     limit: z.number().int().min(1).max(8).default(5),
-    month: z.number().int().min(1).max(12).optional(),
-    section: SongSectionScopeSchema,
-    season: z.enum(['spring', 'summer', 'autumn', 'winter']).optional(),
   }),
   outputSchema: z.object({
     entries: z.array(RankEntrySchema),
@@ -140,9 +147,15 @@ const RankSongsByPeriodTool = toolDefinition({
  * 结果，不能自由访问 D1 或拼接 SQL。
  */
 export function createReportTools(db: D1Database, showIds: number[]) {
-  const baseScope = (input: BaseToolInput) => ({ concertScope: input.concertScope ?? 'selected' })
-  const songScope = (input: SongToolInput) => ({
+  const baseScope = (input: BaseToolInput) => ({
     concertScope: input.concertScope ?? 'selected',
+    endDate: input.endDate,
+    month: input.month,
+    season: input.season,
+    startDate: input.startDate,
+  })
+  const songScope = (input: SongToolInput) => ({
+    ...baseScope(input),
     section: input.section ?? 'all',
   })
 
@@ -162,10 +175,6 @@ export function createReportTools(db: D1Database, showIds: number[]) {
     })),
     RankGuestsTool.server(async (input) => ({
       entries: await rankGuests(db, showIds, baseScope(input), input.limit ?? 5),
-      scope: await getStatsScope(db, showIds, baseScope(input)),
-    })),
-    RankSongsByPeriodTool.server(async (input) => ({
-      entries: await rankSongsByPeriod(db, showIds, { ...songScope(input), month: input.month, season: input.season }, input.limit ?? 5),
       scope: await getStatsScope(db, showIds, baseScope(input)),
     })),
   ]

@@ -7,33 +7,33 @@
 export const REPORT_DIMENSIONS = [
   {
     name: '出席概览',
-    description: '统计场次总数、城市数、场馆数、日期范围和第一场演出；默认查已选场次，提到所有场次时传 concertScope=all。',
+    description:
+      '统计场次总数、城市数、场馆数、日期范围和第一场演出；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认查已选场次，提到所有场次时传 concertScope=all。',
     tool: 'get_attendance_overview',
   },
   {
     name: '城市排行',
-    description: '按城市聚合场次；默认查已选场次，提到所有场次/全巡演时传 concertScope=all。',
+    description:
+      '按城市聚合场次；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认查已选场次，提到所有场次/全巡演时传 concertScope=all。',
     tool: 'rank_cities',
   },
   {
     name: '歌曲排行',
-    description: '统计歌曲出现次数；默认全部歌曲段落，点歌传 section=request，安可传 section=encore，所有场次传 concertScope=all。',
+    description:
+      '统计歌曲出现次数；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认全部歌曲段落，点歌传 section=request，安可传 section=encore，所有场次传 concertScope=all。',
     tool: 'rank_songs',
   },
   {
     name: '单曲时间线',
-    description: '查找某首歌出现过的日期、城市、场次标签和备注；支持 concertScope 和 section 参数。',
+    description:
+      '查找某首歌出现过的日期、城市、场次标签和备注；支持 concertScope、section、startDate/endDate（YYYY-MM-DD）、month 与 season 参数。',
     tool: 'song_timeline',
   },
   {
     name: '嘉宾排行',
-    description: '统计嘉宾出现次数；默认查已选场次，提到所有场次/全巡演时传 concertScope=all。',
+    description:
+      '统计嘉宾出现次数；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认查已选场次，提到所有场次/全巡演时传 concertScope=all。',
     tool: 'rank_guests',
-  },
-  {
-    name: '月份/季节歌曲排行',
-    description: '按月份或春夏秋冬筛选后统计歌曲出现次数；支持 concertScope 和 section 参数。',
-    tool: 'rank_songs_by_period',
   },
 ] as const
 
@@ -50,6 +50,7 @@ export function createReportSystemPrompt(showCount: number): string {
     `The JSON object must match this shape: ${CARD_SCHEMA_HINT}.`,
     'Use the server tools for every statistic. Never invent counts, rankings, dates, or cities.',
     'If the user asks about 所有场次, 全部场次, 全巡演, or the whole tour, pass concertScope="all" to the relevant tool.',
+    'Every statistics tool accepts time filters. For an exact date range, pass startDate and/or endDate as YYYY-MM-DD; use both for an inclusive interval, or one for "since" or "until". For a recurring calendar month or season across years, pass month (1-12) or season (spring, summer, autumn, winter). The filters can be combined.',
     'If the user asks about 点歌, request songs, or requested songs, pass section="request" to song ranking or timeline tools.',
     'If no selected concerts are available, return a warm zero-state card that asks the user to choose concerts first.',
     'Use rank for comparisons and timeline for song encounter histories. Do not output both rank and timeline.',

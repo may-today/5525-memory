@@ -62,7 +62,6 @@ function toolLabel(name: string): string {
   if (name === 'rank_songs') return '统计歌曲出现次数…'
   if (name === 'song_timeline') return '整理歌曲相遇时间线…'
   if (name === 'rank_guests') return '统计同场嘉宾…'
-  if (name === 'rank_songs_by_period') return '筛选时间范围并统计歌曲…'
   return '检索 5525 数据…'
 }
 
