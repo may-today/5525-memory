@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { SummaryData } from '@/server/summary'
 import { getSummaryData } from '@/server/summary'
-import { concertStore, getPersistedShowIds } from '@/stores/concert-store'
+import {
+  concertStore,
+  getPersistedConcertProfile,
+  getPersistedShowIds,
+} from '@/stores/concert-store'
 
 /** Reads showIds from the store first, then the localStorage persistence snapshot. */
 function resolveInitialShowIds(): number[] {
@@ -9,6 +13,12 @@ function resolveInitialShowIds(): number[] {
   if (storeIds.length > 0) return storeIds
 
   return getPersistedShowIds()
+}
+
+/** Reads the form location from the live store, with localStorage as the hard-refresh fallback. */
+function resolveInitialLocation() {
+  const profile = concertStore.state.profile
+  return profile.coordinates || profile.city ? profile : getPersistedConcertProfile()
 }
 
 /**
@@ -22,8 +32,9 @@ export function useSummaryData(): { data: SummaryData | null; ready: boolean } {
   useEffect(() => {
     let cancelled = false
     const showIds = resolveInitialShowIds()
+    const location = resolveInitialLocation()
 
-    getSummaryData({ data: showIds }).then((result) => {
+    getSummaryData({ data: { showIds, city: location.city, coordinates: location.coordinates } }).then((result) => {
       if (cancelled) return
       concertStore.setState((state) => ({ ...state, selectedShows: result.selectedShows }))
       setData(result)

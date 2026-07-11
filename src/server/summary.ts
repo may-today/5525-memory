@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import type { Show } from '@/types'
+import { geoCoordMap } from '@/data/geo-coord'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
 import type { SummarySetlistItem } from './shows'
@@ -12,6 +13,22 @@ export interface CityMarker {
   latitude: number
   /** 从硬编码 CITY_COORDINATES 映射表解析出的经度；映射表缺失的城市会被跳过。 */
   longitude: number
+}
+
+export interface LocationCoordinates {
+  /** Latitude reported by the browser Geolocation API. */
+  latitude: number
+  /** Longitude reported by the browser Geolocation API. */
+  longitude: number
+}
+
+export interface SummaryRequest {
+  /** IDs of the shows selected in the form. */
+  showIds: number[]
+  /** Optional city or region selected in the form when browser location is unavailable. */
+  city: string
+  /** Optional browser coordinates used to calculate round-trip travel distance. */
+  coordinates: LocationCoordinates | null
 }
 
 export interface SongStats {
@@ -130,6 +147,11 @@ export interface SummaryData {
    */
   guestStats: GuestStats
   /**
+   * Round-trip distance in kilometers from the user's browser location to each
+   * distinct visited city. Null means the user did not provide a valid location.
+   */
+  mileage: number | null
+  /**
    * 选中场次的基础出席统计。
    *
    * totalShows 为 selectedShows.length；cityCount 为选中场次城市去重数；
@@ -205,6 +227,26 @@ function buildGuestStats(allShows: Show[], selectedShows: Show[]): GuestStats {
     )
 
   return { guestShows }
+}
+
+function hasValidCoordinates(coordinates: LocationCoordinates | null): coordinates is LocationCoordinates {
+  return (
+    coordinates !== null &&
+    Number.isFinite(coordinates.latitude) &&
+    Number.isFinite(coordinates.longitude) &&
+    coordinates.latitude >= -90 &&
+    coordinates.latitude <= 90 &&
+    coordinates.longitude >= -180 &&
+    coordinates.longitude <= 180
+  )
+}
+
+function getOriginCoordinates(city: string, coordinates: LocationCoordinates | null): [number, number] | null {
+  if (hasValidCoordinates(coordinates)) {
+    return [coordinates.longitude, coordinates.latitude]
+  }
+
+  return geoCoordMap[city] ?? null
 }
 
 /**
@@ -341,13 +383,53 @@ function buildRareSongStats(
 }
 
 /**
- * Single consolidated query for everything the /summary cards need (Card2's
- * mileage is out of scope — no home-city capture yet). Called once per
- * /summary mount with the user's selected show ids.
+ * Calculates the distance between two points on the Earth's surface using the Haversine formula.
+ *
+ * @param lng1 - The longitude of the first point.
+ * @param lat1 - The latitude of the first point.
+ * @param lng2 - The longitude of the second point.
+ * @param lat2 - The latitude of the second point.
+ * @returns The distance between the two points in kilometers, rounded to the nearest integer.
+ */
+const getDistance = ([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]) => {
+  const radLat1 = (lat1 * Math.PI) / 180.0
+  const radLat2 = (lat2 * Math.PI) / 180.0
+  const a = radLat1 - radLat2
+  const b = (lng1 * Math.PI) / 180.0 - (lng2 * Math.PI) / 180.0
+  let s = 2 * Math.asin(Math.sqrt(Math.sin(a / 2) ** 2 + Math.cos(radLat1) * Math.cos(radLat2) * Math.sin(b / 2) ** 2))
+  s *= 6378.137
+  s = Math.round(s)
+  return s
+}
+
+/** Calculates the sum of round trips from the user's location to every distinct visited city. */
+function buildMileage(selectedShows: Show[], city: string, coordinates: LocationCoordinates | null): number | null {
+  const origin = getOriginCoordinates(city, coordinates)
+  if (!origin) {
+    return null
+  }
+
+  const cityNames = new Set(selectedShows.map((show) => show.city))
+  let mileage = 0
+
+  for (const cityName of cityNames) {
+    const cityCoordinates = CITY_COORDINATES[cityName]
+    if (!cityCoordinates) continue
+
+    mileage += getDistance(origin, [cityCoordinates.longitude, cityCoordinates.latitude]) * 2
+  }
+
+  return mileage
+}
+
+/**
+ * Single consolidated query for everything the /summary cards need. Called
+ * once per /summary mount with the user's selected show ids and optional form
+ * location.
  */
 export const getSummaryData = createServerFn({ method: 'POST' })
-  .validator((showIds: number[]) => showIds)
-  .handler(async ({ data: showIds }): Promise<SummaryData> => {
+  .validator((request: SummaryRequest) => request)
+  .handler(async ({ data: { showIds, city, coordinates } }): Promise<SummaryData> => {
     const db = await getDb()
 
     const { shows: allShows, setlistItems } = await querySummarySnapshot(db)
@@ -368,6 +450,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
         venueCount: new Set(selectedShows.map((s) => s.venue)).size,
       },
       cityMarkers: buildCityMarkers(citiesForMarkers),
+      mileage: buildMileage(selectedShows, city, coordinates),
       songStats: buildSongStats(selectedSetlistItems),
       randomSongStats: buildRandomSongStats(selectedSetlistItems),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),

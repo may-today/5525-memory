@@ -190,3 +190,8 @@ export function clearSelectedShows(): void {
 export function getPersistedShowIds(): number[] {
   return readPersistedShowIds()
 }
+
+/** Read the profile snapshot persisted by the form, including optional browser coordinates. */
+export function getPersistedConcertProfile(): ConcertProfile {
+  return readPersistedProfile()
+}
