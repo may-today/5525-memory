@@ -1,15 +1,14 @@
 /**
- * Canvas-2D particle engine for the Duration card's "dome of time".
+ * Canvas-2D particle engine for the Duration card's "time tunnel".
  *
- * The hourglass is abstracted to its upper bulb only: a semicircular dome of
- * glowing blue particles (arc up, chord down) floating in the top third of
- * the canvas. Scroll progress (smoothed every frame) drives the story — idle
- * shimmer, then each grain funnels to the chord's midpoint (the implied
- * neck), falls along a bezier and lands directly on its pixel of the user's
- * total-minutes digits. The text materializes grain by grain, roughly left
- * to right. Particle positions are pure functions of the smoothed progress,
- * so scrubbing backwards replays the animation in reverse with no
- * accumulated state.
+ * Every particle sits on the wall of an endless cylinder around a vanishing
+ * point: a fixed ring angle, a radius jitter and a looping depth offset.
+ * Scroll progress (smoothed every frame) drives the story — an idle tunnel
+ * drifting slowly forward, then a warp flight through 2.4 loops of the
+ * tunnel, and finally each star peels off its flight path and lands on its
+ * pixel of the user's total-minutes digits. Particle positions are pure
+ * functions of the smoothed progress and time, so scrubbing backwards
+ * replays the whole journey in reverse with no accumulated state.
  *
  * Rendering follows the City card's WebGL precedents: device pixel ratio is
  * capped at 1.5, the RAF loop freezes while the page transition runs
@@ -17,7 +16,7 @@
  * pre-rendered radial-gradient sprite — never per-particle shadowBlur.
  */
 
-export interface DurationHourglassOptions {
+export interface DurationTunnelOptions {
   canvas: HTMLCanvasElement
   /**
    * DOM element showing the real total-minutes text. The digit point cloud is
@@ -26,14 +25,16 @@ export interface DurationHourglassOptions {
   numberEl: HTMLElement | null
   /** Called when smoothed progress crosses the DOM-number handoff threshold. */
   onHandoffChange?: (isHandoff: boolean) => void
-  /** Final number the particles converge into. */
+  /** Called when the intro copy should fade out (scroll departed) or back in. */
+  onIntroChange?: (isIntroVisible: boolean) => void
+  /** Final number the particles converge into (rendered without separators). */
   totalMinutes: number
 }
 
-export interface DurationHourglassInstance {
+export interface DurationTunnelInstance {
   /** Stops the RAF loop, disconnects observers and releases the canvas. */
   destroy(): void
-  /** Draws a single static idle-dome frame (reduced-motion mode). */
+  /** Draws a single static idle-tunnel frame (reduced-motion mode). */
   renderStaticFrame(): void
   /** Freezes/unfreezes the RAF loop during page transitions. */
   setPaused(isPaused: boolean): void
@@ -50,9 +51,6 @@ const MAX_PARTICLES = 1800
 /** One particle per this many CSS pixels of canvas area. */
 const AREA_PER_PARTICLE = 320
 
-/** Fraction of particles tracing the dome outline instead of acting as sand. */
-const RIM_RATIO = 0.2
-
 /**
  * Fraction of the remaining distance to the scroll target covered per 60fps
  * frame; converted to a time-based factor each frame so the scrub feel is
@@ -62,56 +60,75 @@ const PROGRESS_EASING_PER_FRAME = 0.08
 const REFERENCE_FRAME_MS = 16.7
 
 /* Phase boundaries on the smoothed progress axis. */
-const FLOW_START = 0.14
-const FLOW_END = 0.86
+const FLIGHT_START = 0.05
+const FLIGHT_END = 0.8
+/** Tunnel loops the camera travels across the whole flight phase. */
+const TUNNEL_LOOPS = 2.4
+/** Depth loops per second while idle; hands over to the flight as it eases in. */
+const IDLE_DRIFT_PER_SECOND = 0.012
+
+/* Convergence of stars into the digit point cloud. */
+const CONVERGE_START = 0.5
+const CONVERGE_END = 0.88
 /**
- * Per-grain journey length as a fraction of the flow phase; the remaining
- * (1 − window) is the stagger spread, so the last grain lands at FLOW_END.
+ * Per-star journey length as a fraction of the converge phase; the remaining
+ * (1 − window) is the stagger spread, so the last star lands at CONVERGE_END.
  */
-const GRAIN_WINDOW = 0.35
-/** Fraction of a grain's journey spent funneling to the spout (rest is the fall). */
-const FUNNEL_END = 0.28
+const CONVERGE_WINDOW = 0.34
+
 /** Particles fade out over this window while the DOM number fades in. */
 const FADE_OUT_START = 0.92
 const FADE_OUT_END = 0.98
 /** Handoff hysteresis so the DOM number doesn't flicker at the boundary. */
 const HANDOFF_ON = 0.93
 const HANDOFF_OFF = 0.88
+/** Intro-copy hysteresis: fade out once the flight departs, back in on return. */
+const INTRO_HIDE = 0.12
+const INTRO_SHOW = 0.08
+
+/* Perspective projection of the tunnel cylinder. */
+const Z_NEAR = 0.12
+const Z_FAR = 1
+const FOCAL = 0.3
+/** Cylinder radius as a fraction of min(width, height). */
+const TUNNEL_RADIUS_RATIO = 0.5
 
 interface Particle {
-  /** Control-point x offset (px) so parallel falls braid instead of stacking. */
-  fallDrift: number
-  /** Stagger offset in [0, 1) so grains leave the dome one after another. */
-  flowOffset: number
-  homeX: number
-  homeY: number
-  /** True for dome-outline particles that never flow, only shimmer. */
-  isRim: boolean
+  /** Fixed ring angle on the tunnel wall. */
+  angle: number
+  /** Stagger offset in [0, 1) so stars leave the tunnel one after another. */
+  convergeOffset: number
+  /** Looping depth position along the tunnel in [0, 1). */
+  depthOffset: number
+  /** Cylinder-radius jitter so the wall reads as a nebula, not a wireframe. */
+  radiusScale: number
   /** Draw scale relative to the sprite's base size. */
   sizeScale: number
-  /** Horizontal x jitter (px) at the spout so the stream has width. */
-  spoutJitter: number
   /** Index into the sprite atlas (0 = dim small, 1 = bright large). */
   spriteIndex: number
-  /** Peak horizontal sway (px) while falling; damps out on landing. */
-  swayAmount: number
   targetX: number
   targetY: number
   twinklePhase: number
   twinkleSpeed: number
 }
 
-interface DomeGeometry {
+interface TunnelView {
   centerX: number
-  /** y of the dome's flat bottom edge — the implied hourglass neck line. */
-  chordY: number
-  radius: number
+  centerY: number
+  height: number
+  /** Cylinder radius in CSS px. */
+  radiusBase: number
+  width: number
 }
 
 function clamp01(value: number): number {
   if (value < 0) return 0
   if (value > 1) return 1
   return value
+}
+
+function fract(value: number): number {
+  return value - Math.floor(value)
 }
 
 function lerp(from: number, to: number, t: number): number {
@@ -122,11 +139,19 @@ function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 }
 
-function buildGeometry(width: number, height: number): DomeGeometry {
+/** Derivative of easeInOutCubic normalized to peak at 1 (t = 0.5). */
+function easeInOutCubicSpeed(t: number): number {
+  return (t < 0.5 ? 12 * t * t : 12 * (1 - t) ** 2) / 3
+}
+
+function buildView(width: number, height: number): TunnelView {
   return {
     centerX: width / 2,
-    chordY: height * 0.34,
-    radius: Math.min(width * 0.42, height * 0.22),
+    // Vanishing point sits above the copy block so the digits land in clear space.
+    centerY: height * 0.42,
+    height,
+    radiusBase: Math.min(width, height) * TUNNEL_RADIUS_RATIO,
+    width,
   }
 }
 
@@ -146,27 +171,6 @@ function makeGlowSprite(radius: number, coreAlpha: number): HTMLCanvasElement {
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, radius * 2, radius * 2)
   return sprite
-}
-
-/** Samples a sand-particle rest position uniformly inside the半圆 dome. */
-function sampleDome(geometry: DomeGeometry): [number, number] {
-  const angle = Math.random() * Math.PI
-  const distance = geometry.radius * 0.96 * Math.sqrt(Math.random())
-  return [geometry.centerX + Math.cos(angle) * distance, geometry.chordY - Math.sin(angle) * distance - 2]
-}
-
-/** Samples a point on the dome outline — mostly the arc, sparsely the chord. */
-function sampleRim(geometry: DomeGeometry): [number, number] {
-  if (Math.random() < 0.25) {
-    return [
-      geometry.centerX + (Math.random() * 2 - 1) * geometry.radius,
-      geometry.chordY + (Math.random() * 2 - 1) * 1.2,
-    ]
-  }
-
-  const angle = Math.random() * Math.PI
-  const distance = geometry.radius + (Math.random() * 2 - 1) * 1.5
-  return [geometry.centerX + Math.cos(angle) * distance, geometry.chordY - Math.sin(angle) * distance]
 }
 
 interface DigitCloud {
@@ -241,8 +245,49 @@ async function sampleDigitPoints(text: string): Promise<DigitCloud> {
   return scanLitPixels(ctx.getImageData(0, 0, offscreen.width, offscreen.height))
 }
 
-interface GrainPosition {
-  /** Ghost-copy opacity factor for the star-trail; 0 outside the falling leg. */
+interface TunnelPoint {
+  /** Depth-graded brightness (far dim, near bright, fades before the wrap). */
+  alpha: number
+  /** Perspective size multiplier (near stars draw larger). */
+  sizeMul: number
+  x: number
+  y: number
+}
+
+/**
+ * Projects a particle's cylinder position for a given camera travel. Pure in
+ * (particle, travel), so ghosts are just the same projection at an earlier
+ * travel value.
+ */
+function projectTunnelPoint(
+  particle: Particle,
+  view: TunnelView,
+  travel: number,
+  bendX: number,
+  bendY: number
+): TunnelPoint {
+  const w = fract(particle.depthOffset + travel)
+  const z = lerp(Z_FAR, Z_NEAR, w)
+  const scale = FOCAL / z
+  const ringRadius = view.radiusBase * particle.radiusScale * scale
+  // Bend weighted by (1 − z): the far end of the tunnel swings, the near end holds.
+  const x = view.centerX + bendX * (1 - z) + Math.cos(particle.angle) * ringRadius
+  const y = view.centerY + bendY * (1 - z) + Math.sin(particle.angle) * ringRadius * 0.85
+
+  const farFade = clamp01((Z_FAR - z) * 3)
+  const nearFade = clamp01((z - Z_NEAR) / 0.08)
+  return {
+    alpha: farFade * nearFade,
+    sizeMul: Math.min(2.2, 0.55 + scale * 0.9),
+    x,
+    y,
+  }
+}
+
+interface ParticleFrame {
+  alpha: number
+  sizeMul: number
+  /** Ghost-copy opacity factor for the warp streak; 0 outside the flight. */
   trailAlpha: number
   trailX: number
   trailY: number
@@ -250,89 +295,48 @@ interface GrainPosition {
   y: number
 }
 
-/** Quadratic bezier through the spout → control → digit-target fall path. */
-function bezier(
-  spoutX: number,
-  spoutY: number,
-  controlX: number,
-  controlY: number,
-  targetX: number,
-  targetY: number,
-  t: number
-): [number, number] {
-  const inverse = 1 - t
-  return [
-    inverse * inverse * spoutX + 2 * inverse * t * controlX + t * t * targetX,
-    inverse * inverse * spoutY + 2 * inverse * t * controlY + t * t * targetY,
-  ]
-}
-
 /**
- * Pure position of a sand grain: home shimmer, funnel to the spout, then a
- * bezier fall that lands directly on its digit pixel (with a trailing ghost).
- * Deterministic in (flowPhase, time), so scrubbing backwards replays it in
- * reverse.
+ * Pure position of a star this frame: tunnel projection during idle/flight,
+ * blended onto its digit pixel through its staggered converge window.
+ * Deterministic in (progress, time), so scrubbing backwards replays the
+ * journey in reverse.
  */
-function getGrainPosition(particle: Particle, geometry: DomeGeometry, flowPhase: number, time: number): GrainPosition {
-  const flowT = clamp01((flowPhase - particle.flowOffset * (1 - GRAIN_WINDOW)) / GRAIN_WINDOW)
-  const spoutX = geometry.centerX + particle.spoutJitter
+function getParticleFrame(particle: Particle, view: TunnelView, progress: number, time: number): ParticleFrame {
+  const flightT = clamp01((progress - FLIGHT_START) / (FLIGHT_END - FLIGHT_START))
+  const flightEase = easeInOutCubic(flightT)
+  const flightSpeed = easeInOutCubicSpeed(flightT)
+  const travel = time * IDLE_DRIFT_PER_SECOND * (1 - flightEase) + TUNNEL_LOOPS * flightEase
 
-  let x = particle.homeX
-  let y = particle.homeY
+  const bendX = Math.sin(travel * 1.7 + 0.8) * view.width * 0.06
+  const bendY = Math.cos(travel * 1.3) * view.height * 0.03
+  const point = projectTunnelPoint(particle, view, travel, bendX, bendY)
+
+  const convergeLocal = clamp01((progress - CONVERGE_START) / (CONVERGE_END - CONVERGE_START))
+  const convergeT = clamp01((convergeLocal - particle.convergeOffset * (1 - CONVERGE_WINDOW)) / CONVERGE_WINDOW)
+  const eased = easeInOutCubic(convergeT)
+
+  let trailAlpha = 0
   let trailX = 0
   let trailY = 0
-  let trailAlpha = 0
-
-  if (flowT > 0 && flowT < FUNNEL_END) {
-    const funnelT = flowT / FUNNEL_END
-    x = lerp(particle.homeX, spoutX, funnelT ** 1.6)
-    y = lerp(particle.homeY, geometry.chordY, funnelT * funnelT)
-  } else if (flowT >= FUNNEL_END) {
-    const fallT = (flowT - FUNNEL_END) / (1 - FUNNEL_END)
-    const controlX = geometry.centerX + particle.fallDrift
-    const controlY = geometry.chordY + (particle.targetY - geometry.chordY) * 0.6
-    const eased = easeInOutCubic(fallT)
-    ;[x, y] = bezier(spoutX, geometry.chordY, controlX, controlY, particle.targetX, particle.targetY, eased)
-    x += Math.sin(time * 2 + particle.twinklePhase) * particle.swayAmount * (1 - eased)
-
-    if (fallT > 0.02 && fallT < 0.96) {
-      const ghostEased = easeInOutCubic(Math.max(0, fallT - 0.08))
-      ;[trailX, trailY] = bezier(
-        spoutX,
-        geometry.chordY,
-        controlX,
-        controlY,
-        particle.targetX,
-        particle.targetY,
-        ghostEased
-      )
-      trailAlpha = 0.3
-    }
+  if (flightSpeed > 0.05 && eased < 1) {
+    const ghost = projectTunnelPoint(particle, view, travel - 0.028 * flightSpeed, bendX, bendY)
+    trailX = ghost.x
+    trailY = ghost.y
+    trailAlpha = 0.4 * flightSpeed * (1 - eased)
   }
 
-  const drift = 1 - clamp01(flowT * 4)
-  if (drift > 0) {
-    x += Math.sin(time * particle.twinkleSpeed + particle.twinklePhase) * 1.6 * drift
-    y += Math.cos(time * particle.twinkleSpeed * 0.8 + particle.twinklePhase * 1.7) * 1.2 * drift
-  }
+  const idleDrift = (1 - flightEase) * (1 - eased)
+  const wobbleX = Math.sin(time * particle.twinkleSpeed + particle.twinklePhase) * 1.6 * idleDrift
+  const wobbleY = Math.cos(time * particle.twinkleSpeed * 0.8 + particle.twinklePhase * 1.7) * 1.2 * idleDrift
 
-  return { x, y, trailX, trailY, trailAlpha }
-}
-
-/** Position of any particle this frame: rim points only shimmer in place, grains travel. */
-function getParticlePosition(
-  particle: Particle,
-  geometry: DomeGeometry,
-  flowPhase: number,
-  time: number
-): GrainPosition {
-  if (!particle.isRim) return getGrainPosition(particle, geometry, flowPhase, time)
   return {
-    x: particle.homeX + Math.sin(time * particle.twinkleSpeed + particle.twinklePhase) * 1.4,
-    y: particle.homeY + Math.cos(time * particle.twinkleSpeed * 0.8 + particle.twinklePhase * 1.7) * 1.1,
-    trailX: 0,
-    trailY: 0,
-    trailAlpha: 0,
+    alpha: lerp(point.alpha, 0.9, eased),
+    sizeMul: lerp(point.sizeMul, 1, eased),
+    trailAlpha,
+    trailX,
+    trailY,
+    x: lerp(point.x + wobbleX, particle.targetX, eased),
+    y: lerp(point.y + wobbleY, particle.targetY, eased),
   }
 }
 
@@ -357,11 +361,11 @@ function measureNumberBox(numberEl: HTMLElement | null, canvas: HTMLCanvasElemen
   }
 }
 
-/** Fallback landing when font sampling failed: a soft horizontal band below the dome. */
-function scatterBandTargets(particles: Particle[], geometry: DomeGeometry): void {
+/** Fallback landing when font sampling failed: a soft horizontal band mid-screen. */
+function scatterBandTargets(particles: Particle[], view: TunnelView): void {
   for (const particle of particles) {
-    particle.targetX = geometry.centerX + (Math.random() * 2 - 1) * geometry.radius * 1.1
-    particle.targetY = geometry.chordY + geometry.radius * 1.4 + (Math.random() * 2 - 1) * 10
+    particle.targetX = view.centerX + (Math.random() * 2 - 1) * view.radiusBase * 0.9
+    particle.targetY = view.height * 0.58 + (Math.random() * 2 - 1) * 10
   }
 }
 
@@ -380,27 +384,27 @@ function applyDigitTargets(particles: Particle[], cloud: DigitCloud, box: Target
   }
 }
 
-/** Re-staggers grains by target x so the text materializes roughly left to right. */
-function staggerGrainsLeftToRight(particles: Particle[]): void {
-  const sand = particles.filter((particle) => !particle.isRim).sort((a, b) => a.targetX - b.targetX)
-  for (let rank = 0; rank < sand.length; rank++) {
-    const grain = sand[rank]
-    if (!grain) continue
-    grain.flowOffset = (rank / sand.length) * 0.85 + Math.random() * 0.15
+/** Re-staggers stars by target x so the text materializes roughly left to right. */
+function staggerStarsLeftToRight(particles: Particle[]): void {
+  const stars = [...particles].sort((a, b) => a.targetX - b.targetX)
+  for (let rank = 0; rank < stars.length; rank++) {
+    const star = stars[rank]
+    if (!star) continue
+    star.convergeOffset = (rank / stars.length) * 0.85 + Math.random() * 0.15
   }
 }
 
 /**
- * Creates the dome engine on the given canvas. The caller owns the RAF
+ * Creates the tunnel engine on the given canvas. The caller owns the RAF
  * policy only indirectly: the loop starts immediately and must be released
  * with destroy() on unmount.
  */
-export function createDurationHourglass(options: DurationHourglassOptions): DurationHourglassInstance {
-  const { canvas, numberEl, onHandoffChange, totalMinutes } = options
+export function createDurationTunnel(options: DurationTunnelOptions): DurationTunnelInstance {
+  const { canvas, numberEl, onHandoffChange, onIntroChange, totalMinutes } = options
   const context = canvas.getContext('2d')
 
   let particles: Particle[] = []
-  let geometry: DomeGeometry | null = null
+  let view: TunnelView | null = null
   let digitCloud: DigitCloud | null = null
   let width = 0
   let height = 0
@@ -411,32 +415,33 @@ export function createDurationHourglass(options: DurationHourglassOptions): Dura
   let lastTime = performance.now()
   let isPaused = false
   let isHandoff = false
+  let isIntroHidden = false
   let isDestroyed = false
   let animationFrame = 0
 
   const sprites = [makeGlowSprite(5, 0.55), makeGlowSprite(8, 0.9)]
 
   /**
-   * Fits the digit point cloud to the DOM number's box (or below the dome as
-   * fallback), then re-staggers grains by target x so the text materializes
-   * roughly left to right as the sand arrives.
+   * Fits the digit point cloud to the DOM number's box (or a mid-screen band
+   * as fallback), then re-staggers stars by target x so the text materializes
+   * roughly left to right as they land.
    */
   function assignDigitTargets(): void {
-    if (!geometry) return
+    if (!view) return
 
     if (!digitCloud || digitCloud.points.length === 0) {
-      scatterBandTargets(particles, geometry)
+      scatterBandTargets(particles, view)
       return
     }
 
     const box = measureNumberBox(numberEl, canvas) ?? {
-      x: geometry.centerX - geometry.radius,
-      y: geometry.chordY + geometry.radius * 1.25,
-      width: geometry.radius * 2,
+      x: view.centerX - view.radiusBase * 0.8,
+      y: view.height * 0.56,
+      width: view.radiusBase * 1.6,
       height: 48,
     }
     applyDigitTargets(particles, digitCloud, box)
-    staggerGrainsLeftToRight(particles)
+    staggerStarsLeftToRight(particles)
   }
 
   function rebuild(): void {
@@ -449,38 +454,32 @@ export function createDurationHourglass(options: DurationHourglassOptions): Dura
     canvas.height = Math.round(height * dpr)
     context?.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-    const dome = buildGeometry(width, height)
-    geometry = dome
+    view = buildView(width, height)
     const count = Math.min(MAX_PARTICLES, Math.max(MIN_PARTICLES, Math.floor((width * height) / AREA_PER_PARTICLE)))
 
-    particles = Array.from({ length: count }, (_, i): Particle => {
-      const isRim = i < count * RIM_RATIO
-      const [homeX, homeY] = isRim ? sampleRim(dome) : sampleDome(dome)
-      return {
-        fallDrift: (Math.random() * 2 - 1) * dome.radius * 0.35,
-        flowOffset: Math.random(),
-        homeX,
-        homeY,
-        isRim,
+    particles = Array.from(
+      { length: count },
+      (): Particle => ({
+        angle: Math.random() * Math.PI * 2,
+        convergeOffset: Math.random(),
+        depthOffset: Math.random(),
+        radiusScale: 0.7 + Math.random() * 0.6,
         sizeScale: 0.55 + Math.random() * 0.75,
-        spoutJitter: (Math.random() * 2 - 1) * 3,
         spriteIndex: Math.random() < 0.82 ? 0 : 1,
-        swayAmount: 2 + Math.random() * 5,
-        targetX: homeX,
-        targetY: homeY,
+        targetX: 0,
+        targetY: 0,
         twinklePhase: Math.random() * Math.PI * 2,
         twinkleSpeed: 0.8 + Math.random() * 1.6,
-      }
-    })
+      })
+    )
 
     assignDigitTargets()
   }
 
   function draw(): void {
-    if (!(context && geometry) || width === 0) return
+    if (!(context && view) || width === 0) return
     context.clearRect(0, 0, width, height)
 
-    const flowPhase = clamp01((progress - FLOW_START) / (FLOW_END - FLOW_START))
     const globalFade = 1 - clamp01((progress - FADE_OUT_START) / (FADE_OUT_END - FADE_OUT_START))
     if (globalFade <= 0) return
 
@@ -488,22 +487,22 @@ export function createDurationHourglass(options: DurationHourglassOptions): Dura
     context.globalCompositeOperation = 'lighter'
 
     for (const particle of particles) {
-      const { trailAlpha, trailX, trailY, x, y } = getParticlePosition(particle, geometry, flowPhase, time)
+      const frame = getParticleFrame(particle, view, progress, time)
+      if (frame.x < -80 || frame.x > width + 80 || frame.y < -80 || frame.y > height + 80) continue
 
       const twinkle = 0.65 + 0.35 * Math.sin(time * particle.twinkleSpeed * 2 + particle.twinklePhase)
-      const roleAlpha = particle.isRim ? 0.55 : 0.9
-      const alpha = twinkle * roleAlpha * globalFade
+      const alpha = twinkle * frame.alpha * globalFade
       const sprite = sprites[particle.spriteIndex]
       if (!sprite || alpha <= 0.01) continue
 
-      const size = sprite.width * particle.sizeScale
+      const size = sprite.width * particle.sizeScale * frame.sizeMul
       context.globalAlpha = alpha
-      context.drawImage(sprite, x - size / 2, y - size / 2, size, size)
+      context.drawImage(sprite, frame.x - size / 2, frame.y - size / 2, size, size)
 
-      // Short star-trail ghost while falling toward the digits.
-      if (trailAlpha > 0) {
-        context.globalAlpha = alpha * trailAlpha
-        context.drawImage(sprite, trailX - size / 2, trailY - size / 2, size, size)
+      // Warp-streak ghost trailing the star during the fast flight leg.
+      if (frame.trailAlpha > 0) {
+        context.globalAlpha = alpha * frame.trailAlpha
+        context.drawImage(sprite, frame.trailX - size / 2, frame.trailY - size / 2, size, size)
       }
     }
 
@@ -526,6 +525,12 @@ export function createDurationHourglass(options: DurationHourglassOptions): Dura
         onHandoffChange?.(isHandoff)
       }
 
+      const shouldHideIntro = isIntroHidden ? progress > INTRO_SHOW : progress > INTRO_HIDE
+      if (shouldHideIntro !== isIntroHidden) {
+        isIntroHidden = shouldHideIntro
+        onIntroChange?.(!isIntroHidden)
+      }
+
       draw()
     }
     animationFrame = requestAnimationFrame(frame)
@@ -539,7 +544,7 @@ export function createDurationHourglass(options: DurationHourglassOptions): Dura
   rebuild()
   animationFrame = requestAnimationFrame(frame)
 
-  sampleDigitPoints(totalMinutes.toLocaleString('en-US')).then((cloud) => {
+  sampleDigitPoints(String(totalMinutes)).then((cloud) => {
     if (isDestroyed) return
     digitCloud = cloud
     assignDigitTargets()

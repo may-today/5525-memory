@@ -541,7 +541,7 @@
   }
 }
 
-/* 时长统计卡「时之穹顶」：粒子沙落下拼成数字后淡出，真实 DOM
+/* 时长统计卡「时光隧道」：粒子穿越隧道聚成数字后淡出，真实 DOM
    数字块随 data-visible 淡入交接——最终帧锐利、可被屏幕阅读器朗读。 */
 .summary-duration-hero-copy {
   opacity: 0;
@@ -550,6 +550,16 @@
 
 .summary-duration-hero-copy[data-visible] {
   opacity: 1;
+}
+
+/* 顶部引导语：滚动启程（进度越过滞回阈值）后淡出，滚回起点再淡入。 */
+.summary-duration-intro {
+  opacity: 1;
+  transition: opacity 0.7s ease;
+}
+
+.summary-duration-intro[data-hidden] {
+  opacity: 0;
 }
 
 /* 总分钟数：Doto 点阵体 + 荧光蓝辉光，与城市卡星轨/公里数同一强调色。 */
@@ -1548,8 +1558,10 @@
     transition: none;
   }
 
-  /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），弥散光静止 */
-  .summary-duration-hero-copy {
+  /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），
+     引导语保持可见，弥散光静止 */
+  .summary-duration-hero-copy,
+  .summary-duration-intro {
     transition: none;
   }
 
