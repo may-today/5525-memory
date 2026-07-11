@@ -40,7 +40,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。`getSummaryData` 每次调用只用一条 `shows` + `setlist_items` 联表语句读取所有未隐藏场次的完整快照（歌单数通过 window count 计算，避免相关子查询重复扫描），随后仅在 Worker 内存里按用户所选场次计算所有指标；原始歌单行不会传到浏览器。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md` 与 `journey/plans/2026-07-10-summary-single-query.md`。
 
-表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题。
+表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题；写回 store 时会连同解析出的 profile 一起写入（2026-07-11）——此前只写 selectedShows，store 里的空 profile 会被持久化订阅器写回 `localStorage`，把用户填过的城市清空。
 
 **本地开发**：D1 的本地状态是每台机器独立的 SQLite 文件（`.wrangler/state/v3/d1`，已 gitignore），完全由 Miniflare 模拟，不需要 Cloudflare 账号权限。新拉仓库或换机器只需要 `bunx wrangler d1 migrations apply 5525-memory-db --local` 再 `bun run dev`。
 
@@ -99,12 +99,13 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 - **组件**：`SummaryCardCity`
 - **设计目标**：用全球视角呈现 #5525 巡演覆盖的城市，建立统计回顾的空间感和开场氛围。
-- **主要内容**：旋转地球、城市标记、当前城市名称、经纬度、城市序号；底部详情面板列出当前聚焦城市里用户选中的场次（日期 + 场次标签）。
+- **主要内容**：旋转地球、城市标记、当前城市名称、经纬度、城市序号；底部详情面板列出当前聚焦城市里用户选中的场次（日期 + 场次标签，未去过的城市显示「—」）。**全部巡演城市都有标记**（2026-07-11）：未去过的为小号灰点 + 暗色标签，去过的为大号蓝点（`#38bdf8`，与星轨同色）+ 白色标签带蓝色光点前缀；挂载时初始聚焦用户去过的第一座城市（一场未选时回落到第一座巡演城市）。有可用地点时叠加「奔波距离」星轨叙事（见下），弧线只连接去过的城市。
 - **交互方式**：点击城市标记切换当前城市；使用底部左右按钮循环浏览城市。
-- **视觉方向**：深色背景、发光地球、环形巡演文字和等宽坐标信息。
+- **视觉方向**：深色背景、发光地球、环形巡演文字和等宽坐标信息。蓝色 `#38bdf8` 是本卡唯一强调色（呼应「蓝色的海」），只用于星轨、出发点与公里数。
+- **奔波距离星轨（2026-07-11）**：挂载时相机先对准用户出发点（`phi = 3π/2 − lng·π/180`，已用 cobe anchor 位置实测验证；theta 维持 0.2），出发点为蓝色 marker + DOM 双圈脉冲环（用 cobe 的 `--cobe-user-origin` CSS anchor 锚定）；蓝色弧线（cobe v2 原生 `arcs`）从出发点连接到每座去过的城市，挂载即完整渲染（曾实现逐条错峰生长动画，同日按产品决定移除），多城市自然交织成以用户为中心的引力场；文案两行在切页安定后约 600ms 先后淡入：「那一天，你从{A}出发，跨越了 {X,XXX} 公里，只为了奔赴那一角蓝色的海。」「你走过的所有路，都变成了舞台上亮起的逆风光。」公里数用 Doto + 蓝辉光，出发城市名去掉行政区划后缀（浙江省→浙江），城市为「不透露」「其他国家或地区」或缺失时退化为「你从家出发」。文案揭示由只在未暂停时推进的 RAF 时钟驱动（避免在切页滑动中途淡入）；`prefers-reduced-motion` 下脉冲隐藏、文案立即可见。**启用条件**：`travelOrigin` 非空且 `mileage > 0` 且至少有一座 `isVisited` 城市（弧线目标只取 isVisited 标记，绝不连未去过的城市）；不满足时卡片与无此特性时完全一致。
 - **性能约束**：地球卸载时必须停止 RAF；渲染像素比最高为 1.5，避免移动端高分屏产生过大的 WebGL 帧缓冲；切页期间暂停 WebGL 绘制和装饰动画，但保留实例及旋转角度。
-- **数据来源**：`getSummaryData` 返回的 `cityMarkers`（按用户选中场次的城市去重后，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出；未选择任何场次时兜底展示全部巡演城市）。
-- **数据状态**：地球标记和底部详情面板均已接入真实数据。
+- **数据来源**：`getSummaryData` 返回的 `cityMarkers`（始终为全部非隐藏场次城市去重，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出，选中场次覆盖的城市带 `isVisited: true`）、`mileage` 与 `travelOrigin`（出发点坐标：浏览器定位优先，回退所选城市/地区中心）；出发城市名来自 `concertStore.profile.city`。
+- **数据状态**：地球标记、底部详情面板与奔波距离星轨均已接入真实数据（headless 走查验证多城市与无地点两分支）。
 
 ### 3. 专属歌单
 
@@ -169,7 +170,6 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ## 待确认与后续工作
 
-- 将奔波距离展示接入统计卡片：`getSummaryData` 已接收表单保存的地点信息，优先使用浏览器定位、未定位时回退至所选城市／地区中心；按用户去过的城市去重后，以服务端城市坐标计算每座城市的往返距离（`getDistance` 单程 × 2）并返回 `mileage`；无可用地点时为 `null`，缺少城市坐标的城市不计入。当前仅完成服务端统计，尚未在统计卡片展示。
 - 设计统计页面内的视差或滚动动画。
 - 评估使用 `html2canvas` 或同类方案生成分享图片。
 - 扩展报告页统计工具覆盖面，并为 AI 输出增加更系统的回归测试。

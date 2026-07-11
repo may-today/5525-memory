@@ -328,7 +328,7 @@
     margin-bottom: 8px;
     font-family: var(--font-mono), monospace;
     font-size: 0.6rem;
-    color: #ffffff;
+    color: #71717a;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     white-space: nowrap;
@@ -352,6 +352,103 @@
     border: 5px solid transparent;
     border-top-color: #191919;
     transform: translate3d(-50%, -1px, 0);
+}
+
+/* 用户去过的城市：白色标签 + 蓝色光点前缀，与星轨同色。 */
+.summary-globe-marker-label[data-visited] {
+    color: #ffffff;
+}
+
+.summary-globe-marker-label[data-visited]::before {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-right: 5px;
+    vertical-align: 1px;
+    content: "";
+    background: #38bdf8;
+    border-radius: 9999px;
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+}
+
+/* 用户出发点的蓝色电波：两圈错峰扩散的脉冲环，锚定在 cobe 的 origin marker 上。 */
+.summary-globe-origin-pulse {
+    position: absolute;
+    top: anchor(center);
+    left: anchor(center);
+    z-index: 2;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    translate: -50% -50%;
+    transition: opacity 0.8s;
+}
+
+.summary-globe-origin-pulse::before,
+.summary-globe-origin-pulse::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    border: 1px solid rgba(56, 189, 248, 0.9);
+    border-radius: 9999px;
+    animation: origin-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.summary-globe-origin-pulse::after {
+    animation-delay: 1.5s;
+}
+
+.summary-globe-container[data-paused] .summary-globe-origin-pulse::before,
+.summary-globe-container[data-paused] .summary-globe-origin-pulse::after {
+    animation-play-state: paused;
+}
+
+@keyframes origin-ping {
+    0% {
+        opacity: 0.9;
+        transform: scale(0.4);
+    }
+
+    70%,
+    100% {
+        opacity: 0;
+        transform: scale(3.2);
+    }
+}
+
+/* 奔波距离文案：弧线全部抵达后两行先后淡入，覆盖在地球上方的暗部区域。 */
+.summary-globe-travel-copy {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 3;
+    text-shadow: 0 1px 8px rgba(9, 9, 11, 0.9);
+    pointer-events: none;
+}
+
+.summary-travel-line {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+        opacity 1.4s ease,
+        transform 1.4s ease;
+}
+
+.summary-globe-travel-copy[data-visible] .summary-travel-line {
+    opacity: 1;
+    transform: none;
+}
+
+.summary-globe-travel-copy[data-visible] .summary-travel-line+.summary-travel-line {
+    transition-delay: 1.2s;
+}
+
+.summary-travel-distance {
+    font-family: "Doto", monospace;
+    font-weight: 700;
+    color: #38bdf8;
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
 }
 
 /* Page transition — exit and enter must share the same easing so the two
@@ -1156,6 +1253,17 @@
     /* Globe orbit ring spin */
     .summary-globe-orbit-svg {
         animation: none;
+    }
+
+    /* 城市地图卡：出发点脉冲环静止隐藏（蓝色 marker 仍在），文案直接可见 */
+    .summary-globe-origin-pulse::before,
+    .summary-globe-origin-pulse::after {
+        opacity: 0;
+        animation: none;
+    }
+
+    .summary-travel-line {
+        transition: none;
     }
 
     /* Memories: parallax layers freeze in place, photo light sweep stops */

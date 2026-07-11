@@ -7,8 +7,10 @@ import type { SummarySetlistItem } from './shows'
 import { querySummarySnapshot } from './shows'
 
 export interface CityMarker {
-  /** 城市展示名；有选中场次时来自选中场次城市去重，未选择任何场次时来自所有非隐藏场次城市去重。 */
+  /** 城市展示名；来自所有非隐藏场次城市去重，按场次日期顺序排列。 */
   cityName: string
+  /** 用户选中场次中是否包含该城市；City 卡据此高亮标记并连接星轨。 */
+  isVisited: boolean
   /** 从硬编码 CITY_COORDINATES 映射表解析出的纬度；映射表缺失的城市会被跳过。 */
   latitude: number
   /** 从硬编码 CITY_COORDINATES 映射表解析出的经度；映射表缺失的城市会被跳过。 */
@@ -135,8 +137,8 @@ export interface SummaryData {
   /**
    * 地球城市标记列表。
    *
-   * 用户至少选择一场时，由选中场次城市去重计算；未选择任何场次时，由 allShows
-   * 中的全部城市去重计算。只有能在 CITY_COORDINATES 中匹配到经纬度的城市会被返回。
+   * 始终由 allShows 中的全部城市去重计算，用户选中场次覆盖的城市标记
+   * isVisited = true。只有能在 CITY_COORDINATES 中匹配到经纬度的城市会被返回。
    */
   cityMarkers: CityMarker[]
   /**
@@ -187,14 +189,20 @@ export interface SummaryData {
    * 安可歌曲会被计入；VCR、talking、互动、嘉宾标记等非歌曲行会被排除。
    */
   songStats: SongStats
+  /**
+   * 用户的出发点坐标：浏览器定位优先，未定位时回退到所选城市／地区中心
+   * （geoCoordMap）。City 卡用它在地球上标记用户位置并向去过的城市发射弧线。
+   * null 表示没有可用地点，此时 mileage 也为 null。
+   */
+  travelOrigin: LocationCoordinates | null
 }
 
-function buildCityMarkers(cityNames: string[]): CityMarker[] {
-  const uniqueCities = [...new Set(cityNames)]
+function buildCityMarkers(allShows: Show[], visitedCities: Set<string>): CityMarker[] {
+  const uniqueCities = [...new Set(allShows.map((show) => show.city))]
   const markers: CityMarker[] = []
   for (const cityName of uniqueCities) {
     const coord = CITY_COORDINATES[cityName]
-    if (coord) markers.push({ cityName, ...coord })
+    if (coord) markers.push({ cityName, isVisited: visitedCities.has(cityName), ...coord })
   }
   return markers
 }
@@ -403,8 +411,7 @@ const getDistance = ([lng1, lat1]: [number, number], [lng2, lat2]: [number, numb
 }
 
 /** Calculates the sum of round trips from the user's location to every distinct visited city. */
-function buildMileage(selectedShows: Show[], city: string, coordinates: LocationCoordinates | null): number | null {
-  const origin = getOriginCoordinates(city, coordinates)
+function buildMileage(selectedShows: Show[], origin: [number, number] | null): number | null {
   if (!origin) {
     return null
   }
@@ -439,7 +446,8 @@ export const getSummaryData = createServerFn({ method: 'POST' })
     const selectedSetlistItems = setlistItems.filter((item) => selectedShowIdSet.has(item.showId))
     const showsById = new Map(allShows.map((show) => [show.id, show]))
 
-    const citiesForMarkers = selectedShows.length > 0 ? selectedShows.map((s) => s.city) : allShows.map((s) => s.city)
+    const visitedCities = new Set(selectedShows.map((show) => show.city))
+    const origin = getOriginCoordinates(city, coordinates)
 
     return {
       allShows,
@@ -449,8 +457,9 @@ export const getSummaryData = createServerFn({ method: 'POST' })
         cityCount: new Set(selectedShows.map((s) => s.city)).size,
         venueCount: new Set(selectedShows.map((s) => s.venue)).size,
       },
-      cityMarkers: buildCityMarkers(citiesForMarkers),
-      mileage: buildMileage(selectedShows, city, coordinates),
+      cityMarkers: buildCityMarkers(allShows, visitedCities),
+      mileage: buildMileage(selectedShows, origin),
+      travelOrigin: origin ? { longitude: origin[0], latitude: origin[1] } : null,
       songStats: buildSongStats(selectedSetlistItems),
       randomSongStats: buildRandomSongStats(selectedSetlistItems),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),

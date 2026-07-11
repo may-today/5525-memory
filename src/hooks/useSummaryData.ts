@@ -36,7 +36,9 @@ export function useSummaryData(): { data: SummaryData | null; ready: boolean } {
 
     getSummaryData({ data: { showIds, city: location.city, coordinates: location.coordinates } }).then((result) => {
       if (cancelled) return
-      concertStore.setState((state) => ({ ...state, selectedShows: result.selectedShows }))
+      // Hydrate the profile alongside selectedShows so cards (e.g. the City
+      // card's departure copy) survive a hard refresh on /summary.
+      concertStore.setState((state) => ({ ...state, profile: location, selectedShows: result.selectedShows }))
       setData(result)
     })
 
