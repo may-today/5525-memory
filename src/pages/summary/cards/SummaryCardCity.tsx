@@ -237,10 +237,6 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
-      <p className="shrink-0 px-6 pt-6 pb-2 text-muted-foreground text-xs uppercase tracking-widest">
-        01 / 场次信息-地图视角
-      </p>
-
       <div className="relative min-h-0 flex-1">
         <div className="summary-globe-container" data-paused={isPaused || undefined}>
           <canvas className="summary-globe-canvas" ref={canvasRef} />

@@ -57,7 +57,6 @@ export function SummaryCardRareSongs() {
   if (!heroSong) {
     return (
       <div className="flex h-svh flex-col bg-zinc-950">
-        <p className="shrink-0 px-6 pt-6 pb-2 text-xs text-zinc-500 uppercase tracking-widest">05 / 最小众歌单</p>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 pb-24 text-center">
           <h3 className="font-bold text-white text-xl">纸条箱里还是空的</h3>
           <p className="text-sm text-zinc-400">
@@ -73,7 +72,6 @@ export function SummaryCardRareSongs() {
   return (
     <div className="flex h-svh flex-col bg-zinc-950" style={{ '--rare-color': RARE_COLOR } as CSSProperties}>
       <div className="shrink-0 px-6 pt-6">
-        <p className="mb-2 text-xs text-zinc-500 uppercase tracking-widest">05 / 最小众歌单</p>
         <h3 className="font-bold text-white text-xl">全巡演最少被唱的歌，偏偏被你撞见。</h3>
       </div>
 

@@ -66,7 +66,6 @@ export function SummaryCardPlaylist() {
   if (!topSong) {
     return (
       <div className="flex h-svh flex-col bg-zinc-950">
-        <p className="shrink-0 px-6 pt-6 pb-2 text-xs text-zinc-500 uppercase tracking-widest">04 / 专属歌单</p>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 pb-24 text-center">
           <h3 className="font-bold text-white text-xl">你的黑胶还是一张空白母盘</h3>
           <p className="text-sm text-zinc-400">
@@ -82,7 +81,6 @@ export function SummaryCardPlaylist() {
   return (
     <div className="flex h-svh flex-col bg-zinc-950" style={{ '--playlist-color': PLAYLIST_COLOR } as CSSProperties}>
       <div className="shrink-0 px-6 pt-6">
-        <p className="mb-2 text-xs text-zinc-500 uppercase tracking-widest">04 / 专属歌单</p>
         <h3 className="font-bold text-white text-xl">点歌与安可，替你压成一张时光黑胶。</h3>
       </div>
 

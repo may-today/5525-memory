@@ -131,7 +131,6 @@ export function SummaryCardOverview() {
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
       <div className="shrink-0 px-6 pt-8 pb-4">
-        <p className="mb-2 text-muted-foreground text-xs uppercase tracking-widest">00 / 场次概览</p>
         <h1 className="font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
       </div>
 
