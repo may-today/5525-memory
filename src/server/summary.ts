@@ -94,6 +94,8 @@ export interface DurationShowEntry {
   id: number
   /** 场次日期 YYYY-MM-DD，列表按它升序。 */
   showDate: string
+  /** 开场时刻距当日 0 点的分钟数；散场时刻 = startMinutes + durationMinutes（跨夜时超过 1440）。 */
+  startMinutes: number
   /** 场次主题色，列表条目点缀用。 */
   themeColor: string
 }
@@ -479,7 +481,8 @@ function buildDurationStats(selectedShows: Show[]): DurationStats {
 
   for (const show of selectedShows) {
     const durationMinutes = getShowDurationMinutes(show)
-    if (durationMinutes === null) {
+    const startMinutes = parseClockMinutes(show.showStartTime)
+    if (durationMinutes === null || startMinutes === null) {
       fallbackCount += 1
       totalMinutes += FALLBACK_SHOW_MINUTES
       continue
@@ -493,6 +496,7 @@ function buildDurationStats(selectedShows: Show[]): DurationStats {
       durationMinutes,
       id: show.id,
       showDate: show.showDate,
+      startMinutes,
       themeColor: show.themeColor,
     })
   }
