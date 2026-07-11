@@ -22,7 +22,6 @@ const routeApi = getRouteApi('/form')
 interface CityGroup {
   city: string
   shows: Show[]
-  venue: string
 }
 
 type FormStep = 'profile' | 'shows'
@@ -38,7 +37,7 @@ function buildCityGroups(allShows: Show[]): CityGroup[] {
     if (existingGroup) {
       existingGroup.shows.push(show)
     } else {
-      map.set(show.city, { city: show.city, venue: show.venue, shows: [show] })
+      map.set(show.city, { city: show.city, shows: [show] })
     }
   }
   const groups = Array.from(map.values())
@@ -50,11 +49,6 @@ function buildCityGroups(allShows: Show[]): CityGroup[] {
 }
 
 const DAY_ABBR = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-
-/** Strip city prefix from venue name for compact display */
-function getShortVenue(venue: string, city: string): string {
-  return venue.startsWith(city) ? venue.slice(city.length) : venue
-}
 
 function formatShowDate(dateStr: string): string {
   return dateStr.replace(/-/g, '.')
@@ -307,7 +301,6 @@ export function FormPage() {
         {CITY_GROUPS.map((group) => {
           const isExpanded = expandedCities.has(group.city)
           const selectedCount = group.shows.filter((s) => selectedIds.has(s.id)).length
-          const shortVenue = getShortVenue(group.venue, group.city)
 
           return (
             <div className="overflow-hidden border border-border" key={group.city}>
@@ -319,7 +312,7 @@ export function FormPage() {
               >
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-bold text-[15px] tracking-wide">{group.city}</span>
-                  <span className="text-muted-foreground text-sm">· {shortVenue}</span>
+                  <span className="text-muted-foreground text-xs">· 共 {group.shows.length} 场</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {selectedCount > 0 && (
@@ -327,7 +320,7 @@ export function FormPage() {
                       {selectedCount}
                     </span>
                   )}
-                  <span className="text-[9px] text-muted-foreground">{isExpanded ? '▼' : '▶'}</span>
+                  <span className="text-muted-foreground text-xs">{isExpanded ? '▼' : '▶'}</span>
                 </div>
               </button>
 
