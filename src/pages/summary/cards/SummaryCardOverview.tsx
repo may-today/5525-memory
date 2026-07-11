@@ -1,5 +1,5 @@
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   type Activity,
@@ -26,6 +26,30 @@ const YEAR_END: Record<Year, string> = {
 const MONTH_LABELS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
 const SHOWS_PER_TICK = 4
 const LIT_TICK_MS = 60
+
+/** 巡演子主题配色，与 `/form` 场次选择页保持一致（未知子主题回退场次原 themeColor）。 */
+const SUB_THEME_COLORS = {
+  '5525': '#f472b6',
+  '5525+1': '#38bdf8',
+  '5525+2': '#fb923c',
+} as const
+
+const SUB_THEME_LEGEND = [
+  { label: '5525', color: SUB_THEME_COLORS['5525'] },
+  { label: '5525+1', color: SUB_THEME_COLORS['5525+1'] },
+  { label: '5525+2', color: SUB_THEME_COLORS['5525+2'] },
+] as const
+
+/** 未点亮格子的底色（比 zinc-900 更弱一档，让彩色星图更突出）。 */
+const IDLE_FILL = '#161618'
+/** 全巡演坐标（你未去过）的着色不透明度——压暗作为背景星图。 */
+const TOUR_FILL_OPACITY = 0.4
+/** 你去过的坐标的着色不透明度——满色，与暗背景拉开对比。 */
+const VISITED_FILL_OPACITY = 1
+
+function getShowColor(show: Show): string {
+  return SUB_THEME_COLORS[show.subTheme as keyof typeof SUB_THEME_COLORS] ?? show.themeColor
+}
 
 function buildYearData(year: Year, allShows: Show[]): Activity[] {
   const startDate = `${year}-01-01`
@@ -78,6 +102,14 @@ export function SummaryCardOverview() {
     () => new Set(allShows.slice(0, litShowCount).map((show) => show.showDate)),
     [litShowCount, allShows]
   )
+  // date → 子主题色，供每格按主题着色（同一天只有一场，直接以日期为键）
+  const dateColorMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const show of allShows) {
+      map.set(show.showDate, getShowColor(show))
+    }
+    return map
+  }, [allShows])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs once on mount — animation is intentionally a one-shot sequence
   useEffect(() => {
@@ -128,14 +160,58 @@ export function SummaryCardOverview() {
     }
   }, [])
 
+  const totalCount = allShows.length
+  const selectedTarget = selectedShowsAtMount.current.length
+  // 已点亮的「你去过」坐标数，随第二段动画实时递增
+  const selectedLit = highlightedDates.size
+
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
-      <div className="shrink-0 px-6 pt-8 pb-4">
-        <h1 className="font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
+      <div className="shrink-0 px-6 pt-9 pb-3">
+        <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Timeline · 时间航道</p>
+        <h1 className="mt-2 font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
-        <div className="flex flex-col gap-8">
+        {/* 引导语：把冰冷的日历翻译成「航道 / 坐标 / 光点」的叙事 */}
+        <div className="border-zinc-800/80 border-b pb-6">
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            5525 的大船在四年的时间航道里，留下了{' '}
+            <span className="overview-count text-base">{totalCount}</span> 个坐标。
+          </p>
+          {selectedTarget > 0 ? (
+            <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
+              其中的 <span className="overview-count overview-count-lit text-base">{selectedLit}</span>{' '}
+              个时间坐标，是你曾亲自奔赴过的、最亮的光点。
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-zinc-500 leading-relaxed">
+              还没有点亮任何一个属于你的坐标——回到上一步选好去过的场次，它们会在这张星图里逐一亮起。
+            </p>
+          )}
+
+          {/* 图例：三个子主题 + 「你去过」发光样例 */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {SUB_THEME_LEGEND.map((item) => (
+              <span key={item.label} className="flex items-center gap-1.5">
+                <span
+                  className="size-2 rounded-full"
+                  style={{ backgroundColor: item.color, opacity: 0.55 }}
+                />
+                <span className="font-mono text-[11px] text-zinc-500">{item.label}</span>
+              </span>
+            ))}
+            <span className="flex items-center gap-1.5">
+              <span
+                className="overview-dot-lit size-2.5 rounded-full"
+                style={{ backgroundColor: '#fff', ['--dot-color' as string]: '#ffffff' }}
+              />
+              <span className="font-mono text-[11px] text-zinc-400">你去过</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-8">
         {YEARS.map((year) => (
           <div key={year}>
             <div className="mb-2 flex items-baseline justify-between">
@@ -143,9 +219,9 @@ export function SummaryCardOverview() {
               <span className="font-mono text-xs text-zinc-500">{yearShowCounts[year]} 场</span>
             </div>
             <ContributionGraph
-              blockMargin={2}
-              blockRadius={2}
-              blockSize={8}
+              blockMargin={4}
+              blockRadius={3}
+              blockSize={6}
               className="w-full"
               data={yearData[year]}
               fontSize={10}
@@ -156,30 +232,35 @@ export function SummaryCardOverview() {
                   const isFuture = activity.date > TODAY
                   const isHighlighted = !isFuture && highlightedDates.has(activity.date)
                   const isLit = !isFuture && litDates.has(activity.date)
-                  let fill: string
-                  let filter: string
+                  const themeColor = dateColorMap.get(activity.date)
+                  const style: CSSProperties = {
+                    transition: isFuture ? 'none' : 'fill 0.4s ease, fill-opacity 0.4s ease, transform 0.4s ease',
+                  }
                   if (isFuture) {
-                    fill = 'transparent'
-                    filter = 'none'
-                  } else if (isHighlighted) {
-                    fill = '#fde047'
-                    filter = 'drop-shadow(0 0 4px #fde04799)'
-                  } else if (isLit) {
-                    fill = '#f97316'
-                    filter = 'none'
+                    style.fill = 'transparent'
+                  } else if (isHighlighted && themeColor) {
+                    // 你去过：满色 + 放大 + 呼吸辉光，成为「最亮的光点」。
+                    // 圆点间留有空隙，放大 1.45 仍落在本格内、不与相邻点重合。
+                    style.fill = themeColor
+                    style.fillOpacity = VISITED_FILL_OPACITY
+                    style.transformBox = 'fill-box'
+                    style.transformOrigin = 'center'
+                    style.transform = 'scale(1.45)'
+                    ;(style as Record<string, string>)['--dot-color'] = themeColor
+                  } else if (isLit && themeColor) {
+                    // 全巡演坐标（你未去过）：子主题色的彩色星图，压暗作为背景
+                    style.fill = themeColor
+                    style.fillOpacity = TOUR_FILL_OPACITY
                   } else {
-                    fill = '#27272a'
-                    filter = 'none'
+                    style.fill = IDLE_FILL
+                    style.fillOpacity = 1
                   }
                   return (
                     <ContributionGraphBlock
                       activity={{ ...activity, level: 0 }}
+                      className={isHighlighted ? 'overview-dot-lit' : undefined}
                       dayIndex={dayIndex}
-                      style={{
-                        fill,
-                        filter,
-                        transition: isFuture ? 'none' : 'fill 0.4s ease, filter 0.4s ease',
-                      }}
+                      style={style}
                       weekIndex={weekIndex}
                     />
                   )
@@ -190,14 +271,19 @@ export function SummaryCardOverview() {
         ))}
         </div>
 
-        {selectedShows.length > 0 && (
-          <div className="mt-8 border-zinc-800 border-t pt-6">
-            <p className="font-mono text-xs text-zinc-500">
-              <span className="font-bold text-sm text-yellow-300">{selectedShows.length}</span>
-              <span className="ml-1 text-zinc-400">场属于你</span>
+        <div className="mt-10 border-zinc-800/80 border-t pt-6">
+          {selectedTarget > 0 ? (
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              {selectedTarget} 个光点，连成了只属于你的 5525 星图——
+              <br />
+              这一整片时间的海，你都亲自航行过。
             </p>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              这张星图，正等着被你的光点点亮。
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )

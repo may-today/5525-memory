@@ -572,6 +572,43 @@
     0 0 42px rgba(56, 189, 248, 0.3);
 }
 
+/* 巡演时间轴引导语里的坐标数字：Doto 点阵体，与全站强调数字一致。 */
+.overview-count {
+  font-family: "Doto", monospace;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.overview-count-lit {
+  color: #fef08a;
+  text-shadow:
+    0 0 10px rgba(253, 224, 71, 0.55),
+    0 0 24px rgba(253, 224, 71, 0.25);
+}
+
+/* 「你去过」的坐标：子主题色（--dot-color）呼吸辉光，成为一眼可辨的最亮光点。
+   基础 filter 提供静态辉光，reduced-motion 停用动画后仍保留可辨识度。 */
+.overview-dot-lit {
+  filter:
+    drop-shadow(0 0 3px var(--dot-color))
+    drop-shadow(0 0 7px var(--dot-color));
+  animation: overview-dot-pulse 1.9s ease-in-out infinite;
+}
+
+@keyframes overview-dot-pulse {
+  0%,
+  100% {
+    filter:
+      drop-shadow(0 0 2px var(--dot-color))
+      drop-shadow(0 0 5px var(--dot-color));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 4px var(--dot-color))
+      drop-shadow(0 0 11px var(--dot-color));
+  }
+}
+
 /* Page transition — exit and enter must share the same easing so the two
    pages appear physically connected (no gap or overlap at their seam). */
 .summary-card-layer {
@@ -1544,6 +1581,11 @@
 
   /* Globe orbit ring spin */
   .summary-globe-orbit-svg {
+    animation: none;
+  }
+
+  /* 巡演时间轴「你去过」光点：停用呼吸，保留基础静态辉光与放大即可辨识 */
+  .overview-dot-lit {
     animation: none;
   }
 
