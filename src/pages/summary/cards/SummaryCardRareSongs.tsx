@@ -19,9 +19,9 @@ function HeroNote({ entry }: { entry: RareSongEntry }) {
       <p className="text-[10px] text-stone-500 uppercase tracking-widest">
         点歌纸条 · {entry.heardCity} {entry.heardDateSlash}
       </p>
-      <p className="mt-3 font-wjh text-4xl text-stone-800">{entry.title}</p>
+      <p className="mt-3 font-title text-4xl text-stone-800">{entry.title}</p>
       {entry.tourCount === 1 && (
-        <div aria-hidden className="summary-note-seal font-wjh">
+        <div aria-hidden className="summary-note-seal font-title">
           仅此
           <br />
           一次
@@ -42,7 +42,7 @@ function SmallNote({ entry, index }: { entry: RareSongEntry; index: number }) {
       className="summary-note relative px-4 pt-4 pb-3"
       style={{ '--i': index + 1, '--note-tilt': `${index % 2 === 0 ? -1.2 : 1.4}deg` } as CSSProperties}
     >
-      <p className="truncate font-wjh text-stone-800 text-xl">{entry.title}</p>
+      <p className="truncate font-title text-stone-800 text-xl">{entry.title}</p>
       <p className="mt-2 text-[10px] text-stone-500">
         {entry.heardCity} · 全巡演 <span className="font-geist">×{entry.tourCount}</span>
       </p>
@@ -86,14 +86,13 @@ export function SummaryCardRareSongs() {
           <p className="mt-6 max-w-xs text-sm text-zinc-400 leading-relaxed">
             {heroSong.tourCount === 1 ? (
               <>
-                全巡演 <span className="font-geist text-zinc-100">{allShows.length}</span>{' '}
-                场，《{heroSong.title}》只响起过这一次——而你，就在台下。
+                全巡演 <span className="font-geist text-zinc-100">{allShows.length}</span> 场，《{heroSong.title}
+                》只响起过这一次——而你，就在台下。
               </>
             ) : (
               <>
-                全巡演 <span className="font-geist text-zinc-100">{allShows.length}</span>{' '}
-                场，《{heroSong.title}》只响起过{' '}
-                <span className="font-geist text-zinc-100">{heroSong.tourCount}</span> 次——其中{' '}
+                全巡演 <span className="font-geist text-zinc-100">{allShows.length}</span> 场，《{heroSong.title}
+                》只响起过 <span className="font-geist text-zinc-100">{heroSong.tourCount}</span> 次——其中{' '}
                 <span className="font-geist text-zinc-100">{heroSong.heardCount}</span> 次，你就在台下。
               </>
             )}

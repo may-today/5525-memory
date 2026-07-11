@@ -130,10 +130,6 @@
     [role="button"]:not(:disabled) {
         cursor: pointer;
     }
-
-    html {
-        font-family: "ChillDINGothic Std", sans-serif;
-    }
 }
 
 @font-face {
@@ -157,6 +153,10 @@
 .font-wjh {
     font-family: "WJH", sans-serif;
     line-height: 1.125;
+}
+
+.font-title {
+    font-family: "ChillDINGothic Std", sans-serif;
 }
 
 .cover-background-strip {

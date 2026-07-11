@@ -80,10 +80,7 @@ export function SummaryCardPlaylist() {
   }
 
   return (
-    <div
-      className="flex h-svh flex-col bg-zinc-950"
-      style={{ '--playlist-color': PLAYLIST_COLOR } as CSSProperties}
-    >
+    <div className="flex h-svh flex-col bg-zinc-950" style={{ '--playlist-color': PLAYLIST_COLOR } as CSSProperties}>
       <div className="shrink-0 px-6 pt-6">
         <p className="mb-2 text-xs text-zinc-500 uppercase tracking-widest">04 / 专属歌单</p>
         <h3 className="font-bold text-white text-xl">点歌与安可，替你压成一张时光黑胶。</h3>
@@ -93,7 +90,7 @@ export function SummaryCardPlaylist() {
         <div className="mb-10 flex flex-col items-center text-center">
           <VinylDisc />
           <p className="mt-8 text-xs text-zinc-500">你的常驻曲</p>
-          <p className="summary-playlist-hero mt-2 font-wjh text-4xl">{topSong.title}</p>
+          <p className="summary-playlist-hero mt-2 font-title text-4xl">{topSong.title}</p>
           <p className="mt-3 max-w-xs text-sm text-zinc-400 leading-relaxed">
             你去过的 <span className="font-geist text-zinc-100">{overview.totalShows}</span> 场里，点歌与安可一共响起{' '}
             <span className="font-geist text-zinc-100">{totalPlays}</span> 次、

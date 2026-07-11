@@ -63,12 +63,12 @@ export function ReportCard({ card }: { card: ReportCardData }) {
       <div aria-hidden="true" className="report-card-glow" />
 
       <div className="relative">
-        <h3 className="font-wjh text-lg text-white">{card.question}</h3>
+        <h3 className="font-title text-lg text-white">{card.question}</h3>
 
         <div className="mt-5 mb-6">
           <p className="text-xs text-zinc-400">{card.heroLabel}</p>
           <p className="report-hero mt-1 flex items-baseline gap-2">
-            <span className={card.isHeroNumeric ? 'font-geist text-6xl' : 'font-wjh text-4xl'}>{card.heroValue}</span>
+            <span className={card.isHeroNumeric ? 'font-geist text-6xl' : 'font-title text-4xl'}>{card.heroValue}</span>
             {card.heroUnit && <span className="font-geist text-xl text-zinc-300">{card.heroUnit}</span>}
           </p>
         </div>

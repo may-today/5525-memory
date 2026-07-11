@@ -103,7 +103,7 @@ export function WarmupPage() {
 
       <div className="relative flex flex-col items-start gap-2 border-t px-5 py-6">
         <p className="text-muted-foreground text-sm">五月天「5525 回到那一天」</p>
-        <h1 className="mb-4 font-extrabold font-wjh text-4xl">
+        <h1 className="mb-4 font-extrabold font-title text-4xl">
           {isCountdownDone ? (
             <>
               时空舱门

@@ -95,7 +95,7 @@ function MemoryBlock({ entry, index }: { entry: MemoryEntry; index: number }) {
       </div>
 
       <blockquote className="summary-memory-quote relative mt-10">
-        <span aria-hidden="true" className="summary-memory-quote-mark font-wjh">
+        <span aria-hidden="true" className="summary-memory-quote-mark font-title">
           「
         </span>
         <p className="relative text-base text-zinc-200 leading-loose">{entry.talking}</p>

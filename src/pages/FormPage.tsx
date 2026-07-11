@@ -195,7 +195,7 @@ export function FormPage() {
       <div className="flex min-h-svh flex-col">
         <div className="px-5 pt-8 pb-5">
           <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Base Info</p>
-          <h1 className="font-bold font-wjh text-4xl leading-tight">先认识你</h1>
+          <h1 className="font-bold font-title text-4xl leading-tight">先认识你</h1>
         </div>
 
         <div className="flex flex-1 flex-col gap-8 px-5 pb-4">
@@ -226,7 +226,10 @@ export function FormPage() {
               onValueChange={(value) => handleLocationCityChange(value ?? LOCATION_NONE)}
               value={getLocationSelectValue(profile.city)}
             >
-              <SelectTrigger className="h-12 w-full bg-background text-base data-[size=default]:h-12" id="location-city">
+              <SelectTrigger
+                className="h-12 w-full bg-background text-base data-[size=default]:h-12"
+                id="location-city"
+              >
                 <SelectValue placeholder="选择城市" />
               </SelectTrigger>
               <SelectContent>
@@ -288,7 +291,7 @@ export function FormPage() {
       <div className="px-5 pt-8 pb-5">
         <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Select Shows</p>
         <div className="flex items-end justify-between gap-4">
-          <h1 className="font-bold font-wjh text-4xl leading-tight">按城市选择</h1>
+          <h1 className="font-bold font-title text-4xl leading-tight">按城市选择</h1>
           <button
             className="shrink-0 pb-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
             onClick={() => setStep('profile')}
