@@ -32,6 +32,11 @@ interface AnimState {
   prevIndex: number
 }
 
+/** Returns whether an event started inside an overlay that owns its own gestures. */
+function isInsideGestureExemptOverlay(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest('[data-summary-gesture-exempt]') !== null
+}
+
 export function SummaryContainer() {
   const navigate = useNavigate()
   const { data, ready } = useSummaryData()
@@ -86,11 +91,17 @@ export function SummaryContainer() {
   }, [])
 
   function handleTouchStart(e: React.TouchEvent) {
+    if (isInsideGestureExemptOverlay(e.target)) {
+      touchStart.current = null
+      return
+    }
+
     const touch = e.touches[0]
     touchStart.current = { x: touch.clientX, y: touch.clientY }
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
+    if (isInsideGestureExemptOverlay(e.target)) return
     if (!touchStart.current) return
     const touch = e.changedTouches[0]
     const deltaX = touch.clientX - touchStart.current.x
@@ -107,6 +118,7 @@ export function SummaryContainer() {
   }
 
   function handleWheel(e: React.WheelEvent) {
+    if (isInsideGestureExemptOverlay(e.target)) return
     if (isTransitioning.current || Math.abs(e.deltaY) < 10) return
 
     if (e.deltaY > 0 && currentIndex < CARDS.length - 1 && canAdvanceForward()) {

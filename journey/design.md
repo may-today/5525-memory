@@ -70,6 +70,8 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
 
+统计卡片内以 Portal 呈现的覆盖层（如时长卡的 shadcn Sheet）在内容根节点加 `data-summary-gesture-exempt`；`SummaryContainer` 会忽略该区域冒泡而来的 touch / wheel 事件。这样 Sheet 内的长内容始终只滚动自身（`overscroll-contain`），不会触发卡片切页。
+
 ### 切页过渡动画
 
 切页时同时渲染旧页（outgoing）和新页（incoming），两者均为 `absolute inset-0`，使用相同的 easing 函数和时长（1s，`cubic-bezier(0.76, 0, 0.24, 1)`）做对向滑动，任意时刻两页恰好首尾相接（无缝衔接）。动画结束后（1050ms）清除旧页。旧页加 `pointer-events-none` 防止误触。

@@ -269,6 +269,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
                 </SheetTrigger>
                 <SheetContent
                   className="max-h-[85svh] rounded-t-2xl border-white/10 bg-zinc-950 text-zinc-100"
+                  data-summary-gesture-exempt
                   side="bottom"
                 >
                   <SheetHeader className="border-white/10 border-b px-5 pt-6 pb-4">
@@ -277,7 +278,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
                       按场次日期排列 · 共 {entries.length} 场
                     </SheetDescription>
                   </SheetHeader>
-                  <div className="overflow-y-auto px-5 py-5">
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
                     <DurationTimeline entries={entries} />
                   </div>
                 </SheetContent>
