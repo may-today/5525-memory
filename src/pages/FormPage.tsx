@@ -1,6 +1,8 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
-import { useEffect, useMemo, useState } from 'react'
+import clsx from 'clsx'
+import { Check, ChevronDown } from 'lucide-react'
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +31,11 @@ type FormStep = 'profile' | 'shows'
 const LOCATION_NONE = '不透露'
 const LOCATION_OTHER = '其他国家或地区'
 const LOCATION_OPTIONS = Object.keys(geoCoordMap)
+const FORM_SHOW_THEME_COLORS = {
+  '5525': '#f472b6',
+  '5525+1': '#38bdf8',
+  '5525+2': '#fb923c',
+} as const
 
 function buildCityGroups(allShows: Show[]): CityGroup[] {
   const map = new Map<string, CityGroup>()
@@ -74,11 +81,55 @@ function getLocationSelectValue(city: string): string {
   return LOCATION_OPTIONS.includes(city) ? city : LOCATION_OTHER
 }
 
+function padStopNumber(value: number): string {
+  return String(value).padStart(2, '0')
+}
+
+function getFormShowThemeColor(show: Show): string {
+  return FORM_SHOW_THEME_COLORS[show.subTheme as keyof typeof FORM_SHOW_THEME_COLORS] ?? show.themeColor
+}
+
 function SubThemeTag({ theme }: { theme: string }) {
   return (
-    <span className="inline-flex shrink-0 items-center border border-muted-foreground/40 px-1 py-px text-[9px] text-muted-foreground/60 leading-none tracking-widest">
+    <span className="form-show-tag inline-flex shrink-0 items-center border border-muted-foreground/40 px-1 py-px text-[9px] text-muted-foreground/60 leading-none tracking-widest">
       {theme}
     </span>
+  )
+}
+
+interface FormStepHeaderProps {
+  action?: ReactNode
+  eyebrow: string
+  step: 1 | 2
+  subtitle?: string
+  title: ReactNode
+}
+
+/** 旅程登记页头：eyebrow + Doto 步骤号 + 标题 + 两段式步骤进度。 */
+function FormStepHeader({ action, eyebrow, step, subtitle, title }: FormStepHeaderProps) {
+  return (
+    <div className="px-5 pt-8 pb-6">
+      <div className="mb-2 flex items-baseline justify-between gap-4">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em]">{eyebrow}</p>
+        <p className="font-geist text-muted-foreground text-xs tabular-nums">{padStopNumber(step)} / 02</p>
+      </div>
+      <div className="flex items-end justify-between gap-4">
+        <h1 className="font-bold font-title text-4xl leading-tight">{title}</h1>
+        {action}
+      </div>
+      {subtitle && <p className="mt-2 text-[11px] text-muted-foreground">{subtitle}</p>}
+      <div className="mt-5 flex gap-1.5">
+        {([1, 2] as const).map((segment) => (
+          <div
+            className={clsx(
+              'h-0.5 flex-1 transition-all duration-500',
+              segment <= step ? 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.55)]' : 'bg-border'
+            )}
+            key={segment}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -90,6 +141,7 @@ export function FormPage() {
   const profile = useSelector(concertStore, (state) => state.profile)
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
   const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
+  const selectedCityCount = useMemo(() => new Set(selectedShows.map((show) => show.city)).size, [selectedShows])
   const totalCount = selectedShows.length
   const [step, setStep] = useState<FormStep>('profile')
   const [expandedCities, setExpandedCities] = useState<Set<string>>(() => {
@@ -186,19 +238,28 @@ export function FormPage() {
 
   if (step === 'profile') {
     return (
-      <div className="flex min-h-svh flex-col">
-        <div className="px-5 pt-8 pb-5">
-          <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Base Info</p>
-          <h1 className="font-bold font-title text-4xl leading-tight">先认识你</h1>
-        </div>
+      <div className="form-page form-step-in flex min-h-svh flex-col" key="profile">
+        <FormStepHeader
+          eyebrow="Passenger"
+          step={1}
+          subtitle="都可以跳过——但填了，报告会更像你。"
+          title={
+            <>
+              出发之前，
+              <br />
+              先认识你
+            </>
+          }
+        />
 
         <div className="flex flex-1 flex-col gap-8 px-5 pb-4">
           <div className="space-y-3">
-            <label className="block font-bold text-[15px] tracking-wide" htmlFor="nickname">
-              怎么称呼你（可选）？
+            <label className="flex items-baseline justify-between gap-3" htmlFor="nickname">
+              <span className="font-bold text-[15px] tracking-wide">怎么称呼你？</span>
+              <span className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">Optional</span>
             </label>
             <Input
-              className="h-12 w-full border border-border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-foreground"
+              className="h-12 w-full rounded-none border border-border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-foreground"
               id="nickname"
               maxLength={24}
               onChange={(event) => updateConcertProfile({ nickname: event.target.value })}
@@ -210,10 +271,11 @@ export function FormPage() {
 
           <div className="space-y-3">
             <div>
-              <label className="block font-bold text-[15px] tracking-wide" htmlFor="location-city">
-                你的城市（可选）？
+              <label className="flex items-baseline justify-between gap-3" htmlFor="location-city">
+                <span className="font-bold text-[15px] tracking-wide">你从哪里出发？</span>
+                <span className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">Optional</span>
               </label>
-              <p className="mt-1 text-[11px] text-muted-foreground">选择后可用于后续距离相关回顾</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">用于计算你奔赴每座城市的距离</p>
             </div>
             <Select
               disabled={Boolean(profile.coordinates)}
@@ -254,7 +316,7 @@ export function FormPage() {
               )}
               {profile.coordinates && (
                 <>
-                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                  <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
                     {formatCoordinates(profile.coordinates)}
                   </span>
                   <button
@@ -280,12 +342,9 @@ export function FormPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col">
-      {/* Header */}
-      <div className="px-5 pt-8 pb-5">
-        <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Select Shows</p>
-        <div className="flex items-end justify-between gap-4">
-          <h1 className="font-bold font-title text-4xl leading-tight">按城市选择</h1>
+    <div className="form-page form-step-in flex min-h-svh flex-col" key="shows">
+      <FormStepHeader
+        action={
           <button
             className="shrink-0 pb-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
             onClick={() => setStep('profile')}
@@ -293,12 +352,16 @@ export function FormPage() {
           >
             返回
           </button>
-        </div>
-      </div>
+        }
+        eyebrow="Time Coordinates"
+        step={2}
+        subtitle={`按巡演时间线排列 · 共 ${CITY_GROUPS.length} 座城市 ${allShows.length} 场`}
+        title="你去过哪几场？"
+      />
 
-      {/* City accordion list */}
+      {/* City accordion list — cities follow the tour route (first-show order). */}
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4">
-        {CITY_GROUPS.map((group) => {
+        {CITY_GROUPS.map((group, groupIndex) => {
           const isExpanded = expandedCities.has(group.city)
           const selectedCount = group.shows.filter((s) => selectedIds.has(s.id)).length
 
@@ -306,46 +369,54 @@ export function FormPage() {
             <div className="overflow-hidden border border-border" key={group.city}>
               {/* City header */}
               <button
-                className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-muted/20 active:bg-muted/30"
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/20 active:bg-muted/30"
                 onClick={() => toggleCity(group.city)}
                 type="button"
               >
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-bold text-[15px] tracking-wide">{group.city}</span>
+                <span className="w-5 shrink-0 font-geist text-[11px] text-muted-foreground/70 tabular-nums">
+                  {padStopNumber(groupIndex + 1)}
+                </span>
+                <div className="flex flex-1 items-baseline gap-1.5">
+                  <span className="font-bold font-title text-base tracking-wide">{group.city}</span>
                   <span className="text-muted-foreground text-xs">· 共 {group.shows.length} 场</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {selectedCount > 0 && (
-                    <span className="bg-foreground px-1.5 py-0.5 font-bold text-[10px] text-background tabular-nums leading-none">
-                      {selectedCount}
-                    </span>
+                {selectedCount > 0 && (
+                  <span className="bg-sky-400 px-1.5 py-0.5 font-bold text-[10px] text-sky-950 tabular-nums leading-none">
+                    {selectedCount}
+                  </span>
+                )}
+                <ChevronDown
+                  className={clsx(
+                    'size-4 shrink-0 text-muted-foreground transition-transform duration-300',
+                    !isExpanded && '-rotate-90'
                   )}
-                  <span className="text-muted-foreground text-xs">{isExpanded ? '▼' : '▶'}</span>
-                </div>
+                />
               </button>
 
               {/* Show rows */}
               {isExpanded && (
-                <div className="border-border border-t border-dashed">
+                <div className="form-rows-in border-border border-t border-dashed">
                   {group.shows.map((show) => {
                     const isSelected = selectedIds.has(show.id)
                     return (
                       <button
-                        className="flex w-full items-center gap-3 border-border border-b border-dashed px-4 py-2.5 transition-colors last:border-b-0 hover:bg-muted/20 active:bg-muted/30"
+                        className="form-show-row flex w-full items-center gap-3 border-border border-b border-dashed px-4 py-2.5 text-left last:border-b-0"
+                        data-selected={isSelected || undefined}
                         key={show.id}
                         onClick={() => toggleSelectedShow(show)}
+                        style={{ '--show-color': getFormShowThemeColor(show) } as CSSProperties}
                         type="button"
                       >
-                        {/* Square checkbox */}
-                        <div
-                          className={`size-[17px] flex-shrink-0 border transition-colors ${
-                            isSelected ? 'border-foreground bg-foreground' : 'border-muted-foreground/50'
-                          }`}
-                        />
+                        {/* Square checkbox — lights up in the show's own themeColor */}
+                        <span className="form-show-check flex size-[17px] flex-shrink-0 items-center justify-center">
+                          <Check className="form-show-check-icon size-3 text-zinc-950" strokeWidth={3.5} />
+                        </span>
 
                         {/* Date + subTheme tag */}
                         <div className="flex min-w-0 flex-1 items-center gap-2">
-                          <span className="shrink-0 text-sm tabular-nums">{formatShowDate(show.showDate)}</span>
+                          <span className="form-show-date shrink-0 text-muted-foreground text-sm tabular-nums transition-colors">
+                            {formatShowDate(show.showDate)}
+                          </span>
                           <SubThemeTag theme={show.subTheme} />
                         </div>
 
@@ -366,9 +437,15 @@ export function FormPage() {
       {/* Sticky bottom bar */}
       <div className="sticky bottom-0 border-border border-t bg-background/95 px-4 pt-3 pb-8 backdrop-blur-sm">
         <div className="mb-2.5 flex items-center justify-between gap-3">
-          <p className="text-[11px] text-muted-foreground tabular-nums">
-            {totalCount === 0 ? '尚未选择场次' : `已选 ${totalCount} 场`}
-          </p>
+          {totalCount === 0 ? (
+            <p className="text-[11px] text-muted-foreground">尚未选择场次</p>
+          ) : (
+            <p className="flex items-baseline gap-1 text-[11px] text-muted-foreground">
+              已选
+              <span className="form-selected-count text-base tabular-nums leading-none">{totalCount}</span>场 ·{' '}
+              {selectedCityCount} 座城市
+            </p>
+          )}
           {totalCount > 0 && (
             <button
               className="shrink-0 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"

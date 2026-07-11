@@ -48,6 +48,10 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 **远程（生产）D1**：迁移应用方式目前选择手动执行——有权限的人在需要发布时手动跑 `wrangler d1 migrations apply 5525-memory-db --remote`，再 `bun run deploy`。规模变大或发布频率变高后可以再考虑接入 CI 自动化。
 
+### 表单页「旅程登记」视觉语言（2026-07-11）
+
+表单页以「时空旅行登记」为叙事：步骤一登记旅客（eyebrow `PASSENGER`，标题「出发之前，先认识你」，出发地字段文案呼应城市卡「你从X出发」），步骤二登记时间坐标（eyebrow `TIME COORDINATES`，标题「你去过哪几场？」）。页头统一为 `FormStepHeader`：eyebrow + Doto 步骤号 + 两段式步骤进度（当前段 `sky-400` + 辉光）；表单根节点也在作用域内把 shadcn primary 设为 `sky-400`，让主要操作按钮一致使用蓝色。城市按首演日期排序即巡演路线，城市头部用 Doto 站号编码这条时间线。**签名元素**：场次行勾选后按巡演子主题点亮（5525 粉色 `#f472b6`、5525+1 蓝色 `#38bdf8`、5525+2 橙色 `#fb923c`；未知主题回退场次原始 `themeColor`），并用于左侧色条、复选块填色发光、行背景轻染与子主题标签；聚合选中数（城市徽标、底栏「已选 N 场 · M 座城市」的 Doto 数字）统一用 `sky-400`。步骤切换用 root div 换 `key` 触发 `form-step-in` 淡入上移；行背景（含 hover）统一收在 `index.css` 的 `.form-show-row` 里管理，避免与 Tailwind hover 工具类互相覆盖；新动画均已加入 reduced-motion 停用清单。见 `journey/plans/2026-07-11-form-redesign.md` 与 `journey/plans/2026-07-11-form-color-themes.md`。
+
 ### 限时开放与预热页（2026-07-10）
 
 统计流程限时开放，开放时间由环境变量 `STATS_OPEN_AT`（ISO 8601，建议带时区）配置，缺失或非法时回退到内置默认 `2026-07-13T00:00:00+08:00`（见 `wrangler.jsonc` vars；本地调试用 `.dev.vars` 覆盖）。开放判定以服务器时钟为准（`src/server/launch-gate.ts` 的 `getLaunchGate` server function），客户端时钟只用于倒计时显示（用 `serverNow` 校正偏差）。
