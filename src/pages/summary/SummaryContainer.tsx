@@ -5,15 +5,18 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
 import { SummaryCardCity } from './cards/SummaryCardCity'
+import { SummaryCardDuration } from './cards/SummaryCardDuration'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
 import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
 import { SummaryCardRareSongs } from './cards/SummaryCardRareSongs'
+import type { SummaryCardProps } from './summary-card-props'
 import { SummaryDataContext } from './summary-data-context'
 
-const CARDS = [
+const CARDS: React.ComponentType<SummaryCardProps>[] = [
   SummaryCardOverview,
+  SummaryCardDuration,
   SummaryCardCity,
   SummaryCardPlaylist,
   SummaryCardRareSongs,
@@ -172,7 +175,7 @@ export function SummaryContainer() {
               key={cardIndex}
               ref={isOutgoing ? undefined : cardWrapperRef}
             >
-              {cardIndex === 1 ? <SummaryCardCity isPaused={Boolean(animState)} /> : <Card />}
+              <Card isPaused={Boolean(animState)} />
             </div>
           )
         })}

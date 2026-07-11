@@ -475,6 +475,93 @@
   text-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
 }
 
+/* 时长统计卡背景「多巴胺弥散光」：三团巡演子主题色（5525 粉 / 5525+1 蓝 /
+   5525+2 橙）的低透明度光斑，粉橙两团 transform-only 慢漂移，蓝团静置在
+   数字后方补辉光。canvas 用 lighter 混合，光斑透过粒子层自然叠亮。 */
+.summary-duration-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(
+    46% 26% at 50% 60%,
+    rgba(56, 189, 248, 0.13),
+    transparent 70%
+  );
+}
+
+.summary-duration-aurora::before,
+.summary-duration-aurora::after {
+  position: absolute;
+  width: 72vmin;
+  height: 72vmin;
+  content: "";
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.summary-duration-aurora::before {
+  top: -8%;
+  left: -20%;
+  background: radial-gradient(
+    closest-side,
+    rgba(244, 114, 182, 0.16),
+    transparent 72%
+  );
+  animation: duration-aurora-drift-a 26s ease-in-out infinite alternate;
+}
+
+.summary-duration-aurora::after {
+  right: -22%;
+  bottom: -12%;
+  background: radial-gradient(
+    closest-side,
+    rgba(251, 146, 60, 0.14),
+    transparent 72%
+  );
+  animation: duration-aurora-drift-b 32s ease-in-out infinite alternate;
+}
+
+@keyframes duration-aurora-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(9%, 7%, 0) scale(1.15);
+  }
+}
+
+@keyframes duration-aurora-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+
+  to {
+    transform: translate3d(-8%, -6%, 0) scale(0.95);
+  }
+}
+
+/* 时长统计卡「时之穹顶」：粒子沙落下拼成数字后淡出，真实 DOM
+   数字块随 data-visible 淡入交接——最终帧锐利、可被屏幕阅读器朗读。 */
+.summary-duration-hero-copy {
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.summary-duration-hero-copy[data-visible] {
+  opacity: 1;
+}
+
+/* 总分钟数：Doto 点阵体 + 荧光蓝辉光，与城市卡星轨/公里数同一强调色。 */
+.summary-duration-number {
+  font-family: "Doto", monospace;
+  font-weight: 700;
+  color: #e0f2fe;
+  text-shadow:
+    0 0 16px rgba(56, 189, 248, 0.6),
+    0 0 42px rgba(56, 189, 248, 0.3);
+}
+
 /* Page transition — exit and enter must share the same easing so the two
    pages appear physically connected (no gap or overlap at their seam). */
 .summary-card-layer {
@@ -1459,6 +1546,16 @@
 
   .summary-travel-line {
     transition: none;
+  }
+
+  /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），弥散光静止 */
+  .summary-duration-hero-copy {
+    transition: none;
+  }
+
+  .summary-duration-aurora::before,
+  .summary-duration-aurora::after {
+    animation: none;
   }
 
   /* Memories: parallax layers freeze in place, photo light sweep stops */

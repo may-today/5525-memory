@@ -68,13 +68,15 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 `SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
 
-需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
+需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
 
 ### 切页过渡动画
 
 切页时同时渲染旧页（outgoing）和新页（incoming），两者均为 `absolute inset-0`，使用相同的 easing 函数和时长（1s，`cubic-bezier(0.76, 0, 0.24, 1)`）做对向滑动，任意时刻两页恰好首尾相接（无缝衔接）。动画结束后（1050ms）清除旧页。旧页加 `pointer-events-none` 防止误触。
 
 切页层以页面索引作为稳定 key，过渡开始时保留旧页的组件实例，避免 contribution graph 动画重启或重复创建 WebGL 地球。切页层使用独立合成层并限制布局、绘制影响范围。切页的 1050ms 状态窗口内暂停地球 WebGL 更新和外圈 CSS 旋转，过渡完成后从原角度继续。
+
+所有卡片统一接收共享的 `SummaryCardProps`（`src/pages/summary/summary-card-props.ts`，独立文件避免 Container 与卡片循环依赖）：`SummaryContainer` 对每张卡渲染 `<Card isPaused={切页中} />`，自带 RAF 循环的卡（City 的 WebGL 地球、Duration 的粒子 canvas）据此在切页窗口内冻结绘制；不收 props 的卡对该类型是合法赋值，无需改动（2026-07-11，由「index === 1 特判」泛化而来）。
 
 ### 桌面端适配
 
@@ -99,7 +101,23 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：全量场次通过 `getSummaryData` server function 从 D1 读取（`SummaryDataContext` 提供，`useSummaryData` hook 在 `/summary` 挂载时获取一次）；用户选中场次来自 TanStack Store，在组件挂载时一次性捕获用于动画序列。
 - **数据状态**：全量场次和用户选中场次均已接入，动画逻辑完整实现。
 
-### 2. 城市地图
+### 2. 时长统计
+
+- **组件**：`SummaryCardDuration` + 粒子引擎 `duration-hourglass.ts`（纯 TS，无 React）
+- **设计目标**：把「你听过多少分钟五月天」做成一场滚动驱动的演出。视觉意象为「时之穹顶」：沙漏被抽象成只露出上半球的粒子半圆穹顶（弧顶朝上、弦在下，悬在画面上部），沙从弦中点（隐含的漏颈）漏下，坠落中直接落位拼成总分钟数——2026-07-11 由首版「拟真双球沙漏 + 先堆积后汇聚」重设计而来，用户反馈拟真沙漏太标准没有美感（见 `journey/plans/2026-07-11-duration-card-redesign.md`，首版 `2026-07-11-duration-card.md`）。
+- **主要内容**：sticky hero（多巴胺弥散光背景 + Canvas 2D 粒子穹顶 + 沙落成字后淡入的文案「在 5525 的时空里，你与五月天一起狂欢了 X,XXX 分钟」，数字 Doto + 蓝辉光，副行「≈ YY 小时 · N 场」，文案块位于 `top-[58%]` 给坠落留距离）；hero 下方为逐场时长列表（黑胶卡点线引导排版：年份+日期、城市·场次标签、NNN 分钟），合计行与收尾句「沙漏倒过来，这些夜晚就能再狂欢一遍」。
+- **签名元素**：穹顶漏沙拼字纯滚动 scrub——静止微闪（p<0.14）→ 每粒沙错峰走「家 → 弦中点漏口 → 贝塞尔坠落 → 直接落在数字点云像素」的单段旅程（0.14–0.86，按数字 x 坐标微排序错峰，文字大致从左到右显影；坠落段带拖尾 ghost 和横向 sway），p≥0.93 粒子淡出、真实 DOM 数字淡入交接（锐利、可访问）。数字点云由离屏 canvas 用 Doto 700 `fillText` + `getImageData` 采样（等 `document.fonts.load` 就绪，失败退化为横向光带），并按 DOM 数字元素的实际 bounding box 拟合，保证粒子↔DOM 交接对位。
+- **多巴胺弥散光背景**（`.summary-duration-aurora`）：三团巡演子主题色低透明度光斑——5525 粉 `#f472b6` 左上近穹顶、5525+2 橙 `#fb923c` 右下、5525+1 蓝 `#38bdf8` 静置数字后方补辉光；粉橙两团 26s/32s transform-only 慢漂移（compositor-only，无需 isPaused），`prefers-reduced-motion` 下静止。粒子仍只用荧光蓝。
+- **数据口径**：每场时长 = `showEndTime - showStartTime`（HH:MM 差值；end ≤ start 视为跨夜 +1440，结果超出 (0, 480] 分钟按脏数据处理）。137/163 场有真实起止时间；缺记录的选中场次按 **180 分钟**（`FALLBACK_SHOW_MINUTES`）计入总分钟数但**不进**列表，由注脚说明（产品决策，2026-07-11）。
+- **动画逻辑**：粒子位置是平滑进度的纯函数（无累积状态），倒滚即倒放；滚动进度经时间基缓动追踪（每 60fps 帧收敛 8%，按 delta 换算保证 60/120Hz 与节流页签手感一致）；粒子发光用预渲染 radial-gradient 光斑 sprite + `drawImage`（禁用逐粒子 `shadowBlur`），`lighter` 混合叠出星云感；坠落段每粒子多画一帧滞后 ghost 形成星轨拖尾，落定后随 twinkle 继续呼吸。
+- **性能约束**：沿用 City 卡先例——DPR 上限 1.5、卸载即 `cancelAnimationFrame`、切页 `isPaused` 冻结时间与绘制；粒子数按画布面积缩放（500–1800）。
+- **交互方式**：滚动容器带 `data-scroll-container`（sticky hero + 280svh 滚动跑道），复用容器滚动优先切页逻辑；滚完跑道进入列表，列表滚到底才能切下一卡。
+- **零状态**：未选场次时无滚动跑道，沙漏保持静止微闪，文案「沙漏还没有开始计时」+「选好你去过的场次，属于你的分钟才会开始流动」。
+- **reduced-motion**：不挂滚动监听、不跑 RAF，一次性静态绘制穹顶，数字立即可见，跑道收缩为一屏，弥散光静止。
+- **数据来源**：`getSummaryData` 返回的 `durationStats`（`entries` 仅含有真实时长的选中场次按日期升序、`fallbackCount`、`totalMinutes` 含兜底）。
+- **数据状态**：已接入真实数据（headless 走查验证多场含跨夜与缺数据场／零状态分支：北京×2 + 台中跨年场 196 分钟 + 悉尼缺数据 = 736 分钟）。
+
+### 3. 城市地图
 
 - **组件**：`SummaryCardCity`
 - **设计目标**：用全球视角呈现 #5525 巡演覆盖的城市，建立统计回顾的空间感和开场氛围。
@@ -111,7 +129,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `cityMarkers`（始终为全部非隐藏场次城市去重，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出，选中场次覆盖的城市带 `isVisited: true`）、`mileage` 与 `travelOrigin`（出发点坐标：浏览器定位优先，回退所选城市/地区中心）；出发城市名来自 `concertStore.profile.city`。
 - **数据状态**：地球标记、底部详情面板与奔波距离星轨均已接入真实数据（headless 走查验证多城市与无地点两分支）。
 
-### 3. 专属歌单
+### 4. 专属歌单
 
 - **组件**：`SummaryCardPlaylist`
 - **设计目标**：用随机曲目（点歌 + 安可）的出现次数排行，浮现「常驻曲」——那首在用户去过的场次里响起最多次的歌，强化「这份歌单只属于你」的排他感。视觉意象为「时光黑胶」：一张为用户限量压制的旋转唱片纪念品，而不是数据报告（2026-07-10 由排行条版重设计，见 `journey/plans/2026-07-10-playlist-vinyl-redesign.md`）。
@@ -124,7 +142,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `randomSongStats`（服务端从同一份全巡演快照按选中场次聚合，口径为 `item_type = 'song'` 且 `section = 'request'` 或 `section LIKE 'encore_%'`，与报告页 `report-stats.ts` 分段过滤一致；返回 Top 10 `entries` + `totalPlays` + `uniqueCount`）。
 - **数据状态**：已接入真实数据（本地 D1 实测每场随机曲目 7–17 首，跨场次自然产生重复计数）。
 
-### 4. 最小众歌单
+### 5. 最小众歌单
 
 - **组件**：`SummaryCardRareSongs`
 - **设计目标**：专属歌单卡的镜像——统计用户听过次数**最少**的随机曲目，浮现「沧海遗珠」：那些全巡演没唱过几次、偏偏被用户撞见的冷门歌。视觉意象为「被抽中的点歌纸条」：点歌环节的歌本来就来自歌迷写的纸条，全巡演只被唱过一次的歌就是只被抽中过一次的纸条（见 `journey/plans/2026-07-10-rare-songs-card.md`；拍立得方案因与「你的回忆」卡照片意象撞车而放弃，磁带/SIDE B 方案因与前一张黑胶卡意象同族相邻而放弃）。
@@ -136,7 +154,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `rareSongStats`（服务端从同一份全巡演快照在内存计算选中场次随机曲目、首次听到场次，以及全巡演出现次数，再合并排序）。
 - **数据状态**：已接入真实数据（headless 走查验证多场/单场/零状态三分支）。
 
-### 5. 嘉宾星球
+### 6. 嘉宾星球
 
 - **组件**：`SummaryCardGuests`
 - **设计目标**：以"多重宇宙 / 一期一会"的意象回顾用户与特别嘉宾的同场经历——每位嘉宾是一颗只撞见过一次的星球。
@@ -150,7 +168,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部非隐藏场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
 
-### 6. 你的回忆
+### 7. 你的回忆
 
 - **组件**：`SummaryCardMemories`
 - **设计目标**：以长列表 + 视差滚动的形式，逐场回顾用户参加过的演出中值得纪念的内容，作为进入 /share 前的情感收束（当前为最后一张卡片，底部悬浮「生成总结」按钮压在本页上）。

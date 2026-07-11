@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
-import type { Show } from '@/types'
 import { geoCoordMap } from '@/data/geo-coord'
+import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
 import type { SummarySetlistItem } from './shows'
@@ -25,12 +25,12 @@ export interface LocationCoordinates {
 }
 
 export interface SummaryRequest {
-  /** IDs of the shows selected in the form. */
-  showIds: number[]
   /** Optional city or region selected in the form when browser location is unavailable. */
   city: string
   /** Optional browser coordinates used to calculate round-trip travel distance. */
   coordinates: LocationCoordinates | null
+  /** IDs of the shows selected in the form. */
+  showIds: number[]
 }
 
 export interface SongStats {
@@ -79,6 +79,32 @@ export interface RareSongStats {
    * 次数不超过 RARE_SONG_TOUR_COUNT_MAX，避免把巡演常驻曲当成冷门曲展示。
    */
   entries: RareSongEntry[]
+}
+
+export interface DurationShowEntry {
+  /** 场次城市，复制自 Show。 */
+  city: string
+  /** 场次日期 MM/DD 格式，复制自 Show。 */
+  dateSlash: string
+  /** 场次标签，如 DAY1。 */
+  dayLabel: string
+  /** 该场真实时长（分钟），由开散场 HH:MM 差值算出（跨夜 +1440）。 */
+  durationMinutes: number
+  /** shows 表 id，列表渲染 key。 */
+  id: number
+  /** 场次日期 YYYY-MM-DD，列表按它升序。 */
+  showDate: string
+  /** 场次主题色，列表条目点缀用。 */
+  themeColor: string
+}
+
+export interface DurationStats {
+  /** 有真实时长记录的选中场次，按 showDate 升序；缺开/散场时间的场次不进列表。 */
+  entries: DurationShowEntry[]
+  /** 缺开/散场时间、按 FALLBACK_SHOW_MINUTES 兜底计入总数的选中场次数；>0 时前端注脚说明。 */
+  fallbackCount: number
+  /** 选中场次时长合计（分钟，含兜底），沙漏汇聚的目标数字。 */
+  totalMinutes: number
 }
 
 export interface GuestShowInfo {
@@ -141,6 +167,14 @@ export interface SummaryData {
    * isVisited = true。只有能在 CITY_COORDINATES 中匹配到经纬度的城市会被返回。
    */
   cityMarkers: CityMarker[]
+  /**
+   * 选中场次的时长统计（「时长统计」卡）。
+   *
+   * 每场时长为 showEndTime - showStartTime 的分钟差（end <= start 视为跨夜
+   * +1440，结果超出 (0, 480] 视为脏数据按缺失处理）；缺开/散场时间的场次按
+   * FALLBACK_SHOW_MINUTES（180 分钟）计入 totalMinutes，但不进 entries 列表。
+   */
+  durationStats: DurationStats
   /**
    * 嘉宾相关场次统计。
    *
@@ -390,6 +424,84 @@ function buildRareSongStats(
   return { entries }
 }
 
+const MINUTES_PER_DAY = 1440
+
+/**
+ * Sanity ceiling for a computed show duration in minutes. The longest real
+ * show in the catalog runs 252 minutes; anything above this is treated as a
+ * data-entry error (e.g. a swapped start/end pair reading as 23 hours).
+ */
+const MAX_SHOW_DURATION_MINUTES = 480
+
+/**
+ * Total-minutes fallback for selected shows whose start/end times were never
+ * recorded (~26/163 shows). These shows count toward totalMinutes but are
+ * excluded from the per-show entries list.
+ */
+const FALLBACK_SHOW_MINUTES = 180
+
+/** "HH:MM" clock format; single-digit hours occur in seed data (e.g. "0:44"). */
+const CLOCK_PATTERN = /^(\d{1,2}):(\d{2})$/
+
+/** Parses a "HH:MM" clock string into minutes since midnight. */
+function parseClockMinutes(value: string | null): number | null {
+  if (!value) return null
+  const match = CLOCK_PATTERN.exec(value)
+  if (!match) return null
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (!(Number.isFinite(hours) && Number.isFinite(minutes)) || hours > 23 || minutes > 59) return null
+  return hours * 60 + minutes
+}
+
+/**
+ * Computes a show's real duration in minutes from its recorded start/end
+ * clock times. End times at or before the start are treated as past-midnight
+ * (+24h); results outside (0, MAX_SHOW_DURATION_MINUTES] are treated as dirty
+ * data and reported as unknown.
+ */
+function getShowDurationMinutes(show: Show): number | null {
+  const start = parseClockMinutes(show.showStartTime)
+  const end = parseClockMinutes(show.showEndTime)
+  if (start === null || end === null) return null
+
+  const diff = end - start
+  const duration = diff > 0 ? diff : diff + MINUTES_PER_DAY
+  if (duration <= 0 || duration > MAX_SHOW_DURATION_MINUTES) return null
+  return duration
+}
+
+/** Builds the duration-card statistics from the user's selected shows. */
+function buildDurationStats(selectedShows: Show[]): DurationStats {
+  const entries: DurationShowEntry[] = []
+  let fallbackCount = 0
+  let totalMinutes = 0
+
+  for (const show of selectedShows) {
+    const durationMinutes = getShowDurationMinutes(show)
+    if (durationMinutes === null) {
+      fallbackCount += 1
+      totalMinutes += FALLBACK_SHOW_MINUTES
+      continue
+    }
+
+    totalMinutes += durationMinutes
+    entries.push({
+      city: show.city,
+      dateSlash: show.dateSlash,
+      dayLabel: show.dayLabel,
+      durationMinutes,
+      id: show.id,
+      showDate: show.showDate,
+      themeColor: show.themeColor,
+    })
+  }
+
+  entries.sort((a, b) => a.showDate.localeCompare(b.showDate))
+
+  return { entries, fallbackCount, totalMinutes }
+}
+
 /**
  * Calculates the distance between two points on the Earth's surface using the Haversine formula.
  *
@@ -458,6 +570,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
         venueCount: new Set(selectedShows.map((s) => s.venue)).size,
       },
       cityMarkers: buildCityMarkers(allShows, visitedCities),
+      durationStats: buildDurationStats(selectedShows),
       mileage: buildMileage(selectedShows, origin),
       travelOrigin: origin ? { longitude: origin[0], latitude: origin[1] } : null,
       songStats: buildSongStats(selectedSetlistItems),

@@ -4,6 +4,7 @@ import createGlobe from 'cobe'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { concertStore } from '@/stores/concert-store'
+import type { SummaryCardProps } from '../summary-card-props'
 import { useSummaryDataContext } from '../summary-data-context'
 
 function formatCoord(value: number, posLabel: string, negLabel: string) {
@@ -63,11 +64,7 @@ interface CityGlobeMarker extends Marker {
   label: string
 }
 
-interface SummaryCardCityProps {
-  isPaused?: boolean
-}
-
-export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
+export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
   const { cityMarkers, mileage, travelOrigin, selectedShows: summarySelectedShows } = useSummaryDataContext()
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const profileCity = useSelector(concertStore, (s) => s.profile.city)
