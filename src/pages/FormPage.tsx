@@ -3,12 +3,12 @@ import { useSelector } from '@tanstack/react-store'
 import clsx from 'clsx'
 import { Check, ChevronDown } from 'lucide-react'
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
 import { geoCoordMap } from '@/data/geo-coord'
+import { getCityIcon } from '@/lib/city-icon'
 import {
   clearSelectedShows,
   concertStore,
@@ -369,19 +369,20 @@ export function FormPage() {
             <div className="overflow-hidden border border-border" key={group.city}>
               {/* City header */}
               <button
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/20 active:bg-muted/30"
+                className="flex h-12 w-full items-center gap-3 px-4 text-left transition-colors hover:bg-muted/20 active:bg-muted/30"
                 onClick={() => toggleCity(group.city)}
                 type="button"
               >
-                <span className="w-5 shrink-0 font-geist text-[11px] text-muted-foreground/70 tabular-nums">
+                {/*<span className="w-4 shrink-0 font-geist text-muted-foreground/70 text-xs tabular-nums">
                   {padStopNumber(groupIndex + 1)}
-                </span>
-                <div className="flex flex-1 items-baseline gap-1.5">
+                </span>*/}
+                <div className="-ml-2 flex flex-1 items-center gap-1.5">
+                  <img alt={group.city} className="size-10" height="40" src={getCityIcon(group.city)} width="40" />
                   <span className="font-bold font-title text-base tracking-wide">{group.city}</span>
                   <span className="text-muted-foreground text-xs">· 共 {group.shows.length} 场</span>
                 </div>
                 {selectedCount > 0 && (
-                  <span className="bg-sky-400 px-1.5 py-0.5 font-bold text-[10px] text-sky-950 tabular-nums leading-none">
+                  <span className="bg-sky-400 px-1.5 py-0.5 font-bold text-sky-950 text-xs tabular-nums leading-none">
                     {selectedCount}
                   </span>
                 )}
