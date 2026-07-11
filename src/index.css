@@ -319,47 +319,50 @@
     fill: #ffffff;
 }
 
-.summary-globe-marker-label {
-    position: absolute;
-    bottom: anchor(top);
-    left: anchor(center);
-    z-index: 2;
-    padding: 0.15rem 0.35rem;
-    margin-bottom: 8px;
-    font-family: var(--font-mono), monospace;
-    font-size: 0.6rem;
+/* 城市胶片条：横向滚动浏览全部巡演城市，两侧渐隐暗示更多内容，滚动条隐藏。 */
+.summary-city-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right,
+            transparent,
+            black 20px,
+            black calc(100% - 20px),
+            transparent);
+    mask-image: linear-gradient(to right,
+            transparent,
+            black 20px,
+            black calc(100% - 20px),
+            transparent);
+}
+
+.summary-city-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.summary-city-chip {
+    flex: none;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
     color: #71717a;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
     white-space: nowrap;
-    appearance: none;
-    pointer-events: auto;
     cursor: pointer;
-    outline: none;
-    background: #191919;
-    border: none;
-    translate: -50% 0;
+    background: transparent;
+    border: 1px solid #27272a;
+    border-radius: 9999px;
     transition:
-        opacity 0.8s,
-        filter 0.8s;
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s;
 }
 
-.summary-globe-marker-label::after {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    content: "";
-    border: 5px solid transparent;
-    border-top-color: #191919;
-    transform: translate3d(-50%, -1px, 0);
-}
-
-/* 用户去过的城市：白色标签 + 蓝色光点前缀，与星轨同色。 */
-.summary-globe-marker-label[data-visited] {
+/* 用户去过的城市：白色文字 + 蓝色光点前缀，与星轨同色。 */
+.summary-city-chip[data-visited] {
     color: #ffffff;
 }
 
-.summary-globe-marker-label[data-visited]::before {
+.summary-city-chip[data-visited]::before {
     display: inline-block;
     width: 4px;
     height: 4px;
@@ -369,6 +372,11 @@
     background: #38bdf8;
     border-radius: 9999px;
     box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+}
+
+.summary-city-chip[data-active] {
+    background: #18181b;
+    border-color: #52525b;
 }
 
 /* 用户出发点的蓝色电波：两圈错峰扩散的脉冲环，锚定在 cobe 的 origin marker 上。 */

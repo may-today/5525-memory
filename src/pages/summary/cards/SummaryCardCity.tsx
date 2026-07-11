@@ -1,7 +1,6 @@
 import { useSelector } from '@tanstack/react-store'
 import type { Arc, Marker } from 'cobe'
 import createGlobe from 'cobe'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { concertStore } from '@/stores/concert-store'
@@ -32,6 +31,19 @@ function phiForLongitude(longitude: number): number {
   return Math.PI * 1.5 - (longitude * Math.PI) / 180
 }
 
+/** Wraps an angle difference into [-π, π] so a focus rotation takes the shortest path. */
+function normalizeAngleDiff(diff: number): number {
+  const wrapped = diff % (2 * Math.PI)
+  if (wrapped > Math.PI) return wrapped - 2 * Math.PI
+  if (wrapped < -Math.PI) return wrapped + 2 * Math.PI
+  return wrapped
+}
+
+/** Per-frame easing factor while the globe rotates toward a selected city. */
+const FOCUS_EASING = 0.08
+/** Angular distance below which a focus rotation snaps to its target and ambient spin resumes. */
+const FOCUS_SNAP_EPSILON = 0.004
+
 /** 行政区划后缀，从出发城市展示名中去掉（北京市→北京、新疆维吾尔自治区→新疆）。 */
 const CITY_SUFFIX_PATTERN = /(?:维吾尔|壮族|回族)?自治区$|特别行政区$|[省市]$/
 
@@ -60,6 +72,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const profileCity = useSelector(concertStore, (s) => s.profile.city)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const stripRef = useRef<HTMLDivElement | null>(null)
   const isPausedRef = useRef(isPaused)
   // 初始聚焦用户去过的第一座城市；一场未选时回落到第一座巡演城市。
   const [currentIndex, setCurrentIndex] = useState(() =>
@@ -68,12 +81,14 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
       cityMarkers.findIndex((c) => c.isVisited)
     )
   )
+  const initialIndexRef = useRef(currentIndex)
+  /** 胶片条点选城市后地球要转向的目标 phi；null 表示恢复自转。 */
+  const focusPhiRef = useRef<number | null>(null)
   const [isCopyVisible, setIsCopyVisible] = useState(false)
 
   const markers = useMemo<CityGlobeMarker[]>(
     () =>
       cityMarkers.map((c) => ({
-        id: c.cityName,
         location: [c.latitude, c.longitude] as [number, number],
         label: c.cityName,
         isVisited: c.isVisited,
@@ -109,19 +124,37 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
     [selectedShows, currentMarker]
   )
 
-  const handlePrev = () => setCurrentIndex((i) => (i - 1 + total) % total)
-  const handleNext = () => setCurrentIndex((i) => (i + 1) % total)
+  const handleSelectCity = (index: number) => {
+    setCurrentIndex(index)
+    const marker = markers[index]
+    if (marker) focusPhiRef.current = phiForLongitude(marker.location[1])
+  }
 
   useEffect(() => {
     isPausedRef.current = isPaused
   }, [isPaused])
+
+  // 当前城市变化时把它的胶片滚到条中央；首次（挂载定位）瞬时，之后平滑。
+  const isFirstStripScrollRef = useRef(true)
+  useEffect(() => {
+    const chip = stripRef.current?.querySelectorAll('.summary-city-chip')[currentIndex]
+    chip?.scrollIntoView({
+      behavior: isFirstStripScrollRef.current ? 'auto' : 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    })
+    isFirstStripScrollRef.current = false
+  }, [currentIndex])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || markers.length === 0) return
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let phi = travel ? phiForLongitude(travel.origin[1]) : 0
+    const initialMarker = markers[initialIndexRef.current]
+    let phi = travel
+      ? phiForLongitude(travel.origin[1])
+      : phiForLongitude(initialMarker ? initialMarker.location[1] : 0)
     let animationFrame = 0
     const devicePixelRatio = Math.min(window.devicePixelRatio, 1.5)
 
@@ -165,7 +198,19 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
 
       if (!isPausedRef.current) {
         elapsed += delta
-        phi += 0.003
+        const focusPhi = focusPhiRef.current
+        if (focusPhi === null) {
+          phi += 0.003
+        } else {
+          // Ease toward the selected city along the shortest path, then resume ambient spin.
+          const diff = normalizeAngleDiff(focusPhi - phi)
+          if (Math.abs(diff) < FOCUS_SNAP_EPSILON) {
+            phi = focusPhi
+            focusPhiRef.current = null
+          } else {
+            phi += diff * FOCUS_EASING
+          }
+        }
         if (!isCopyRevealed && elapsed >= COPY_REVEAL_DELAY) {
           isCopyRevealed = true
           setIsCopyVisible(true)
@@ -221,24 +266,6 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
               }
             />
           )}
-          {markers.map((m, i) => (
-            <button
-              className="summary-globe-marker-label"
-              data-visited={m.isVisited || undefined}
-              key={m.id}
-              onClick={() => setCurrentIndex(i)}
-              style={
-                {
-                  positionAnchor: `--cobe-${m.id}`,
-                  opacity: `var(--cobe-visible-${m.id}, 0)`,
-                  filter: `blur(calc((1 - var(--cobe-visible-${m.id}, 0)) * 8px))`,
-                } as React.CSSProperties
-              }
-              type="button"
-            >
-              {m.label}
-            </button>
-          ))}
         </div>
 
         {travel && mileage !== null && (
@@ -256,32 +283,31 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardCityProps) {
       </div>
 
       <div className="z-20 shrink-0 border-zinc-800 border-t bg-zinc-950 px-6 pt-4 pb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <button
-            aria-label="上一个城市"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 text-zinc-400 transition-colors hover:border-zinc-500 hover:text-white"
-            onClick={handlePrev}
-            type="button"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="font-mono text-xs text-zinc-500">
-            {currentIndex + 1} / {total}
-          </span>
-          <button
-            aria-label="下一个城市"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 text-zinc-400 transition-colors hover:border-zinc-500 hover:text-white"
-            onClick={handleNext}
-            type="button"
-          >
-            <ChevronRight size={16} />
-          </button>
+        <div className="summary-city-strip -mx-6 mb-4 px-6" ref={stripRef}>
+          {markers.map((m, i) => (
+            <button
+              className="summary-city-chip"
+              data-active={i === currentIndex || undefined}
+              data-visited={m.isVisited || undefined}
+              key={m.label}
+              onClick={() => handleSelectCity(i)}
+              type="button"
+            >
+              {m.label}
+            </button>
+          ))}
         </div>
 
-        <h2 className="mb-1 font-bold text-base text-white tracking-tight">{currentMarker.label}</h2>
-        <p className="mb-4 font-mono text-xs text-zinc-500">
-          {formatCoord(currentMarker.location[0], 'N', 'S')}, {formatCoord(currentMarker.location[1], 'E', 'W')}
-        </p>
+        <div className="mb-4 flex items-baseline justify-between">
+          <p className="font-mono text-xs text-zinc-500">
+            <span className="font-bold font-sans text-sm text-white tracking-tight">{currentMarker.label}</span>
+            {' · '}
+            {formatCoord(currentMarker.location[0], 'N', 'S')}, {formatCoord(currentMarker.location[1], 'E', 'W')}
+          </p>
+          <span className="font-mono text-xs text-zinc-600">
+            {String(currentIndex + 1).padStart(2, '0')} / {total}
+          </span>
+        </div>
 
         <div className="grid grid-cols-1 gap-3">
           <div className="rounded-lg bg-zinc-900 p-3">
