@@ -223,17 +223,16 @@ export async function getStatsScope(
 export async function rankCities(
   db: D1Database,
   rawShowIds: number[],
-  input: ReportScopeInput,
-  limit: number
+  input: ReportScopeInput
 ): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
   const scope = buildShowScopeCondition(showIds, input)
   const { results } = await db
     .prepare(
-      `SELECT city AS label, COUNT(*) AS value FROM shows s WHERE ${scope.sql} GROUP BY city ORDER BY value DESC, city ASC LIMIT ?`
+      `SELECT city AS label, COUNT(*) AS value FROM shows s WHERE ${scope.sql} GROUP BY city ORDER BY value DESC, city ASC`
     )
-    .bind(...scope.params, limit)
+    .bind(...scope.params)
     .all<LabelCountRow>()
   return results
 }
@@ -242,8 +241,7 @@ export async function rankCities(
 export async function rankSongs(
   db: D1Database,
   rawShowIds: number[],
-  input: SongScopeInput,
-  limit: number
+  input: SongScopeInput
 ): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
@@ -254,9 +252,9 @@ export async function rankSongs(
       `SELECT si.title AS label, COUNT(*) AS value FROM setlist_items si
        JOIN shows s ON s.id = si.show_id
        WHERE ${scope.sql} AND si.item_type = 'song' AND ${section}
-       GROUP BY si.title ORDER BY value DESC, si.title ASC LIMIT ?`
+       GROUP BY si.title ORDER BY value DESC, si.title ASC`
     )
-    .bind(...scope.params, limit)
+    .bind(...scope.params)
     .all<LabelCountRow>()
   return results
 }
@@ -266,8 +264,7 @@ export async function getSongTimeline(
   db: D1Database,
   rawShowIds: number[],
   songTitle: string,
-  input: SongScopeInput,
-  limit: number
+  input: SongScopeInput
 ): Promise<SongTimelineEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   const title = songTitle.trim()
@@ -281,9 +278,9 @@ export async function getSongTimeline(
        FROM setlist_items si
        JOIN shows s ON s.id = si.show_id
        WHERE ${scope.sql} AND si.item_type = 'song' AND ${section} AND si.title LIKE ?
-       ORDER BY s.show_date ASC, si.sort_order ASC LIMIT ?`
+       ORDER BY s.show_date ASC, si.sort_order ASC`
     )
-    .bind(...scope.params, `%${title}%`, limit)
+    .bind(...scope.params, `%${title}%`)
     .all<SongTimelineRow>()
 
   return results.map((row) => ({
@@ -299,8 +296,7 @@ export async function getSongTimeline(
 export async function rankGuests(
   db: D1Database,
   rawShowIds: number[],
-  input: ReportScopeInput,
-  limit: number
+  input: ReportScopeInput
 ): Promise<RankEntry[]> {
   const showIds = normalizeShowIds(rawShowIds)
   if (showIds.length === 0 && input.concertScope !== 'all') return []
@@ -321,5 +317,4 @@ export async function rankGuests(
   return [...counts.entries()]
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
-    .slice(0, limit)
 }

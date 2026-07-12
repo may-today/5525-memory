@@ -52,10 +52,10 @@ export const ReportCardSchema = z
     heroUnit: z.string().optional(),
     heroValue: z.string().min(1),
     question: z.string().min(1),
-    rank: z.array(ReportRankEntrySchema).max(8).optional(),
+    rank: z.array(ReportRankEntrySchema).optional(),
     steps: z.array(z.string().min(1)).min(1).max(5),
     themeColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-    timeline: z.array(ReportTimelineEntrySchema).max(12).optional(),
+    timeline: z.array(ReportTimelineEntrySchema).optional(),
   })
   .refine((card) => !(card.rank && card.timeline), {
     message: 'A report card can render either rank or timeline, not both.',
@@ -63,7 +63,7 @@ export const ReportCardSchema = z
 
 export const REPORT_SUGGESTIONS = [
   '我在哪个城市看了最多场',
-  '我听过最多次的点歌是什么',
+  '秋天我听过最多次的点歌是什么',
   '《温柔》我一共听过几次',
   '我遇见过哪些嘉宾',
 ]
