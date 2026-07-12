@@ -1047,7 +1047,30 @@
 
 .summary-memory-caption {
   border-left: 2px solid
-    color-mix(in oklab, var(--memory-color), transparent 30%);
+    color-mix(in oklab, var(--memory-color), transparent 10%);
+}
+
+/* Flipped entries align the photo (and its caption) to the right edge. */
+.summary-memory-caption-flip {
+  border-right: 2px solid
+    color-mix(in oklab, var(--memory-color), transparent 10%);
+  border-left: 0;
+}
+
+/* Ambient echo: the photo itself, enlarged and heavily blurred, glows behind
+   the frame so each memory bathes in its own colors. Radial mask keeps the
+   falloff soft; the layer is static so blur rasterizes once and rides the
+   photo's transform-only parallax for free. */
+.summary-memory-photo-echo {
+  position: absolute;
+  inset: -10% -18%;
+  width: 136%;
+  height: 120%;
+  object-fit: cover;
+  filter: blur(36px) saturate(1.4);
+  opacity: 0.5;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, black 45%, transparent 78%);
 }
 
 /* Placeholder photo frame: theme-tinted gradient + a periodic light sweep

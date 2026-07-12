@@ -2,7 +2,6 @@ export interface SpecialEvent {
   noteAuthor: string
   noteDesc: string
   noteId: string
-  talking?: string
   title: string
 }
 
