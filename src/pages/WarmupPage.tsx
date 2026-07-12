@@ -73,7 +73,7 @@ export function WarmupPage() {
       <div className="relative flex flex-1 flex-col items-center justify-center gap-10 px-5 py-12">
         <TextureOverlay className="invert" opacity={0.2} texture="grid" />
 
-        <p className="relative text-[10px] text-muted-foreground uppercase tracking-[0.4em]">Opens Soon · 限时开启</p>
+        <p className="relative text-[10px] text-muted-foreground uppercase tracking-[0.4em]">Opens Soon</p>
 
         <div className="relative flex items-start gap-3 sm:gap-5">
           <CountdownUnit label="天" value={countdown.days} />
@@ -103,7 +103,7 @@ export function WarmupPage() {
 
       <div className="relative flex flex-col items-start gap-2 border-t px-5 py-6">
         <p className="text-muted-foreground text-sm">五月天「5525 回到那一天」</p>
-        <h1 className="mb-4 font-extrabold font-title text-4xl">
+        <h1 className="mb-4 font-extrabold font-wjh text-4xl">
           {isCountdownDone ? (
             <>
               时空舱门

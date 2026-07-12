@@ -1,6 +1,8 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { ArrowRight } from 'lucide-react'
+import MaydayLiveLogo from '@/assets/logo/maydaylive.webp'
+import OctoCraftLogo from '@/assets/logo/octocraft.webp'
 import MaydayIcon from '@/assets/mayday.svg'
 import { CoverBackground } from '@/components/cover-background'
 import { Marquee } from '@/components/marquee'
@@ -52,23 +54,48 @@ const Credits = () => (
     <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
       <SheetHeader className="border-b px-5 pt-6 pb-4">
         <SheetTitle className="font-title text-xl">感谢名单</SheetTitle>
-        <SheetDescription>每一段回到那一天的路，都有人一起照亮。</SheetDescription>
+        <SheetDescription>也要和你举起回忆酿的甜 / 和你再干一杯</SheetDescription>
       </SheetHeader>
       <div className="overflow-y-auto px-5 py-5 text-sm leading-7">
         <div className="flex flex-col gap-4">
           <p>
-            谢谢五月天，用一首又一首歌，把不同城市、不同年份的我们带回同一个夜晚；也谢谢所有在现场挥过荧光棒、唱过安可、把记忆留在彼此身边的歌迷。
-          </p>
-          <p>
-            谢谢巡演台前幕后每一位工作人员：舞台、灯光、音响、影像、制作、场馆与交通团队。那些看似短暂却无比盛大的夜晚，来自无数人的默默守候与精准协作。
+            该报告由{' '}
+            <a className="underline" href="https://ddiu.io" rel="noopener" target="_blank">
+              Diu
+            </a>{' '}
+            制作并在小红书宣发，相遇五月天、OctoCraft 提供巡演场次歌单数据与设计支持。
           </p>
           <p>
             谢谢参与整理公开巡演资讯、歌单记录与现场片段的所有朋友。每一笔日期、每一首歌、每一次特别相遇，才得以在这里成为可以回看的时空坐标。
           </p>
           <p>
-            5525 Memory
-            是一个由歌迷记忆出发的非官方回顾网页，与五月天、相信音乐及巡演主办单位没有隶属关系。相关名称、作品与影像权利仍分别属于其权利人。
+            「五月天 5525 时空旅行报告」
+            为粉丝制作的非官方回顾网页，与五月天、相信音乐及巡演主办单位没有隶属关系。相关名称、作品与影像权利仍分别属于其权利人。
           </p>
+          <p>数据及素材支持：</p>
+          <ul className="list-inside list-disc">
+            <li>巡演场次歌单数据由 相遇五月天 授权提供，感谢在背后贡献歌单场次数据的 wmls</li>
+            <li>专辑及嘉宾图片来自互联网</li>
+            <li>「专属回忆」环节来自于小红书全体 wmls</li>
+            <li>封面滚动素材由专辑封面经 Gemini 二次加工处理</li>
+            <li>贴纸、图标等所有小图素材均由 Gemini 生成</li>
+          </ul>
+          <p>技术信息：</p>
+          <ul className="list-inside list-disc">
+            <li>
+              源代码：
+              <a className="underline" href="https://github.com/may-today/5525-memory" rel="noopener" target="_blank">
+                may-today/5525-memory
+              </a>
+            </li>
+            <li>
+              字体：Doto、字体圈伟君黑、寒蝉德黑体（由 Fontmin、
+              <a className="underline" href="https://chinese-font.netlify.app/zh-cn/" rel="noopener" target="_blank">
+                中文网字计划
+              </a>{' '}
+              提供字体切片支持）
+            </li>
+          </ul>
         </div>
       </div>
     </SheetContent>
@@ -76,10 +103,13 @@ const Credits = () => (
 )
 
 const Logos = () => (
-  <div className="flex flex-row items-center gap-2">
-    <div className="bg-accent px-3 py-2 text-muted-foreground text-xs">Diu Logo</div>
-    <div className="bg-accent px-3 py-2 text-muted-foreground text-xs">相遇五月天</div>
-    <div className="bg-accent px-3 py-2 text-muted-foreground text-xs">LeseTruck</div>
+  <div className="flex flex-row items-center gap-1.5">
+    {/*<img alt="Diu Logo" className="h-5 w-auto" height={32} src={DiuLogo} width={32} />*/}
+    <span className="text-xs">@Diu</span>
+    <span className="text-muted-foreground text-sm">×</span>
+    <img alt="Mayday Live Logo" className="h-4.5 w-auto" height={32} src={MaydayLiveLogo} width={32} />
+    <span className="text-muted-foreground text-sm">×</span>
+    <img alt="OctoCraft Logo" className="h-5 w-auto" height={32} src={OctoCraftLogo} width={32} />
   </div>
 )
 
