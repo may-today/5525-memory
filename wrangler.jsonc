@@ -21,8 +21,8 @@
     "STATIC_FILE_HOST": "//mayday-replay-cdn.ddiu.site",
     "STATS_OPEN_AT": "2026-07-11T00:00:00+08:00",
     "REPORT_AI_BASE_URL": "https://tokenhub.tencentmaas.com/v1",
-    "REPORT_AI_MODEL": "glm-5.2",
+    "REPORT_AI_MODEL": "qwen3.5-plus",
     "REPORT_AI_PROVIDER_NAME": "tencentcloud",
-    "REPORT_AI_TOOL_DEBUG": "true"
+    "REPORT_AI_TOOL_DEBUG": "false"
   }
 }
