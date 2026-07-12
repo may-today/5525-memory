@@ -53,9 +53,10 @@ function nullable(value: string | null): string | null {
   return value === null || value === 'NULL' ? null : value
 }
 
-function mapShowRow(row: ShowRow): Show {
+function mapShowRow(row: ShowRow, showIndex: number): Show {
   return {
     id: row.id,
+    showIndex,
     tourName: row.tour_name,
     subTheme: row.sub_theme,
     versionName: row.version_name,
@@ -91,8 +92,8 @@ const SHOW_SELECT = `
 
 /** All non-hidden shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
 export async function queryAllShows(db: D1Database): Promise<Show[]> {
-  const { results } = await db.prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC`).all<ShowRow>()
-  return results.map(mapShowRow)
+  const { results } = await db.prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC, s.id ASC`).all<ShowRow>()
+  return results.map((row, showIndex) => mapShowRow(row, showIndex))
 }
 
 /** Resolve full Show rows for a set of ids. */
@@ -103,7 +104,7 @@ export async function queryShowsByIds(db: D1Database, ids: number[]): Promise<Sh
     .prepare(`${SHOW_SELECT} WHERE s.id IN (${placeholders})`)
     .bind(...ids)
     .all<ShowRow>()
-  return results.map(mapShowRow)
+  return results.map((row) => mapShowRow(row, -1))
 }
 
 /**
@@ -132,7 +133,7 @@ export async function querySummarySnapshot(db: D1Database): Promise<SummarySnaps
   for (const row of results) {
     if (!showIds.has(row.id)) {
       showIds.add(row.id)
-      shows.push(mapShowRow(row))
+      shows.push(mapShowRow(row, shows.length))
     }
 
     if (row.setlist_show_id !== null) {

@@ -19,6 +19,8 @@ export interface Show {
   guests: string[]
   /** 场次ID */
   id: number
+  /** 所有可见场次按日期排序后的零基序号 */
+  showIndex: number
   /** 是否官宣 */
   isAnnounced: number
   /** 是否隐藏 */

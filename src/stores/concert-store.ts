@@ -26,6 +26,7 @@ interface PersistedConcertSelection {
   }
   nickname?: string
   profile?: Partial<ConcertProfile>
+  showIndexes?: number[]
   showIds?: number[]
 }
 
@@ -107,6 +108,7 @@ function persistConcertState(state: ConcertState): void {
       CONCERT_FORM_STORAGE_KEY,
       JSON.stringify({
         profile: state.profile,
+        showIndexes: state.selectedShows.map((show) => show.showIndex),
         showIds: state.selectedShows.map((show) => show.id),
       })
     )
@@ -189,6 +191,25 @@ export function clearSelectedShows(): void {
 /** Read persisted show IDs from localStorage. */
 export function getPersistedShowIds(): number[] {
   return readPersistedShowIds()
+}
+
+/** Read persisted chronological show indexes from localStorage. */
+export function getPersistedShowIndexes(): number[] {
+  if (!isBrowser()) {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CONCERT_FORM_STORAGE_KEY)
+    if (!raw) {
+      return []
+    }
+
+    const parsed = JSON.parse(raw) as PersistedConcertSelection
+    return Array.isArray(parsed.showIndexes) ? parsed.showIndexes.filter((index) => Number.isInteger(index) && index >= 0) : []
+  } catch {
+    return []
+  }
 }
 
 /** Read the profile snapshot persisted by the form, including optional browser coordinates. */
