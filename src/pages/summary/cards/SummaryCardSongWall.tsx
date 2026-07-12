@@ -22,6 +22,117 @@ interface ShelfSlot {
   song: ShelfSong
 }
 
+/** Needle pivot and half-sweep of the resonance VU dial, in SVG user units / degrees. */
+const VU_PIVOT_X = 110
+const VU_PIVOT_Y = 112
+const VU_SWEEP_DEG = 50
+
+const VU_TICKS = Array.from({ length: 11 }, (_, i) => i * 10)
+
+/** Point on the dial at `percent` of the sweep (0 = left end, 100 = right end), `radius` from the pivot. */
+function vuPoint(percent: number, radius: number): { x: number; y: number } {
+  const angle = (((percent / 100) * 2 - 1) * VU_SWEEP_DEG * Math.PI) / 180
+  return { x: VU_PIVOT_X + radius * Math.sin(angle), y: VU_PIVOT_Y - radius * Math.cos(angle) }
+}
+
+function vuArcPath(fromPercent: number, toPercent: number, radius: number): string {
+  const from = vuPoint(fromPercent, radius)
+  const to = vuPoint(toPercent, radius)
+  return `M ${from.x.toFixed(1)} ${from.y.toFixed(1)} A ${radius} ${radius} 0 0 1 ${to.x.toFixed(1)} ${to.y.toFixed(1)}`
+}
+
+/**
+ * Amp faceplate with a tube-backlit VU dial: the needle swings from rest,
+ * overshoots and settles at the share of the full wall the user has heard;
+ * the percent readout fades in while the needle steadies.
+ */
+function ResonanceMeter({ percent }: { percent: number }) {
+  const angleDeg = (percent / 100) * VU_SWEEP_DEG * 2 - VU_SWEEP_DEG
+  const needleTip = vuPoint(50, 86)
+
+  return (
+    <div className="summary-shelf-frame mt-6">
+      <div className="summary-vu-face" style={{ '--vu-angle': `${angleDeg}deg` } as CSSProperties}>
+        <svg
+          aria-label={`你与五月天的音乐共振频率 ${percent}%`}
+          className="mx-auto block w-full max-w-[280px]"
+          role="img"
+          viewBox="0 0 220 122"
+        >
+          <defs>
+            <radialGradient cx="50%" cy="106%" id="vu-backlight" r="108%">
+              <stop offset="0%" stopColor="#78430f" />
+              <stop offset="45%" stopColor="#432508" />
+              <stop offset="100%" stopColor="#1d1106" />
+            </radialGradient>
+          </defs>
+          <rect fill="url(#vu-backlight)" height="114" rx="7" stroke="rgba(255,214,156,0.14)" width="216" x="2" y="4" />
+          <ellipse cx={VU_PIVOT_X} cy={VU_PIVOT_Y + 4} fill="#ff9d3f" opacity="0.18" rx="76" ry="30" />
+          <path d={vuArcPath(0, 80, 92)} fill="none" stroke="#e8cfa0" strokeOpacity="0.75" strokeWidth="1.5" />
+          <path d={vuArcPath(80, 100, 92)} fill="none" stroke="#e0603f" strokeWidth="2.5" />
+          {VU_TICKS.map((tick) => {
+            const isMajor = tick % 50 === 0
+            const outer = vuPoint(tick, 92)
+            const inner = vuPoint(tick, isMajor ? 82 : 87)
+            return (
+              <line
+                key={tick}
+                stroke={tick >= 80 ? '#e0603f' : '#e8cfa0'}
+                strokeOpacity={isMajor ? 0.9 : 0.5}
+                strokeWidth={isMajor ? 1.5 : 1}
+                x1={outer.x}
+                x2={inner.x}
+                y1={outer.y}
+                y2={inner.y}
+              />
+            )
+          })}
+          {[0, 50, 100].map((tick) => {
+            const pos = vuPoint(tick, 70)
+            return (
+              <text
+                className="font-geist"
+                fill="#e8cfa0"
+                fillOpacity="0.8"
+                fontSize="9"
+                key={tick}
+                textAnchor="middle"
+                x={pos.x}
+                y={pos.y + 3}
+              >
+                {tick}
+              </text>
+            )
+          })}
+          <text
+            className="summary-vu-readout font-geist"
+            fill="#ffd9a0"
+            fontSize="21"
+            fontWeight="600"
+            textAnchor="middle"
+            x={VU_PIVOT_X}
+            y="92"
+          >
+            {percent}%
+          </text>
+          <line
+            className="summary-vu-needle"
+            stroke="#f6e7c8"
+            strokeLinecap="round"
+            strokeWidth="2"
+            x1={VU_PIVOT_X}
+            x2={needleTip.x}
+            y1={VU_PIVOT_Y}
+            y2={needleTip.y}
+          />
+          <circle cx={VU_PIVOT_X} cy={VU_PIVOT_Y} fill="#14100c" r="6.5" stroke="rgba(232,207,160,0.35)" strokeWidth="1" />
+        </svg>
+        <p className="mt-2 text-center text-[#b99a6f] text-[11px] tracking-wide">你与五月天的音乐共振频率</p>
+      </div>
+    </div>
+  )
+}
+
 const STATE_SPINE_CLASS: Record<ShelfSongState, string> = {
   heard: 'summary-shelf-spine-heard summary-shelf-spine-pulled',
   unheard: 'summary-shelf-spine-unheard',
@@ -45,7 +156,7 @@ function RecordSpine({ slot }: { slot: ShelfSlot }) {
 
   return (
     <span
-      className={`summary-shelf-spine ${stateClass} ${song.isSurprise ? 'w-[23px] shrink-0' : ''}`}
+      className={`summary-shelf-spine ${stateClass} ${song.isSurprise ? 'w-[17px] shrink-0' : ''}`}
       style={pullIndex >= 0 ? ({ '--i': pullIndex } as CSSProperties) : undefined}
       title={song.isSurprise ? `${song.title} · 非五月天曲目` : song.title}
     >
@@ -55,7 +166,7 @@ function RecordSpine({ slot }: { slot: ShelfSlot }) {
 }
 
 function LegendSpine({ className }: { className: string }) {
-  return <span aria-hidden className={`inline-block h-3.5 w-[5px] rounded-[1px] ${className}`} />
+  return <span aria-hidden className={`inline-block h-4 w-[3px] rounded-[1px] ${className}`} />
 }
 
 export function SummaryCardSongWall() {
@@ -95,6 +206,8 @@ export function SummaryCardSongWall() {
   const totalMayday = maydayShelf.length
   const totalSurprise = surpriseShelf.length
   const heardTotal = pullCount
+  const totalRecords = totalMayday + totalSurprise
+  const resonancePercent = totalRecords > 0 ? Math.round((heardTotal / totalRecords) * 100) : 0
 
   return (
     <div
@@ -112,6 +225,8 @@ export function SummaryCardSongWall() {
           <span className="font-geist text-zinc-100">{totalMayday + totalSurprise}</span> 张唱片里，你亲耳听过的{' '}
           <span className="font-geist text-zinc-100">{heardTotal}</span> 张，已经替你从架上抽了出来。
         </p>
+
+        <ResonanceMeter percent={resonancePercent} />
 
         <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-zinc-500">
           <span className="flex items-center gap-1.5">

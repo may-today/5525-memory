@@ -15,3 +15,9 @@
 ## 走查
 
 本地 dev + Chrome（14 场跨全巡演样本，localStorage 直写 `concert-form-data:v1`）：三种状态着色与排序、金色架抽出/沉底、横滚、桌面与 430px 移动宽度均正常；typecheck / biome lint 通过。
+
+## 后续迭代（同日）：脊线比例修正 + 共振频率 VU 表盘
+
+1. **脊线比例**：反馈唱片「太厚/太矮」不像真黑胶，由 23×88px 调成 17×96px（行高 112→120px，架板渐变断点同步 110/111/114/118/120），惊喜架 `w-[23px]`→`w-[17px]`，图例色样同步细长化。
+2. **共振频率 VU 表盘**（`ResonanceMeter` + `summary-vu-*`）：引导语下新增功放面板——复用 `summary-shelf-frame` 木纹外框，内为琥珀背光 SVG 表盘（radialGradient 底部暖橙 + 玻璃下暖光池，呼应「真空管暖光」意象）。刻度 0–100（80 起红区），指针角度 = 进度映射 `-50deg..50deg`；`summary-vu-swing` 关键帧里用 `calc(var(--vu-angle) ± n deg)` 实现甩出→过冲→回摆→定格，`transform-box: view-box` + `transform-origin` 定枢轴；百分比读数（表盘中央，dot-matrix 数字字体天然贴合复古仪表）在指针收摆期间淡入。reduced-motion 下指针/读数静态直出。文案：「你与五月天的音乐共振频率」。
+3. 走查：本地 dev + Chrome，0% 真实态 + JS 注入 42% 验证指针定格与读数；typecheck / biome lint 通过。

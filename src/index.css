@@ -1400,7 +1400,7 @@
    听过的唱片用 --wall-color 点亮并从架内向上「抽出」（translateY 错峰过冲），
    没赶上的沉在架内，全巡演未唱的用冷灰唱片排在上层架尾；
    曲库外惊喜曲目在下层单行金色（--wall-gold）唱片架里横向滚动。
-   行高固定 112px（14px 抽出余量 + 88px 唱片 + 10px 架板），
+   行高固定 120px（14px 抽出余量 + 96px 唱片 + 10px 架板），
    架板由容器 repeating-linear-gradient 按行高绘制，无需按行切分数据。 */
 .summary-shelf-frame {
   padding: 8px;
@@ -1429,18 +1429,18 @@
 .summary-shelf-bed {
   background: repeating-linear-gradient(
     to bottom,
-    transparent 0 102px,
-    #5a3f27 102px 103px,
-    #3c2a17 103px 106px,
-    #2b1d10 106px 110px,
-    #17100a 110px 112px
+    transparent 0 110px,
+    #5a3f27 110px 111px,
+    #3c2a17 111px 114px,
+    #2b1d10 114px 118px,
+    #17100a 118px 120px
   );
 }
 
 .summary-shelf-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(23px, 1fr));
-  grid-auto-rows: 112px;
+  grid-template-columns: repeat(auto-fill, minmax(17px, 1fr));
+  grid-auto-rows: 120px;
   align-items: end;
   column-gap: 3px;
   padding: 0 6px;
@@ -1450,7 +1450,7 @@
   display: flex;
   align-items: flex-end;
   column-gap: 3px;
-  height: 112px;
+  height: 120px;
   width: max-content;
   min-width: 100%;
   padding: 0 10px;
@@ -1461,7 +1461,7 @@
   align-items: flex-start;
   justify-content: center;
   min-width: 0;
-  height: 88px;
+  height: 96px;
   margin-bottom: 10px;
   padding: 7px 0 5px;
   border-radius: 2px 2px 0 0;
@@ -1560,6 +1560,63 @@
 
   to {
     transform: translateY(-10px);
+  }
+}
+
+/* 共振频率 VU 表盘：与唱片架共用木纹外框，内为琥珀背光功放面板。
+   指针从表盘左端（-50deg）甩出，过冲回摆后定格在 --vu-angle
+   （组件按听歌进度写入 -50deg..50deg），读数在指针收摆期间淡入。 */
+.summary-vu-face {
+  padding: 10px 12px 12px;
+  border-radius: 5px;
+  background: #140d07;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+.summary-vu-needle {
+  transform: rotate(var(--vu-angle));
+  transform-box: view-box;
+  transform-origin: 110px 112px;
+  animation: summary-vu-swing 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.45s;
+}
+
+@keyframes summary-vu-swing {
+  0% {
+    transform: rotate(-50deg);
+  }
+
+  52% {
+    transform: rotate(calc(var(--vu-angle) + 7deg));
+  }
+
+  74% {
+    transform: rotate(calc(var(--vu-angle) - 3deg));
+  }
+
+  88% {
+    transform: rotate(calc(var(--vu-angle) + 1.2deg));
+  }
+
+  100% {
+    transform: rotate(var(--vu-angle));
+  }
+}
+
+.summary-vu-readout {
+  animation: summary-vu-readout-in 0.5s ease-out both;
+  animation-delay: 1.75s;
+}
+
+@keyframes summary-vu-readout-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 
@@ -1806,8 +1863,11 @@
     animation: none;
   }
 
-  /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识） */
-  .summary-shelf-spine-pulled {
+  /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识）；
+     VU 指针不甩摆，静态停在进度角度，读数直接可见 */
+  .summary-shelf-spine-pulled,
+  .summary-vu-needle,
+  .summary-vu-readout {
     animation: none;
   }
 
