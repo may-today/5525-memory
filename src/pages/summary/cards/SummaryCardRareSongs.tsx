@@ -17,7 +17,7 @@ function HeroNote({ entry }: { entry: RareSongEntry }) {
     <div className="summary-note summary-note-hero relative w-full max-w-xs px-6 pt-7 pb-6 text-left">
       <div aria-hidden className="summary-note-tape" />
       <p className="text-[10px] text-stone-500 uppercase tracking-widest">
-        点歌纸条 · {entry.heardCity} {entry.heardDateSlash}
+        {entry.heardCity} {entry.heardDateSlash}
       </p>
       <p className="mt-3 font-title text-4xl text-stone-800">{entry.title}</p>
       {entry.tourCount === 1 && (
@@ -79,7 +79,7 @@ export function SummaryCardRareSongs() {
         <div aria-hidden className="summary-note-spotlight" />
 
         <div className="relative flex flex-col items-center text-center">
-          <p className="mb-6 text-xs text-zinc-500">你的沧海遗珠</p>
+          <p className="mb-6 text-xs text-zinc-500">你的专属曲目</p>
           <HeroNote entry={heroSong} />
           <p className="mt-6 max-w-xs text-sm text-zinc-400 leading-relaxed">
             {heroSong.tourCount === 1 ? (
