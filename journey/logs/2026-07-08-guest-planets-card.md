@@ -18,4 +18,4 @@
 
 ## 头像逻辑调整(用户手改)
 
-- `guest-avatars.ts` 从 data-URI 预编码方案改为 CDN 方案:`guestImgIdMap` 维护「嘉宾名 → 图片 id」映射,`getGuestAvatar` 拼 `//mayday-replay-cdn.ddiu.site/5526-assets/guest/{id}.webp`;未映射嘉宾仍回退内联 SVG 占位图。已同步 design.md 与文件头注释。
+- `guest-avatars.ts` 从 data-URI 预编码方案改为 CDN 方案:`guestImgIdMap` 维护「嘉宾名 → 图片 id」映射,`getGuestAvatar` 拼 `//mayday-replay-cdn.ddiu.site/5525/guest/{id}.webp`;未映射嘉宾仍回退内联 SVG 占位图。已同步 design.md 与文件头注释。

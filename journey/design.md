@@ -179,7 +179,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **交互方式**：星球排成一条**横向星域**，嘉宾多时水平滚动查看（隐藏滚动条，左右 mask 边缘渐隐暗示更多内容；≥4 颗时显示「向左滑动」提示）；少时 `min-w-full + justify-center` 自动居中。不使用 `data-scroll-container`——容器触摸翻页要求纵向位移大于横向（`SummaryContainer` 的 `handleTouchEnd`），横滑不会误触发翻页，纵滑/滚轮仍正常切页。
 - **动画逻辑**：星球双轴浮动（负 delay 错峰 + 逐颗不同周期去同步；远景星球幅度更小、周期更长）、星球辉光呼吸（`::after` opacity）、两层星点反向不同速漂移（视差）+ twinkle、星云缓慢漂移缩放、约 9s 一次的流星划过；均为 compositor-only（transform/opacity）动画，因此**不需要** City 卡那样的 `isPaused`（City 是 WebGL RAF 循环才需暂停）。`prefers-reduced-motion` 下全部停止（流星基础 opacity 为 0，静止即不可见）。
 - **视觉方向**：`zinc-950` 深空底色；星球用场次 `themeColor` 经 `color-mix` 着色（呼吸辉光、球面明暗遮罩、每第 3 颗加椭圆光环）；**景深分层**——每第 3 颗（`i % 3 === 1`）作远景处理（`scale .85 + opacity .7 + blur 1px`）；布局为确定性横向散布（尺寸与纵向偏移按索引查常量表 `SLOT_SIZE`/`SLOT_Y`），任意数量不重叠且 SSR 稳定。
-- **关键决策**：仅展示 `isVisited === true` 场次的嘉宾——文案「与你同场」即排他性，渲染未去过场次的嘉宾会稀释情感（曾考虑用远处暗星球暗示、已否决，星空背景本身承担"擦肩而过的宇宙"意象）；嘉宾头像走 `src/pages/summary/guest-avatars.ts`：按「嘉宾名 → 图片 id」映射拼 CDN 地址（`mayday-replay-cdn.ddiu.site/5526-assets/guest/{id}.webp`），未映射的嘉宾回退到内联 SVG 占位图。
+- **关键决策**：仅展示 `isVisited === true` 场次的嘉宾——文案「与你同场」即排他性，渲染未去过场次的嘉宾会稀释情感（曾考虑用远处暗星球暗示、已否决，星空背景本身承担"擦肩而过的宇宙"意象）；嘉宾头像走 `src/pages/summary/guest-avatars.ts`：按「嘉宾名 → 图片 id」映射拼 CDN 地址（`mayday-replay-cdn.ddiu.site/5525/guest/{id}.webp`），未映射的嘉宾回退到内联 SVG 占位图。
 - **备选文案（未用，留存）**：「擦肩而过万千的生命，上一秒他是路人甲，下一秒撞进生命里。」
 - **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部非隐藏场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
