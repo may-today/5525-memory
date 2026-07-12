@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { geoCoordMap } from '@/data/geo-coord'
+import { songList } from '@/data/song-list'
 import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
@@ -38,6 +39,13 @@ export interface SongStats {
   topSong: { title: string; count: number } | null
   /** 选中场次中 item_type = 'song' 的歌单行总数。 */
   totalSongs: number
+}
+
+export interface TourSong {
+  /** 曲库标准标题（五月天歌曲）或去除演出装饰后的歌单标题（惊喜歌曲）。 */
+  title: string
+  /** `mayday` 代表曲库内歌曲；`surprise` 代表曲库外歌曲。 */
+  type: 'mayday' | 'surprise'
 }
 
 export interface RandomSongEntry {
@@ -226,6 +234,13 @@ export interface SummaryData {
    */
   songStats: SongStats
   /**
+   * 全巡演实际演唱过的去重歌曲。
+   *
+   * 只统计 item_type = 'song'；匹配时会忽略演出装饰、标点与空白差异。
+   * 五月天歌曲排在前，随后是按标题排序的惊喜歌曲。
+   */
+  tourSongs: TourSong[]
+  /**
    * 用户的出发点坐标：浏览器定位优先，未定位时回退到所选城市／地区中心
    * （geoCoordMap）。City 卡用它在地球上标记用户位置并向去过的城市发射弧线。
    * null 表示没有可用地点，此时 mileage 也为 null。
@@ -317,6 +332,18 @@ function isRandomSong(item: SummarySetlistItem): boolean {
 /** How many rare-song "paper slips" the rare-songs card shows (1 hero + 6 small notes). */
 const RARE_SONG_RANK_LIMIT = 7
 
+const SONG_DECORATION_PATTERN = /\p{Extended_Pictographic}|\uFE0F/gu
+const SONG_FEATURING_SUFFIX_PATTERN = /\s+ft\..*$/iu
+const SONG_WHITESPACE_PATTERN = /\s+/g
+const SONG_COMPARISON_NOISE_PATTERN = /[\p{P}\p{Z}]/gu
+const SONG_PARENTHESES_PATTERN = /[（(]/
+/** Known setlist spelling and event-label variants that belong to 五月天 catalog songs. */
+const SONG_TITLE_KEY_ALIASES = new Map<string, string>([
+  ['乾杯', '干杯'],
+  ['派推动物', '派对动物'],
+  ['笑忘歌新年倒数', '笑忘歌'],
+])
+
 /**
  * A song only qualifies as "冷门" for the small-notes grid if the whole tour
  * sang it at most this many times (~5% of shows). Without this, a one-show
@@ -355,6 +382,66 @@ function buildSongStats(items: SummarySetlistItem[]): SongStats {
     totalSongs: songs.length,
     topSong: entries[0] ?? null,
   }
+}
+
+/** Removes emoji decorations and normalizes whitespace for display. */
+function stripSongDecorations(title: string): string {
+  return title
+    .replace(SONG_DECORATION_PATTERN, '')
+    .replace(SONG_FEATURING_SUFFIX_PATTERN, '')
+    .replace(SONG_WHITESPACE_PATTERN, ' ')
+    .trim()
+}
+
+/** Produces a comparison key that ignores punctuation and whitespace differences. */
+function getSongTitleKey(title: string): string {
+  return stripSongDecorations(title).normalize('NFKC').replace(SONG_COMPARISON_NOISE_PATTERN, '').toLocaleLowerCase()
+}
+
+/** Returns a song's main title before its catalog parenthetical subtitle, if present. */
+function getSongBaseTitleKey(title: string): string {
+  return getSongTitleKey(title.split(SONG_PARENTHESES_PATTERN, 1)[0])
+}
+
+/** Applies maintained setlist-title aliases after the general title normalization. */
+function getCanonicalSongTitleKey(title: string): string {
+  const titleKey = getSongTitleKey(title)
+  return SONG_TITLE_KEY_ALIASES.get(titleKey) ?? titleKey
+}
+
+/** Builds the flattened full-tour song catalog with 五月天 membership markers. */
+function buildTourSongs(items: SummarySetlistItem[]): TourSong[] {
+  const catalogByTitleKey = new Map<string, (typeof songList)[number]>()
+  const catalogByBaseTitleKey = new Map<string, (typeof songList)[number]>()
+  const matchedSongSlugs = new Set<string>()
+  const surpriseSongsByTitleKey = new Map<string, string>()
+
+  for (const song of songList) {
+    catalogByTitleKey.set(getSongTitleKey(song.title), song)
+    const baseTitleKey = getSongBaseTitleKey(song.title)
+    if (!catalogByBaseTitleKey.has(baseTitleKey)) catalogByBaseTitleKey.set(baseTitleKey, song)
+  }
+
+  for (const item of items) {
+    if (!isSong(item)) continue
+
+    const titleKey = getCanonicalSongTitleKey(item.title)
+    const song = catalogByTitleKey.get(titleKey) ?? catalogByBaseTitleKey.get(titleKey)
+    if (song) {
+      matchedSongSlugs.add(song.slug)
+    } else if (!surpriseSongsByTitleKey.has(titleKey)) {
+      surpriseSongsByTitleKey.set(titleKey, stripSongDecorations(item.title))
+    }
+  }
+
+  const maydaySongs = songList
+    .filter((song) => matchedSongSlugs.has(song.slug))
+    .map((song): TourSong => ({ title: song.title, type: 'mayday' }))
+  const surpriseSongs = [...surpriseSongsByTitleKey.values()]
+    .sort(compareTitles)
+    .map((title): TourSong => ({ title, type: 'surprise' }))
+
+  return [...maydaySongs, ...surpriseSongs]
 }
 
 /** Builds the playlist-card ranking from the complete in-memory snapshot. */
@@ -578,6 +665,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       mileage: buildMileage(selectedShows, origin),
       travelOrigin: origin ? { longitude: origin[0], latitude: origin[1] } : null,
       songStats: buildSongStats(selectedSetlistItems),
+      tourSongs: buildTourSongs(setlistItems),
       randomSongStats: buildRandomSongStats(selectedSetlistItems),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),
       guestStats: buildGuestStats(allShows, selectedShows),
