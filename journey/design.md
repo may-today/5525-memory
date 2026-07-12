@@ -192,7 +192,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 - **统计边界**：AI 不能自由生成 SQL；只能调用受控工具：出席概览、城市排行、歌曲排行、单曲时间线、嘉宾排行。工具默认基于用户已选场次 ID 查询 D1；当用户明确询问「所有场次 / 全巡演 / 全部场次」时，同一套统计维度可切换到所有未隐藏场次。**每种统计工具**都支持可选时间过滤：含端点的 `startDate` / `endDate`（`YYYY-MM-DD`），以及跨年份的 `month`（1–12）或 `season`（春夏秋冬）；可与场次范围、歌曲主歌单/点歌/安可分段组合。歌曲类工具还支持主歌单、点歌、安可分段过滤，所以「所有场次中唱过最多的点歌」会走全场次 + 点歌分段统计。空选择且未要求全场次时生成提示用户先选场次的零状态卡片。由于当前 OpenAI-compatible 模型端（如 DeepSeek）不一定支持 `response_format`，服务端不把 `outputSchema` 传给 provider，而是要求模型输出 JSON 文本，服务端用 `ReportCardSchema` 校验后再合成为 TanStack AI structured-output SSE 事件给客户端。
 - **工具输入兼容**：统计工具会把可选参数的 JSON `null`，以及部分 OpenAI-compatible 模型生成的字符串 `"null"`，规范为未传入；适用于日期、月份、季节、范围、歌曲分段及排行上限。`month` 与 `limit` 还兼容纯整数文本（如 `"12"`），转换后仍受原有整数和范围约束；真实的格式、枚举和数值错误仍由 Zod 拦截，系统提示也要求模型直接省略未使用字段（2026-07-12）。
 - **文件组织**：`src/routes/api.report-chat.ts` 只保留 TanStack Start route 壳；`src/server/report-chat.ts` 组装一次请求；`src/server/report-prompt.ts` 维护支持维度和系统提示词；`src/server/report-stream.ts` 负责 JSON 文本解析、schema 校验和 structured-output SSE 合成；`src/server/report-stats.ts` / `report-tools.ts` 负责 D1 聚合和 TanStack AI 工具定义。
-- **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注和「实时统计」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
+- **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注和「5525数据电台」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
 - **动画与状态**：卡片继续使用「热敏打印」clip-path 显现，排行条随后生长；消息入场轻微上滑淡入；工具调用期间显示逐步点亮的计算状态；`prefers-reduced-motion` 下动画停用。
 
 ## 待确认与后续工作

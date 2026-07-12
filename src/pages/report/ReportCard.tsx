@@ -78,7 +78,9 @@ export function ReportCard({ card }: { card: ReportCardData }) {
 
         <div className="mt-6 flex items-center justify-between gap-4 border-white/15 border-t border-dashed pt-3">
           <p className="text-[10px] text-zinc-500">{card.footnote}</p>
-          <p className="shrink-0 rounded-sm border border-white/10 px-1.5 py-0.5 text-[9px] text-zinc-500">实时统计</p>
+          <p className="shrink-0 rounded-sm border border-white/10 px-1.5 py-0.5 text-[9px] text-zinc-500">
+            5525数据电台
+          </p>
         </div>
       </div>
     </div>

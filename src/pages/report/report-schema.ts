@@ -63,7 +63,7 @@ export const ReportCardSchema = z
 
 export const REPORT_SUGGESTIONS = [
   '我在哪个城市看了最多场',
-  '我听过最多次的歌是什么',
+  '我听过最多次的点歌是什么',
   '《温柔》我一共听过几次',
   '我遇见过哪些嘉宾',
 ]
