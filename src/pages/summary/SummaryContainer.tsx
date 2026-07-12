@@ -11,6 +11,7 @@ import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
 import { SummaryCardRareSongs } from './cards/SummaryCardRareSongs'
+import { SummaryCardSongWall } from './cards/SummaryCardSongWall'
 import type { SummaryCardProps } from './summary-card-props'
 import { SummaryDataContext } from './summary-data-context'
 
@@ -18,6 +19,7 @@ const CARDS: React.ComponentType<SummaryCardProps>[] = [
   SummaryCardOverview,
   SummaryCardDuration,
   SummaryCardCity,
+  SummaryCardSongWall,
   SummaryCardPlaylist,
   SummaryCardRareSongs,
   SummaryCardGuests,

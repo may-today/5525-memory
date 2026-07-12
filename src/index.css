@@ -1396,6 +1396,23 @@
   }
 }
 
+/* 岁月音乐墙卡：曲库与曲库外歌曲的并集砖墙。听过的砖块用 --wall-color
+   点亮并发光，曲库外曲目额外挂一枚天蓝色小角标。 */
+.summary-wall-tile-heard {
+  background: color-mix(in oklab, var(--wall-color), transparent 78%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wall-color), transparent 45%);
+}
+
+.summary-wall-tile-tag {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  background: #38bdf8;
+  border-radius: 9999px;
+}
+
 /* /form 旅程登记：步骤切换整页淡入上移（root div 换 key 强制重挂载），
    城市展开的场次行轻淡入。全部 opacity/transform。 */
 .form-step-in {
