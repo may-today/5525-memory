@@ -227,14 +227,19 @@ export function SummaryCardOverview() {
               fontSize={10}
               labels={{ months: MONTH_LABELS_ZH }}
             >
-              <ContributionGraphCalendar className="overflow-x-hidden [&_svg]:h-auto [&_svg]:w-full">
+              <ContributionGraphCalendar
+                className="!overflow-visible [&_svg]:h-auto [&_svg]:w-full"
+                getActivityOrder={(activity) => (highlightedDates.has(activity.date) ? 1 : 0)}
+              >
                 {({ activity, dayIndex, weekIndex }) => {
                   const isFuture = activity.date > TODAY
                   const isHighlighted = !isFuture && highlightedDates.has(activity.date)
                   const isLit = !isFuture && litDates.has(activity.date)
                   const themeColor = dateColorMap.get(activity.date)
                   const style: CSSProperties = {
-                    transition: isFuture ? 'none' : 'fill 0.4s ease, fill-opacity 0.4s ease, transform 0.4s ease',
+                    transition: isFuture
+                      ? 'none'
+                      : 'fill 0.4s ease, fill-opacity 0.4s ease, transform 0.4s ease',
                   }
                   if (isFuture) {
                     style.fill = 'transparent'

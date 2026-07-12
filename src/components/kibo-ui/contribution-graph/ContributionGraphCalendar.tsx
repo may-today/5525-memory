@@ -15,6 +15,8 @@ export type ContributionGraphCalendarProps = Omit<
 > & {
   hideMonthLabels?: boolean;
   className?: string;
+  /** Returns the SVG paint order for an activity; larger values render later. */
+  getActivityOrder?: (activity: Activity) => number;
   children: (props: {
     activity: Activity;
     dayIndex: number;
@@ -25,6 +27,7 @@ export type ContributionGraphCalendarProps = Omit<
 export const ContributionGraphCalendar = ({
   hideMonthLabels = false,
   className,
+  getActivityOrder,
   children,
   ...props
 }: ContributionGraphCalendarProps) => {
@@ -61,8 +64,20 @@ export const ContributionGraphCalendar = ({
             ))}
           </g>
         )}
-        {weeks.map((week, weekIndex) =>
-          week.map((activity, dayIndex) => {
+        {weeks
+          .flatMap((week, weekIndex) =>
+            week.map((activity, dayIndex) => ({ activity, dayIndex, weekIndex }))
+          )
+          .filter(
+            (entry): entry is { activity: Activity; dayIndex: number; weekIndex: number } =>
+              entry.activity !== undefined
+          )
+          .sort(
+            (a, b) =>
+              (getActivityOrder?.(a.activity) ?? 0) -
+              (getActivityOrder?.(b.activity) ?? 0)
+          )
+          .map(({ activity, dayIndex, weekIndex }) => {
             if (!activity) {
               return null;
             }
@@ -72,8 +87,7 @@ export const ContributionGraphCalendar = ({
                 {children({ activity, dayIndex, weekIndex })}
               </Fragment>
             );
-          })
-        )}
+          })}
       </svg>
     </div>
   );
