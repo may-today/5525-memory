@@ -38,7 +38,7 @@ export const REPORT_DIMENSIONS = [
 ] as const
 
 const CARD_SCHEMA_HINT =
-  '{"question":string,"heroLabel":string,"heroValue":string,"heroUnit"?:string,"isHeroNumeric":boolean,"rank"?:Array<{"label":string,"value":number}>,"timeline"?:Array<{"date":string,"city":string,"note"?:string}>,"footnote":string,"steps":string[],"themeColor":"#RRGGBB"}'
+  '{"question":string,"heroLabel":string,"heroValue":string,"heroUnit"?:string,"rank"?:Array<{"label":string,"value":number}>,"timeline"?:Array<{"date":string,"city":string,"note"?:string}>,"footnote":string,"steps":string[],"themeColor":"#RRGGBB"}'
 
 /** 生成报告页专用系统提示词。 */
 export function createReportSystemPrompt(showCount: number): string {
@@ -52,6 +52,7 @@ export function createReportSystemPrompt(showCount: number): string {
     'If the user asks about 所有场次, 全部场次, 全巡演, or the whole tour, pass concertScope="all" to the relevant tool.',
     'Every statistics tool accepts time filters. For an exact date range, pass startDate and/or endDate as YYYY-MM-DD; use both for an inclusive interval, or one for "since" or "until". For a recurring calendar month or season across years, pass month (1-12) or season (spring, summer, autumn, winter). The filters can be combined. Omit any unused optional argument; never pass null or the string "null".',
     'If the user asks about 点歌, request songs, or requested songs, pass section="request" to song ranking or timeline tools.',
+    'heroUnit is only for a pure numeric heroValue, such as heroValue="6" with heroUnit="次". Omit heroUnit whenever heroValue is already a complete answer such as a song title, city, venue, date, or sentence. For example, for “我听过最多次的歌是什么”, use the song title as heroValue and omit heroUnit; put its play count in the supporting text or rank instead.',
     'If no selected concerts are available, return a warm zero-state card that asks the user to choose concerts first.',
     'Use rank for comparisons and timeline for song encounter histories. Do not output both rank and timeline.',
     'Keep steps factual and short, naming the tool-backed work you performed.',

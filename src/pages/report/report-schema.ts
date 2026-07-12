@@ -19,12 +19,10 @@ export interface ReportCardData {
   footnote: string
   /** 主答案上方的小标题。 */
   heroLabel: string
-  /** 主答案单位，如 “×6” 或 “次”。 */
+  /** 主答案为纯数值时附加的单位；歌名、城市名等完整答案不应提供此字段。 */
   heroUnit?: string
-  /** 主答案文本；数字会用点阵字体展示，中文会用 WJH 字体展示。 */
+  /** 主答案文本。 */
   heroValue: string
-  /** 主答案是否为数字，用于选择更大的点阵字体样式。 */
-  isHeroNumeric: boolean
   /** 用户问题的卡片标题复述。 */
   question: string
   /** 横向排行条；与 timeline 互斥。 */
@@ -53,7 +51,6 @@ export const ReportCardSchema = z
     heroLabel: z.string().min(1),
     heroUnit: z.string().optional(),
     heroValue: z.string().min(1),
-    isHeroNumeric: z.boolean(),
     question: z.string().min(1),
     rank: z.array(ReportRankEntrySchema).max(8).optional(),
     steps: z.array(z.string().min(1)).min(1).max(5),
