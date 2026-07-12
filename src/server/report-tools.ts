@@ -17,38 +17,129 @@ const RankEntrySchema = z.object({
   value: z.number(),
 })
 
+const WHOLE_NUMBER_PATTERN = /^\d+$/
+
 const StatsScopeSchema = z.object({
   dateRange: z.string().nullable(),
   showCount: z.number(),
 })
 
-const ConcertScopeSchema = z.enum(['selected', 'all']).default('selected')
+/** 将模型为未使用的可选参数生成的空值统一视为未传入。 */
+function isNullToolInput(value: unknown): value is null | 'null' {
+  return value === null || value === 'null'
+}
 
-const SongSectionScopeSchema = z.enum(['all', 'main', 'request', 'encore']).default('all')
+const ConcertScopeSchema = z
+  .enum(['selected', 'all'])
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (value === undefined || isNullToolInput(value)) return 'selected'
+    return value
+  })
+
+const SongSectionScopeSchema = z
+  .enum(['all', 'main', 'request', 'encore'])
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (value === undefined || isNullToolInput(value)) return 'all'
+    return value
+  })
+
+const OptionalDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (isNullToolInput(value)) return
+    return value
+  })
+
+const NumericToolInputSchema = z
+  .number()
+  .int()
+  .or(z.string().regex(WHOLE_NUMBER_PATTERN, 'Use a whole number.').transform(Number))
+
+const OptionalMonthSchema = NumericToolInputSchema.pipe(
+  z.number().int().min(1).max(12)
+)
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (isNullToolInput(value)) return
+    return value
+  })
+
+const OptionalSeasonSchema = z
+  .enum(['spring', 'summer', 'autumn', 'winter'])
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (isNullToolInput(value)) return
+    return value
+  })
+
+const RankLimitSchema = NumericToolInputSchema.pipe(z.number().int().min(1).max(8))
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (value === undefined || isNullToolInput(value)) return 5
+    return value
+  })
+
+const TimelineLimitSchema = NumericToolInputSchema.pipe(z.number().int().min(1).max(12))
+  .nullish()
+  .or(z.literal('null'))
+  .transform((value) => {
+    if (value === undefined || isNullToolInput(value)) return 12
+    return value
+  })
 
 const TimeRangeInputShape = {
-  endDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
-    .optional(),
-  month: z.number().int().min(1).max(12).optional(),
-  season: z.enum(['spring', 'summer', 'autumn', 'winter']).optional(),
-  startDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
-    .optional(),
+  endDate: OptionalDateSchema,
+  month: OptionalMonthSchema,
+  season: OptionalSeasonSchema,
+  startDate: OptionalDateSchema,
 }
 
 interface BaseToolInput {
-  concertScope?: ConcertScope
-  endDate?: string
-  month?: number
-  season?: 'autumn' | 'spring' | 'summer' | 'winter'
-  startDate?: string
+  concertScope?: ConcertScope | null | 'null'
+  endDate?: string | null
+  month?: number | string | null
+  season?: 'autumn' | 'spring' | 'summer' | 'winter' | null | 'null'
+  startDate?: string | null
 }
 
 interface SongToolInput extends BaseToolInput {
-  section?: SongSectionScope
+  section?: SongSectionScope | null | 'null'
+}
+
+function isConcertScope(value: unknown): value is ConcertScope {
+  return value === 'all' || value === 'selected'
+}
+
+function isSongSectionScope(value: unknown): value is SongSectionScope {
+  return value === 'all' || value === 'encore' || value === 'main' || value === 'request'
+}
+
+function isSeason(value: unknown): value is 'autumn' | 'spring' | 'summer' | 'winter' {
+  return value === 'autumn' || value === 'spring' || value === 'summer' || value === 'winter'
+}
+
+function getOptionalNumber(value: number | string | null | undefined): number | undefined {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string' && WHOLE_NUMBER_PATTERN.test(value)) return Number(value)
+  return
+}
+
+function getRankLimit(value: number | string | null | undefined): number {
+  return getOptionalNumber(value) ?? 5
+}
+
+function getTimelineLimit(value: number | string | null | undefined): number {
+  return getOptionalNumber(value) ?? 12
 }
 
 const AttendanceOverviewTool = toolDefinition({
@@ -75,7 +166,7 @@ const RankCitiesTool = toolDefinition({
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
-    limit: z.number().int().min(1).max(8).default(5),
+    limit: RankLimitSchema,
   }),
   outputSchema: z.object({
     entries: z.array(RankEntrySchema),
@@ -90,7 +181,7 @@ const RankSongsTool = toolDefinition({
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
-    limit: z.number().int().min(1).max(8).default(5),
+    limit: RankLimitSchema,
     section: SongSectionScopeSchema,
   }),
   outputSchema: z.object({
@@ -106,7 +197,7 @@ const SongTimelineTool = toolDefinition({
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
-    limit: z.number().int().min(1).max(12).default(12),
+    limit: TimelineLimitSchema,
     section: SongSectionScopeSchema,
     songTitle: z.string().min(1),
   }),
@@ -131,7 +222,7 @@ const RankGuestsTool = toolDefinition({
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
-    limit: z.number().int().min(1).max(8).default(5),
+    limit: RankLimitSchema,
   }),
   outputSchema: z.object({
     entries: z.array(RankEntrySchema),
@@ -148,33 +239,33 @@ const RankGuestsTool = toolDefinition({
  */
 export function createReportTools(db: D1Database, showIds: number[]) {
   const baseScope = (input: BaseToolInput) => ({
-    concertScope: input.concertScope ?? 'selected',
-    endDate: input.endDate,
-    month: input.month,
-    season: input.season,
-    startDate: input.startDate,
+    concertScope: isConcertScope(input.concertScope) ? input.concertScope : 'selected',
+    endDate: typeof input.endDate === 'string' && input.endDate !== 'null' ? input.endDate : undefined,
+    month: getOptionalNumber(input.month),
+    season: isSeason(input.season) ? input.season : undefined,
+    startDate: typeof input.startDate === 'string' && input.startDate !== 'null' ? input.startDate : undefined,
   })
   const songScope = (input: SongToolInput) => ({
     ...baseScope(input),
-    section: input.section ?? 'all',
+    section: isSongSectionScope(input.section) ? input.section : 'all',
   })
 
   return [
     AttendanceOverviewTool.server(async (input) => getAttendanceOverview(db, showIds, baseScope(input))),
     RankCitiesTool.server(async (input) => ({
-      entries: await rankCities(db, showIds, baseScope(input), input.limit ?? 5),
+      entries: await rankCities(db, showIds, baseScope(input), getRankLimit(input.limit)),
       scope: await getStatsScope(db, showIds, baseScope(input)),
     })),
     RankSongsTool.server(async (input) => ({
-      entries: await rankSongs(db, showIds, songScope(input), input.limit ?? 5),
+      entries: await rankSongs(db, showIds, songScope(input), getRankLimit(input.limit)),
       scope: await getStatsScope(db, showIds, baseScope(input)),
     })),
     SongTimelineTool.server(async (input) => ({
-      entries: await getSongTimeline(db, showIds, input.songTitle, songScope(input), input.limit ?? 12),
+      entries: await getSongTimeline(db, showIds, input.songTitle, songScope(input), getTimelineLimit(input.limit)),
       scope: await getStatsScope(db, showIds, baseScope(input)),
     })),
     RankGuestsTool.server(async (input) => ({
-      entries: await rankGuests(db, showIds, baseScope(input), input.limit ?? 5),
+      entries: await rankGuests(db, showIds, baseScope(input), getRankLimit(input.limit)),
       scope: await getStatsScope(db, showIds, baseScope(input)),
     })),
   ]

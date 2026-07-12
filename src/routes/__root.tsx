@@ -1,3 +1,5 @@
+import { aiDevtoolsPlugin } from '@tanstack/react-ai-devtools'
+import { TanStackDevtools } from '@tanstack/react-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import type { ReactNode } from 'react'
@@ -52,6 +54,12 @@ function RootComponent() {
               <Outlet />
             </div>
           </div>
+          <TanStackDevtools
+            eventBusConfig={{
+              connectToServerBus: true,
+            }}
+            plugins={[aiDevtoolsPlugin()]}
+          />
         </ToastProvider>
       </ThemeProvider>
     </RootDocument>

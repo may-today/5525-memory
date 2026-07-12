@@ -50,7 +50,7 @@ export function createReportSystemPrompt(showCount: number): string {
     `The JSON object must match this shape: ${CARD_SCHEMA_HINT}.`,
     'Use the server tools for every statistic. Never invent counts, rankings, dates, or cities.',
     'If the user asks about 所有场次, 全部场次, 全巡演, or the whole tour, pass concertScope="all" to the relevant tool.',
-    'Every statistics tool accepts time filters. For an exact date range, pass startDate and/or endDate as YYYY-MM-DD; use both for an inclusive interval, or one for "since" or "until". For a recurring calendar month or season across years, pass month (1-12) or season (spring, summer, autumn, winter). The filters can be combined.',
+    'Every statistics tool accepts time filters. For an exact date range, pass startDate and/or endDate as YYYY-MM-DD; use both for an inclusive interval, or one for "since" or "until". For a recurring calendar month or season across years, pass month (1-12) or season (spring, summer, autumn, winter). The filters can be combined. Omit any unused optional argument; never pass null or the string "null".',
     'If the user asks about 点歌, request songs, or requested songs, pass section="request" to song ranking or timeline tools.',
     'If no selected concerts are available, return a warm zero-state card that asks the user to choose concerts first.',
     'Use rank for comparisons and timeline for song encounter histories. Do not output both rank and timeline.',

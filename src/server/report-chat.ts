@@ -1,4 +1,4 @@
-import { chat, chatParamsFromRequest, maxIterations, toServerSentEventsResponse } from '@tanstack/ai'
+import { chat, chatParamsFromRequest, type DebugOption, maxIterations, toServerSentEventsResponse } from '@tanstack/ai'
 import { openaiCompatibleText } from '@tanstack/ai-openai/compatible'
 
 import { getDb } from './db'
@@ -12,6 +12,7 @@ interface ReportAiEnv {
   REPORT_AI_BASE_URL?: string
   REPORT_AI_MODEL?: string
   REPORT_AI_PROVIDER_NAME?: string
+  REPORT_AI_TOOL_DEBUG?: string
 }
 
 interface ReportForwardedProps {
@@ -21,7 +22,9 @@ interface ReportForwardedProps {
 /** 从前端 forwardedProps 里读取并清洗用户已选场次 ID。 */
 function parseShowIds(value: unknown): number[] {
   if (!Array.isArray(value)) return []
-  return normalizeReportShowIds(value.map((id) => (typeof id === 'string' ? Number(id) : id)).filter((id) => typeof id === 'number'))
+  return normalizeReportShowIds(
+    value.map((id) => (typeof id === 'string' ? Number(id) : id)).filter((id) => typeof id === 'number')
+  )
 }
 
 /** 读取 Cloudflare Workers 环境变量；这些值不会进入客户端 bundle。 */
@@ -35,6 +38,28 @@ function createMissingConfigResponse(): Response {
     headers: { 'Cache-Control': 'no-store' },
     status: 500,
   })
+}
+
+/** Returns whether tool-call diagnostics are enabled by the Worker environment. */
+function isReportAiToolDebugEnabled(value: string | undefined): boolean {
+  return value === 'true' || value === '1'
+}
+
+/** Creates a tools-only TanStack AI debug configuration, or silences it entirely. */
+function getReportAiDebugOption(value: string | undefined): DebugOption {
+  if (!isReportAiToolDebugEnabled(value)) return false
+
+  return {
+    agentLoop: false,
+    config: false,
+    errors: true,
+    middleware: false,
+    output: false,
+    provider: false,
+    request: false,
+    sandbox: false,
+    tools: true,
+  }
 }
 
 /** 处理 `/api/report-chat` 的一次 POST 请求。 */
@@ -60,6 +85,7 @@ export async function handleReportChatRequest(request: Request): Promise<Respons
     messages: params.messages,
     systemPrompts: [createReportSystemPrompt(showIds.length)],
     tools: createReportTools(db, showIds),
+    debug: getReportAiDebugOption(env.REPORT_AI_TOOL_DEBUG),
   })
   const stream = createValidatedReportStream(source, env.REPORT_AI_MODEL, params.runId, params.threadId)
 

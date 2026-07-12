@@ -205,7 +205,7 @@ export function ReportPage() {
 
           {error && (
             <div className="report-msg-in max-w-[85%] rounded-2xl rounded-bl-md border border-red-400/20 bg-red-950/30 px-4 py-3">
-              <p className="text-red-200 text-sm leading-relaxed">数据电台暂时没有接通。请确认服务端 AI 配置后再试。</p>
+              <p className="text-red-200 text-sm leading-relaxed">数据电台暂时没有接通。</p>
             </div>
           )}
         </div>
