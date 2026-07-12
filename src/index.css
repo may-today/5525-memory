@@ -1396,21 +1396,171 @@
   }
 }
 
-/* 岁月音乐墙卡：曲库与曲库外歌曲的并集砖墙。听过的砖块用 --wall-color
-   点亮并发光，曲库外曲目额外挂一枚天蓝色小角标。 */
-.summary-wall-tile-heard {
-  background: color-mix(in oklab, var(--wall-color), transparent 78%);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wall-color), transparent 45%);
+/* 岁月音乐墙卡 ·「岁月留声机」：复古木质唱片架上竖排脊线的黑胶唱片。
+   听过的唱片用 --wall-color 点亮并从架内向上「抽出」（translateY 错峰过冲），
+   没赶上的沉在架内，全巡演未唱的用冷灰唱片排在上层架尾；
+   曲库外惊喜曲目在下层单行金色（--wall-gold）唱片架里横向滚动。
+   行高固定 112px（14px 抽出余量 + 88px 唱片 + 10px 架板），
+   架板由容器 repeating-linear-gradient 按行高绘制，无需按行切分数据。 */
+.summary-shelf-frame {
+  padding: 8px;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(
+      98deg,
+      rgba(255, 226, 178, 0.025) 0 2px,
+      transparent 2px 7px
+    ),
+    linear-gradient(155deg, #4e3620 0%, #3a2814 45%, #2a1c0e 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 214, 156, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    0 14px 30px rgba(0, 0, 0, 0.45);
 }
 
-.summary-wall-tile-tag {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 6px;
-  height: 6px;
-  background: #38bdf8;
-  border-radius: 9999px;
+.summary-shelf-inner {
+  border-radius: 5px;
+  background: #120c07;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.summary-shelf-bed {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 102px,
+    #5a3f27 102px 103px,
+    #3c2a17 103px 106px,
+    #2b1d10 106px 110px,
+    #17100a 110px 112px
+  );
+}
+
+.summary-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(23px, 1fr));
+  grid-auto-rows: 112px;
+  align-items: end;
+  column-gap: 3px;
+  padding: 0 6px;
+}
+
+.summary-shelf-rowtrack {
+  display: flex;
+  align-items: flex-end;
+  column-gap: 3px;
+  height: 112px;
+  width: max-content;
+  min-width: 100%;
+  padding: 0 10px;
+}
+
+.summary-shelf-spine {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  height: 88px;
+  margin-bottom: 10px;
+  padding: 7px 0 5px;
+  border-radius: 2px 2px 0 0;
+}
+
+.summary-shelf-spine-title {
+  display: block;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  max-height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+/* 沉在架内的唱片：暖褐色系，nth-child 轻微变调避免整架读成一张平铺纹理 */
+.summary-shelf-spine-unheard {
+  background: linear-gradient(to bottom, #2b2420, #211b17 60%, #191411);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset -1px 0 0 rgba(0, 0, 0, 0.4);
+  color: #93887c;
+}
+
+.summary-shelf-spine-unheard:nth-child(3n) {
+  background: linear-gradient(to bottom, #282326, #1e1a1d 60%, #161316);
+}
+
+.summary-shelf-spine-unheard:nth-child(7n + 2) {
+  background: linear-gradient(to bottom, #2e2419, #231b12 60%, #1a140d);
+}
+
+/* 全巡演未唱：冷灰、低饱和，沉得更暗 */
+.summary-shelf-spine-unsung {
+  background: linear-gradient(to bottom, #1d1d1f, #171719);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  color: #55555c;
+  opacity: 0.8;
+}
+
+.summary-shelf-spine-heard {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--wall-color), #0e0a18 34%),
+    color-mix(in oklab, var(--wall-color), #0e0a18 58%) 55%,
+    color-mix(in oklab, var(--wall-color), #0e0a18 72%)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 1px 0 0 rgba(255, 255, 255, 0.1),
+    inset -1px 0 0 rgba(10, 6, 22, 0.55),
+    0 0 3px color-mix(in oklab, var(--wall-color), transparent 40%),
+    0 0 10px color-mix(in oklab, var(--wall-color), transparent 62%);
+  color: #f5f2ff;
+}
+
+.summary-shelf-spine-gold-unheard {
+  background: linear-gradient(to bottom, #33270f, #241b0b 60%, #191307);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 178, 0.08),
+    inset -1px 0 0 rgba(0, 0, 0, 0.4);
+  color: #9c8354;
+}
+
+.summary-shelf-spine-gold-heard {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--wall-gold), #170f04 10%),
+    color-mix(in oklab, var(--wall-gold), #170f04 42%) 55%,
+    color-mix(in oklab, var(--wall-gold), #170f04 60%)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 214, 0.45),
+    inset 1px 0 0 rgba(255, 244, 214, 0.16),
+    inset -1px 0 0 rgba(30, 18, 2, 0.55),
+    0 0 3px color-mix(in oklab, var(--wall-gold), transparent 40%),
+    0 0 10px color-mix(in oklab, var(--wall-gold), transparent 62%);
+  color: #201503;
+}
+
+/* 抽出动画：错峰过冲收敛，both 保证延迟期间停在架内；
+   reduced-motion 下停用动画后由类上的静态 transform 保持抽出状态 */
+.summary-shelf-spine-pulled {
+  transform: translateY(-10px);
+  animation: summary-shelf-pull 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.4s + var(--i) * 35ms);
+}
+
+@keyframes summary-shelf-pull {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-10px);
+  }
 }
 
 /* /form 旅程登记：步骤切换整页淡入上移（root div 换 key 强制重挂载），
@@ -1653,6 +1803,11 @@
   .summary-playlist-row,
   .summary-vinyl,
   .summary-vinyl-disc {
+    animation: none;
+  }
+
+  /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识） */
+  .summary-shelf-spine-pulled {
     animation: none;
   }
 
