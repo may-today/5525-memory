@@ -589,8 +589,7 @@
 /* 「你去过」的坐标：子主题色（--dot-color）呼吸辉光，成为一眼可辨的最亮光点。
    基础 filter 提供静态辉光，reduced-motion 停用动画后仍保留可辨识度。 */
 .overview-dot-lit {
-  filter:
-    drop-shadow(0 0 3px var(--dot-color))
+  filter: drop-shadow(0 0 3px var(--dot-color))
     drop-shadow(0 0 7px var(--dot-color));
   animation: overview-dot-pulse 1.9s ease-in-out infinite;
 }
@@ -598,13 +597,11 @@
 @keyframes overview-dot-pulse {
   0%,
   100% {
-    filter:
-      drop-shadow(0 0 2px var(--dot-color))
+    filter: drop-shadow(0 0 2px var(--dot-color))
       drop-shadow(0 0 5px var(--dot-color));
   }
   50% {
-    filter:
-      drop-shadow(0 0 4px var(--dot-color))
+    filter: drop-shadow(0 0 4px var(--dot-color))
       drop-shadow(0 0 11px var(--dot-color));
   }
 }
@@ -1404,7 +1401,6 @@
    架板由容器 repeating-linear-gradient 按行高绘制，无需按行切分数据。 */
 .summary-shelf-frame {
   padding: 8px;
-  border-radius: 10px;
   background:
     repeating-linear-gradient(
       98deg,
@@ -1412,6 +1408,7 @@
       transparent 2px 7px
     ),
     linear-gradient(155deg, #4e3620 0%, #3a2814 45%, #2a1c0e 100%);
+  border-radius: 10px;
   box-shadow:
     inset 0 1px 0 rgba(255, 214, 156, 0.16),
     inset 0 -1px 0 rgba(0, 0, 0, 0.55),
@@ -1419,8 +1416,8 @@
 }
 
 .summary-shelf-inner {
-  border-radius: 5px;
   background: #120c07;
+  border-radius: 5px;
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.6),
     inset 0 8px 16px rgba(0, 0, 0, 0.4);
@@ -1441,18 +1438,18 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(17px, 1fr));
   grid-auto-rows: 120px;
-  align-items: end;
   column-gap: 3px;
+  align-items: end;
   padding: 0 6px;
 }
 
 .summary-shelf-rowtrack {
   display: flex;
-  align-items: flex-end;
   column-gap: 3px;
-  height: 120px;
+  align-items: flex-end;
   width: max-content;
   min-width: 100%;
+  height: 120px;
   padding: 0 10px;
 }
 
@@ -1462,31 +1459,31 @@
   justify-content: center;
   min-width: 0;
   height: 96px;
-  margin-bottom: 10px;
   padding: 7px 0 5px;
+  margin-bottom: 10px;
   border-radius: 2px 2px 0 0;
 }
 
 .summary-shelf-spine-title {
   display: block;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
   max-height: 100%;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 10px;
   line-height: 1;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
 /* 沉在架内的唱片：暖褐色系，nth-child 轻微变调避免整架读成一张平铺纹理 */
 .summary-shelf-spine-unheard {
+  color: #93887c;
   background: linear-gradient(to bottom, #2b2420, #211b17 60%, #191411);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset -1px 0 0 rgba(0, 0, 0, 0.4);
-  color: #93887c;
 }
 
 .summary-shelf-spine-unheard:nth-child(3n) {
@@ -1499,13 +1496,14 @@
 
 /* 全巡演未唱：冷灰、低饱和，沉得更暗 */
 .summary-shelf-spine-unsung {
+  color: #55555c;
   background: linear-gradient(to bottom, #1d1d1f, #171719);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  color: #55555c;
   opacity: 0.8;
 }
 
 .summary-shelf-spine-heard {
+  color: #f5f2ff;
   background: linear-gradient(
     to bottom,
     color-mix(in oklab, var(--wall-color), #0e0a18 34%),
@@ -1518,18 +1516,18 @@
     inset -1px 0 0 rgba(10, 6, 22, 0.55),
     0 0 3px color-mix(in oklab, var(--wall-color), transparent 40%),
     0 0 10px color-mix(in oklab, var(--wall-color), transparent 62%);
-  color: #f5f2ff;
 }
 
 .summary-shelf-spine-gold-unheard {
+  color: #9c8354;
   background: linear-gradient(to bottom, #33270f, #241b0b 60%, #191307);
   box-shadow:
     inset 0 1px 0 rgba(255, 226, 178, 0.08),
     inset -1px 0 0 rgba(0, 0, 0, 0.4);
-  color: #9c8354;
 }
 
 .summary-shelf-spine-gold-heard {
+  color: #201503;
   background: linear-gradient(
     to bottom,
     color-mix(in oklab, var(--wall-gold), #170f04 10%),
@@ -1542,7 +1540,6 @@
     inset -1px 0 0 rgba(30, 18, 2, 0.55),
     0 0 3px color-mix(in oklab, var(--wall-gold), transparent 40%),
     0 0 10px color-mix(in oklab, var(--wall-gold), transparent 62%);
-  color: #201503;
 }
 
 /* 抽出动画：错峰过冲收敛，both 保证延迟期间停在架内；
@@ -1568,8 +1565,8 @@
    （组件按听歌进度写入 -50deg..50deg），读数在指针收摆期间淡入。 */
 .summary-vu-face {
   padding: 10px 12px 12px;
-  border-radius: 5px;
   background: #140d07;
+  border-radius: 5px;
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.6),
     inset 0 6px 14px rgba(0, 0, 0, 0.45);
@@ -1577,8 +1574,8 @@
 
 .summary-vu-needle {
   transform: rotate(var(--vu-angle));
-  transform-box: view-box;
   transform-origin: 110px 112px;
+  transform-box: view-box;
   animation: summary-vu-swing 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: 0.45s;
 }
@@ -1786,6 +1783,93 @@
 /* Accessibility: respect the OS "Reduce Motion" preference (WCAG 2.3.3).
    Collapse all page-transition animations to an instant cross-fade so users
    with vestibular disorders are not made ill by full-screen sliding. */
+/* ── /share 星轨共振海报 ─────────────────────────────────────────────── */
+
+/* 海报整体入场：数据就绪后淡入上移一次。 */
+.share-poster-in {
+  animation: share-poster-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes share-poster-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 星轨连线 draw-in：pathLength 归一到 1，dashoffset 从 1 收到 0。 */
+.share-trail-path {
+  filter: drop-shadow(0 0 4px rgba(148, 163, 184, 0.55));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: share-trail-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
+}
+
+@keyframes share-trail-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 星轨节点按日期顺序错峰点亮（--i 由组件按序号传入）。 */
+.share-node {
+  opacity: 0;
+  animation: share-node-in 0.7s ease-out forwards;
+  animation-delay: calc(0.4s + var(--i) * 0.16s);
+}
+
+@keyframes share-node-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* 点亮后的持续微闪烁；负延迟让节点相位彼此错开。 */
+.share-node-core {
+  animation: share-node-twinkle 3.4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * -0.8s);
+}
+
+@keyframes share-node-twinkle {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* 孤勇星球的引力波：三圈错峰向外扩散。 */
+.share-gravity-ring {
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: share-gravity-wave 4.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation-delay: calc(var(--i) * 1.4s);
+}
+
+@keyframes share-gravity-wave {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+
+  14% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.9);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cover-background-strip {
     animation: none;
@@ -1881,6 +1965,38 @@
   .form-step-in,
   .form-rows-in {
     animation: none;
+  }
+
+  /* 星轨共振海报：入场/draw-in/闪烁全部停用，静态终态直接可见；
+     引力波圆环静止为三圈渐淡的同心环 */
+  .share-poster-in,
+  .share-trail-path,
+  .share-node,
+  .share-node-core,
+  .share-gravity-ring {
+    animation: none;
+  }
+
+  .share-node {
+    opacity: 1;
+  }
+
+  .share-trail-path {
+    stroke-dashoffset: 0;
+  }
+
+  .share-gravity-ring {
+    opacity: 0.3;
+  }
+
+  .share-gravity-ring:nth-of-type(2) {
+    opacity: 0.16;
+    transform: scale(1.9);
+  }
+
+  .share-gravity-ring:nth-of-type(3) {
+    opacity: 0.08;
+    transform: scale(2.8);
   }
 
   /* Guest Planets: float, glow, star drift/twinkle, nebula, meteor */
