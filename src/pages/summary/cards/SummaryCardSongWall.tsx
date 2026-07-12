@@ -170,10 +170,6 @@ function RecordSpine({ slot }: { slot: ShelfSlot }) {
   )
 }
 
-function LegendSpine({ className }: { className: string }) {
-  return <span aria-hidden className={`inline-block h-4 w-[3px] rounded-[1px] ${className}`} />
-}
-
 export function SummaryCardSongWall() {
   const { tourSongs } = useSummaryDataContext()
 
