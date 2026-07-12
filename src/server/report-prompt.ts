@@ -20,7 +20,7 @@ export const REPORT_DIMENSIONS = [
   {
     name: '歌曲排行',
     description:
-      '统计歌曲出现次数；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认全部歌曲段落，点歌传 section=request，安可传 section=encore，所有场次传 concertScope=all。',
+      '统计歌曲出现次数；支持 startDate/endDate（YYYY-MM-DD）、month 和 season；默认全部歌曲段落，点歌传 section=request，安可传 section=encore，每场最后一首歌或结尾曲传 section=ending，所有场次传 concertScope=all。',
     tool: 'rank_songs',
   },
   {
@@ -52,6 +52,7 @@ export function createReportSystemPrompt(showCount: number): string {
     'If the user asks about 所有场次, 全部场次, 全巡演, or the whole tour, pass concertScope="all" to the relevant tool.',
     'Every statistics tool accepts time filters. For an exact date range, pass startDate and/or endDate as YYYY-MM-DD; use both for an inclusive interval, or one for "since" or "until". For a recurring calendar month or season across years, pass month (1-12) or season (spring, summer, autumn, winter). The filters can be combined. Omit any unused optional argument; never pass null or the string "null".',
     'If the user asks about 点歌, request songs, or requested songs, pass section="request" to song ranking or timeline tools.',
+    'If the user asks about 结尾曲, 收尾曲, or each concert\'s last song, pass section="ending" to song ranking or timeline tools. Do not use section="encore" unless the user specifically asks about encore songs.',
     'heroUnit is only for a pure numeric heroValue, such as heroValue="6" with heroUnit="次". Omit heroUnit whenever heroValue is already a complete answer such as a song title, city, venue, date, or sentence. For example, for “我听过最多次的歌是什么”, use the song title as heroValue and omit heroUnit; put its play count in the supporting text or rank instead.',
     'If no selected concerts are available, return a warm zero-state card that asks the user to choose concerts first.',
     'Use rank for comparisons and timeline for song encounter histories. Do not output both rank and timeline.',

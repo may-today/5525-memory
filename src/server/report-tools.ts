@@ -36,7 +36,7 @@ const ConcertScopeSchema = z.preprocess(normalizeOptionalToolInput, z.enum(['sel
 
 const SongSectionScopeSchema = z.preprocess(
   normalizeOptionalToolInput,
-  z.enum(['all', 'main', 'request', 'encore']).optional()
+  z.enum(['all', 'main', 'request', 'encore', 'ending']).optional()
 )
   .transform((value) => value ?? 'all')
 
@@ -84,7 +84,7 @@ function isConcertScope(value: unknown): value is ConcertScope {
 }
 
 function isSongSectionScope(value: unknown): value is SongSectionScope {
-  return value === 'all' || value === 'encore' || value === 'main' || value === 'request'
+  return value === 'all' || value === 'encore' || value === 'ending' || value === 'main' || value === 'request'
 }
 
 function isSeason(value: unknown): value is 'autumn' | 'spring' | 'summer' | 'winter' {
@@ -130,7 +130,7 @@ const RankCitiesTool = toolDefinition({
 const RankSongsTool = toolDefinition({
   name: 'rank_songs',
   description:
-    'Rank songs by performance count. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for all shows. Use section=request for 点歌, section=encore for encore songs, section=main for main set.',
+    'Rank songs by performance count. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Use concertScope=all for all shows. Use section=request for 点歌, section=encore for encore songs, section=ending for each concert\'s final song, section=main for main set.',
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,
@@ -145,7 +145,7 @@ const RankSongsTool = toolDefinition({
 const SongTimelineTool = toolDefinition({
   name: 'song_timeline',
   description:
-    'Find every concert where a song title appears, ordered by date. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Supports selected/all concert scope and song section filtering.',
+    'Find every concert where a song title appears, ordered by date. Optionally filter every result by startDate/endDate in YYYY-MM-DD, month, or season. Supports selected/all concert scope and all/main/request/encore/ending song section filtering; ending means each concert\'s final song.',
   inputSchema: z.object({
     ...TimeRangeInputShape,
     concertScope: ConcertScopeSchema,

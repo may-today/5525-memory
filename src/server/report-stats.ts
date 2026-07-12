@@ -8,7 +8,7 @@ interface AttendanceOverview {
 
 export type ConcertScope = 'all' | 'selected'
 
-export type SongSectionScope = 'all' | 'encore' | 'main' | 'request'
+export type SongSectionScope = 'all' | 'encore' | 'ending' | 'main' | 'request'
 
 interface RankEntry {
   label: string
@@ -135,6 +135,13 @@ function buildSongSectionCondition(section: SongSectionScope | undefined): strin
   if (section === 'request') return "si.section = 'request'"
   if (section === 'main') return "si.section = 'main'"
   if (section === 'encore') return "si.section LIKE 'encore_%'"
+  if (section === 'ending') {
+    return `si.sort_order = (
+      SELECT MAX(ending_item.sort_order)
+      FROM setlist_items ending_item
+      WHERE ending_item.show_id = si.show_id AND ending_item.item_type = 'song'
+    )`
+  }
   return '1 = 1'
 }
 
@@ -237,7 +244,7 @@ export async function rankCities(
   return results
 }
 
-/** 歌曲排行：统计歌曲出现次数；可按场次范围、起止日期和 main/request/encore 段落过滤。 */
+/** 歌曲排行：统计歌曲出现次数；可按场次范围、起止日期和 main/request/encore/ending 段落过滤。 */
 export async function rankSongs(
   db: D1Database,
   rawShowIds: number[],
@@ -259,7 +266,7 @@ export async function rankSongs(
   return results
 }
 
-/** 单曲时间线：查找某首歌的相遇记录；可按场次范围、起止日期和 main/request/encore 段落过滤。 */
+/** 单曲时间线：查找某首歌的相遇记录；可按场次范围、起止日期和 main/request/encore/ending 段落过滤。 */
 export async function getSongTimeline(
   db: D1Database,
   rawShowIds: number[],
