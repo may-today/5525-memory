@@ -1,29 +1,13 @@
-import { ImageIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
-
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { type SpecialEvent, specialEventList } from '@/data/special-event'
 import type { Show } from '@/types'
 import { useSummaryDataContext } from '../summary-data-context'
 
 interface MemoryEntry {
-  /** One-line caption shown under the photo. Placeholder until real data lands. */
-  caption: string
-  /** True when the entry is demo content rendered because the user picked no shows. */
-  isSample: boolean
+  /** The maintained memorable event associated with this show. */
+  event: SpecialEvent
   show: Show
-  /** Long-form memorable text (e.g. a talking excerpt). Placeholder until real data lands. */
-  talking: string
 }
-
-/** How many catalog shows to borrow as demo entries when nothing is selected. */
-const SAMPLE_ENTRY_COUNT = 3
-
-/** Placeholder captions cycled by entry index until real memory data exists. */
-const PLACEHOLDER_CAPTIONS = [
-  '这里会放上那晚你最想留住的一张照片。',
-  '也许是烟花亮起的瞬间，也许是散场后的人海。',
-  '一张来自现场的照片，正在等待被放进来。',
-  '灯牌、彩带、大合唱——总有一帧属于这里。',
-]
 
 /** Placeholder long-form texts cycled by entry index until real memory data exists. */
 const PLACEHOLDER_TALKINGS = [
@@ -33,28 +17,57 @@ const PLACEHOLDER_TALKINGS = [
   '从第一声鼓点到最后一颗大球落下，中间发生过太多值得写下来的事。这里会挑出最值得回味的那一段。',
 ]
 
-/**
- * Builds one memory entry per attended show, ordered chronologically. Falls
- * back to the first few catalog shows (flagged as samples) when the user has
- * not selected any show, so the gallery layout is still explorable.
- */
-function buildMemoryEntries(selectedShows: Show[], allShows: Show[]): MemoryEntry[] {
-  const isSample = selectedShows.length === 0
-  const source = isSample
-    ? allShows.slice(0, SAMPLE_ENTRY_COUNT)
-    : [...selectedShows].sort((a, b) => a.showDate.localeCompare(b.showDate))
+interface MemoryPageData {
+  allEntries: MemoryEntry[]
+  selectedEntries: MemoryEntry[]
+}
 
-  return source.map((show, index) => ({
-    caption: PLACEHOLDER_CAPTIONS[index % PLACEHOLDER_CAPTIONS.length] as string,
-    isSample,
-    show,
-    talking: PLACEHOLDER_TALKINGS[index % PLACEHOLDER_TALKINGS.length] as string,
-  }))
+/** Normalizes the maintained event date format to the Show date format. */
+function normalizeEventDate(date: string): string {
+  return date.replaceAll('.', '-')
+}
+
+/**
+ * Organizes maintained special events into the all-tour and personally attended
+ * collections. A multi-day event is only included once for a selected user.
+ */
+function getPageData(options: { allShows: Show[]; selectedShows: Show[] }): MemoryPageData {
+  const { allShows, selectedShows } = options
+  const showsByDate = new Map(allShows.map((show) => [show.showDate, show]))
+  const allEntries: MemoryEntry[] = []
+  const selectedEntries: MemoryEntry[] = []
+  const usedEventIndexes: Set<number> = new Set()
+
+  for (const [eventDates, event] of specialEventList) {
+    const show = eventDates.map(normalizeEventDate).map((date) => showsByDate.get(date)).find(Boolean)
+    if (show) {
+      allEntries.push({ event, show })
+    }
+  }
+
+  for (const show of selectedShows) {
+    for (let i = 0; i < specialEventList.length; i++) {
+      if (usedEventIndexes.has(i)) {
+        continue
+      }
+      const [eventDates, event] = specialEventList[i]
+      if (eventDates.map(normalizeEventDate).includes(show.showDate)) {
+        selectedEntries.push({ event, show })
+        usedEventIndexes.add(i)
+      }
+    }
+  }
+
+  const byShowDate = (a: MemoryEntry, b: MemoryEntry) =>
+    a.show.showDate.localeCompare(b.show.showDate) || a.event.noteId.localeCompare(b.event.noteId)
+
+  return { allEntries: allEntries.toSorted(byShowDate), selectedEntries: selectedEntries.toSorted(byShowDate) }
 }
 
 function MemoryBlock({ entry, index }: { entry: MemoryEntry; index: number }) {
-  const { show } = entry
+  const { event, show } = entry
   const ghostNumber = String(index + 1).padStart(2, '0')
+  const talking = PLACEHOLDER_TALKINGS[index % PLACEHOLDER_TALKINGS.length]
 
   return (
     <article
@@ -75,30 +88,33 @@ function MemoryBlock({ entry, index }: { entry: MemoryEntry; index: number }) {
           <span>{show.venue}</span>
           <span aria-hidden="true">·</span>
           <span>{show.dayLabel}</span>
-          {entry.isSample && (
-            <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] text-zinc-500">示例</span>
-          )}
         </div>
         {show.subTheme && <p className="mt-1 text-xs text-zinc-500 italic">{show.subTheme}</p>}
       </header>
 
       <div className="summary-memory-photo relative mt-6">
         <div
-          className={`summary-memory-photo-frame relative flex aspect-[4/3] flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-white/10 ${
+          className={`summary-memory-photo-frame relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 ${
             index % 2 === 0 ? '-rotate-1' : 'rotate-1'
           }`}
         >
-          <ImageIcon className="text-white/40" size={28} />
-          <p className="text-white/50 text-xs tracking-widest">回忆照片 · 即将放入</p>
+          <img
+            alt={event.title}
+            className="size-full object-cover"
+            height={3}
+            loading="lazy"
+            src={`//mayday-replay-cdn.ddiu.site/5526-events/${event.noteId}.webp`}
+            width={4}
+          />
         </div>
-        <p className="summary-memory-caption mt-4 pl-3 text-sm text-zinc-400 leading-relaxed">{entry.caption}</p>
+        <p className="summary-memory-caption mt-4 pl-3 text-sm text-zinc-400 leading-relaxed">{event.title}</p>
       </div>
 
       <blockquote className="summary-memory-quote relative mt-10">
         <span aria-hidden="true" className="summary-memory-quote-mark font-title">
           「
         </span>
-        <p className="relative text-base text-zinc-200 leading-loose">{entry.talking}</p>
+        <p className="relative text-base text-zinc-200 leading-loose">{talking}</p>
         <footer className="mt-3 text-right text-xs text-zinc-600">—— 当晚的 talking · 占位</footer>
       </blockquote>
     </article>
@@ -107,9 +123,17 @@ function MemoryBlock({ entry, index }: { entry: MemoryEntry; index: number }) {
 
 export function SummaryCardMemories() {
   const { allShows, selectedShows } = useSummaryDataContext()
-  const entries = useMemo(() => buildMemoryEntries(selectedShows, allShows), [selectedShows, allShows])
+  const pageData = useMemo(() => getPageData({ allShows, selectedShows }), [allShows, selectedShows])
+  const hasSelectedEntries = pageData.selectedEntries.length > 0
+  const [scope, setScope] = useState<'all' | 'selected'>(() => (hasSelectedEntries ? 'selected' : 'all'))
+  const entries = scope === 'selected' && hasSelectedEntries ? pageData.selectedEntries : pageData.allEntries
+  let intro = `你参加的场次暂未收录专属回忆，先看看全部 ${entries.length} 个难忘瞬间。`
+  if (scope === 'selected' && hasSelectedEntries) {
+    intro = `往下滑，重访你亲历的 ${entries.length} 个难忘瞬间。`
+  } else if (hasSelectedEntries) {
+    intro = `这里收录了整趟巡演的 ${entries.length} 个难忘瞬间。`
+  }
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const hasSamplesOnly = entries[0]?.isSample ?? true
 
   // Scroll-driven parallax: each rAF writes the entry's viewport-centered
   // progress into --parallax; decorative layers translate at different rates.
@@ -152,21 +176,40 @@ export function SummaryCardMemories() {
         ref={scrollerRef}
       >
         <header className="px-6 pt-6 pb-20">
+          <div className="mb-6 inline-flex border border-white/10 bg-black/20 p-1 text-xs">
+            <button
+              aria-pressed={scope === 'selected'}
+              className={`px-3 py-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                scope === 'selected' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+              }`}
+              disabled={!hasSelectedEntries}
+              onClick={() => setScope('selected')}
+              type="button"
+            >
+              专属回忆
+            </button>
+            <button
+              aria-pressed={scope === 'all'}
+              className={`px-3 py-1.5 transition-colors ${
+                scope === 'all' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+              }`}
+              onClick={() => setScope('all')}
+              type="button"
+            >
+              全部回忆
+            </button>
+          </div>
           <h3 className="font-bold text-3xl text-white leading-snug">
             有些瞬间，
             <br />
             散场后还亮着。
           </h3>
-          <p className="mt-3 text-sm text-zinc-400">
-            {hasSamplesOnly
-              ? '你还没有选择场次，先看看回忆长廊的样子。'
-              : `往下滑，重访你走过的 ${entries.length} 个夜晚。`}
-          </p>
+          <p className="mt-3 text-sm text-zinc-400">{intro}</p>
         </header>
 
         <div className="flex flex-col gap-28 px-6">
           {entries.map((entry, index) => (
-            <MemoryBlock entry={entry} index={index} key={entry.show.id} />
+            <MemoryBlock entry={entry} index={index} key={entry.event.noteId} />
           ))}
         </div>
 
