@@ -361,7 +361,7 @@ export function FormPage() {
 
       {/* City accordion list — cities follow the tour route (first-show order). */}
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4">
-        {CITY_GROUPS.map((group, groupIndex) => {
+        {CITY_GROUPS.map((group) => {
           const isExpanded = expandedCities.has(group.city)
           const selectedCount = group.shows.filter((s) => selectedIds.has(s.id)).length
 
@@ -373,9 +373,6 @@ export function FormPage() {
                 onClick={() => toggleCity(group.city)}
                 type="button"
               >
-                {/*<span className="w-4 shrink-0 font-geist text-muted-foreground/70 text-xs tabular-nums">
-                  {padStopNumber(groupIndex + 1)}
-                </span>*/}
                 <div className="-ml-2 flex flex-1 items-center gap-1.5">
                   <img alt={group.city} className="size-10" height="40" src={getCityIcon(group.city)} width="40" />
                   <span className="font-bold font-title text-base tracking-wide">{group.city}</span>
