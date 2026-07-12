@@ -41,7 +41,24 @@ export interface SongStats {
   totalSongs: number
 }
 
+export interface TourSongAppearance {
+  /** 用户选中场次中是否包含该场，即用户是否在这场听到过这首歌。 */
+  isHeard: boolean
+  /**
+   * 该曲目在这场演出中所属的歌单段落：`main`（主歌单／普通）、`request`
+   * （点歌）或 `encore`（安可），由 setlist_items.section 归一化而来。
+   */
+  sectionType: 'main' | 'request' | 'encore'
+  /** 该曲目所在场次的精简展示信息，复制自完整 Show 记录。 */
+  show: SummaryShowInfo
+}
+
 export interface TourSong {
+  /**
+   * 该曲目在全巡演所有非隐藏场次中的出现记录，按场次日期升序排列
+   * （继承自单次巡演快照的查询顺序）。
+   */
+  appearances: TourSongAppearance[]
   /** 曲库标准标题（五月天歌曲）或去除演出装饰后的歌单标题（惊喜歌曲）。 */
   title: string
   /** `mayday` 代表曲库内歌曲；`surprise` 代表曲库外歌曲。 */
@@ -117,32 +134,23 @@ export interface DurationStats {
   totalMinutes: number
 }
 
-export interface GuestShowInfo {
-  /** 嘉宾场次所在城市，复制自完整 Show 记录。 */
+/** 卡片场次展示需要的精简场次信息，复制自完整 Show 记录；被嘉宾统计与巡演曲目出现记录复用。 */
+export interface SummaryShowInfo {
+  /** 场次所在城市。 */
   city: string
-  /** 嘉宾场次日期的 MM/DD 格式，由 show_date 派生。 */
+  /** 场次日期的 MM/DD 格式，由 show_date 派生。 */
   dateSlash: string
-  /** 嘉宾场次标签，如 DAY1 或安可场标签。 */
+  /** 场次标签，如 DAY1 或安可场标签。 */
   dayLabel: string
-  /** 嘉宾场次在 shows 表中的 id。 */
+  /** 场次在 shows 表中的 id。 */
   id: number
-  /** 嘉宾场次海报 URL，复制自 shows 表。 */
-  posterUrl: string
-  /** 嘉宾场次实际散场时间；字面量 'NULL' 会被归一化为 null。 */
-  showEndTime: string | null
-  /** 嘉宾场次实际开场时间；字面量 'NULL' 会被归一化为 null。 */
-  showStartTime: string | null
-  /** 嘉宾场次子主题，复制自 shows 表。 */
+  /** 场次子主题。 */
   subTheme: string
-  /** 嘉宾场次主题色，复制自 shows 表。 */
-  themeColor: string
-  /** 巡演名称，复制自 shows 表。 */
+  /** 巡演名称。 */
   tourName: string
-  /** 巡演类型 id，复制自 shows 表。 */
-  tourTypeId: number
-  /** 嘉宾场次场馆，复制自完整 Show 记录。 */
+  /** 场次场馆。 */
   venue: string
-  /** 版本名称，复制自 shows 表。 */
+  /** 版本名称。 */
   versionName: string
 }
 
@@ -152,7 +160,7 @@ export interface GuestShow {
   /** 当前用户是否选择过该嘉宾场次；通过判断场次 id 是否存在于 selectedShows 集合中得到。 */
   isVisited: boolean
   /** 嘉宾卡片使用的精简场次信息，复制自完整 Show 记录。 */
-  show: GuestShowInfo
+  show: SummaryShowInfo
   /** 嘉宾场次日期，YYYY-MM-DD 格式，用于按时间聚合与展示。 */
   showDate: string
 }
@@ -234,10 +242,11 @@ export interface SummaryData {
    */
   songStats: SongStats
   /**
-   * 全巡演实际演唱过的去重歌曲。
+   * 全巡演实际演唱过的去重歌曲，每首附带在所有非隐藏场次中的出现记录。
    *
    * 只统计 item_type = 'song'；匹配时会忽略演出装饰、标点与空白差异。
-   * 五月天歌曲排在前，随后是按标题排序的惊喜歌曲。
+   * 五月天歌曲排在前，随后是按标题排序的惊喜歌曲；每首歌的 appearances
+   * 记录该曲目出现过的场次、在该场所属的歌单段落，以及用户是否听过这场。
    */
   tourSongs: TourSong[]
   /**
@@ -258,6 +267,20 @@ function buildCityMarkers(allShows: Show[], visitedCities: Set<string>): CityMar
   return markers
 }
 
+/** Builds the slim show-card shape shared by guest stats and tour-song appearances. */
+function toSummaryShowInfo(show: Show): SummaryShowInfo {
+  return {
+    id: show.id,
+    tourName: show.tourName,
+    subTheme: show.subTheme,
+    versionName: show.versionName,
+    city: show.city,
+    venue: show.venue,
+    dayLabel: show.dayLabel,
+    dateSlash: show.dateSlash,
+  }
+}
+
 function buildGuestStats(allShows: Show[], selectedShows: Show[]): GuestStats {
   const selectedShowIds = new Set(selectedShows.map((show) => show.id))
   const guestShows = allShows
@@ -265,21 +288,7 @@ function buildGuestStats(allShows: Show[], selectedShows: Show[]): GuestStats {
     .map(
       (show): GuestShow => ({
         showDate: show.showDate,
-        show: {
-          id: show.id,
-          tourName: show.tourName,
-          subTheme: show.subTheme,
-          versionName: show.versionName,
-          city: show.city,
-          venue: show.venue,
-          dayLabel: show.dayLabel,
-          dateSlash: show.dateSlash,
-          posterUrl: show.posterUrl,
-          themeColor: show.themeColor,
-          showStartTime: show.showStartTime,
-          showEndTime: show.showEndTime,
-          tourTypeId: show.tourTypeId,
-        },
+        show: toSummaryShowInfo(show),
         guests: show.guests,
         isVisited: selectedShowIds.has(show.id),
       })
@@ -409,12 +418,24 @@ function getCanonicalSongTitleKey(title: string): string {
   return SONG_TITLE_KEY_ALIASES.get(titleKey) ?? titleKey
 }
 
-/** Builds the flattened full-tour song catalog with 五月天 membership markers. */
-function buildTourSongs(items: SummarySetlistItem[]): TourSong[] {
+/** Normalizes a raw setlist_items.section value into the coarse type an appearance entry reports. */
+function getSongSectionType(section: string): TourSongAppearance['sectionType'] {
+  if (section === 'request') return 'request'
+  if (section.startsWith('encore_')) return 'encore'
+  return 'main'
+}
+
+/** Builds the flattened full-tour song catalog with 五月天 membership markers and per-show appearances. */
+function buildTourSongs(
+  items: SummarySetlistItem[],
+  showsById: Map<number, Show>,
+  selectedShowIds: Set<number>
+): TourSong[] {
   const catalogByTitleKey = new Map<string, (typeof songList)[number]>()
   const catalogByBaseTitleKey = new Map<string, (typeof songList)[number]>()
   const matchedSongSlugs = new Set<string>()
   const surpriseSongsByTitleKey = new Map<string, string>()
+  const appearancesByKey = new Map<string, TourSongAppearance[]>()
 
   for (const song of songList) {
     catalogByTitleKey.set(getSongTitleKey(song.title), song)
@@ -427,19 +448,43 @@ function buildTourSongs(items: SummarySetlistItem[]): TourSong[] {
 
     const titleKey = getCanonicalSongTitleKey(item.title)
     const song = catalogByTitleKey.get(titleKey) ?? catalogByBaseTitleKey.get(titleKey)
+    const appearanceKey = song ? `mayday:${song.slug}` : `surprise:${titleKey}`
     if (song) {
       matchedSongSlugs.add(song.slug)
     } else if (!surpriseSongsByTitleKey.has(titleKey)) {
       surpriseSongsByTitleKey.set(titleKey, stripSongDecorations(item.title))
     }
+
+    const show = showsById.get(item.showId)
+    if (!show) continue
+    const appearance: TourSongAppearance = {
+      show: toSummaryShowInfo(show),
+      sectionType: getSongSectionType(item.section),
+      isHeard: selectedShowIds.has(item.showId),
+    }
+    const appearances = appearancesByKey.get(appearanceKey)
+    if (appearances) appearances.push(appearance)
+    else appearancesByKey.set(appearanceKey, [appearance])
   }
 
   const maydaySongs = songList
     .filter((song) => matchedSongSlugs.has(song.slug))
-    .map((song): TourSong => ({ title: song.title, type: 'mayday' }))
-  const surpriseSongs = [...surpriseSongsByTitleKey.values()]
-    .sort(compareTitles)
-    .map((title): TourSong => ({ title, type: 'surprise' }))
+    .map(
+      (song): TourSong => ({
+        title: song.title,
+        type: 'mayday',
+        appearances: appearancesByKey.get(`mayday:${song.slug}`) ?? [],
+      })
+    )
+  const surpriseSongs = [...surpriseSongsByTitleKey.entries()]
+    .sort((a, b) => compareTitles(a[1], b[1]))
+    .map(
+      ([titleKey, title]): TourSong => ({
+        title,
+        type: 'surprise',
+        appearances: appearancesByKey.get(`surprise:${titleKey}`) ?? [],
+      })
+    )
 
   return [...maydaySongs, ...surpriseSongs]
 }
@@ -665,7 +710,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       mileage: buildMileage(selectedShows, origin),
       travelOrigin: origin ? { longitude: origin[0], latitude: origin[1] } : null,
       songStats: buildSongStats(selectedSetlistItems),
-      tourSongs: buildTourSongs(setlistItems),
+      tourSongs: buildTourSongs(setlistItems, showsById, selectedShowIdSet),
       randomSongStats: buildRandomSongStats(selectedSetlistItems),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),
       guestStats: buildGuestStats(allShows, selectedShows),

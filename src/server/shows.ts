@@ -92,7 +92,9 @@ const SHOW_SELECT = `
 
 /** All non-hidden shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
 export async function queryAllShows(db: D1Database): Promise<Show[]> {
-  const { results } = await db.prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC, s.id ASC`).all<ShowRow>()
+  const { results } = await db
+    .prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC, s.id ASC`)
+    .all<ShowRow>()
   return results.map((row, showIndex) => mapShowRow(row, showIndex))
 }
 

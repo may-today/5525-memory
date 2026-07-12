@@ -8,8 +8,10 @@ interface GuestEncounter {
   city: string
   dateSlash: string
   showDate: string
-  themeColor: string
 }
+
+/** Fixed planet color for all guest encounters — Show themeColor is no longer part of SummaryShowInfo. */
+const PLANET_COLOR = '#f97316'
 
 interface GuestPlanet {
   encounters: GuestEncounter[]
@@ -42,7 +44,6 @@ function buildGuestPlanets(guestShows: GuestShow[]): GuestPlanet[] {
         city: guestShow.show.city,
         dateSlash: guestShow.show.dateSlash,
         showDate: guestShow.showDate,
-        themeColor: guestShow.show.themeColor,
       }
       const existing = planetsByName.get(name)
       if (existing) {
@@ -92,7 +93,7 @@ function PlanetRow({ index, planet }: { index: number; planet: GuestPlanet }) {
     >
       <div
         className="summary-guest-planet"
-        style={{ '--planet-size': `${size}px`, '--planet-color': first.themeColor } as React.CSSProperties}
+        style={{ '--planet-size': `${size}px`, '--planet-color': PLANET_COLOR } as React.CSSProperties}
       >
         <img alt={`嘉宾 ${planet.name}`} height={size} src={getGuestAvatar(planet.name)} width={size} />
         <span aria-hidden="true" className="summary-guest-planet-shade" />
@@ -118,7 +119,11 @@ export function SummaryCardGuests() {
           <div
             className="summary-guest-planet summary-guest-planet-row"
             style={
-              { '--i': 0, '--planet-size': `${BAND_PLANET_SIZE}px`, '--planet-color': '#f97316' } as React.CSSProperties
+              {
+                '--i': 0,
+                '--planet-size': `${BAND_PLANET_SIZE}px`,
+                '--planet-color': PLANET_COLOR,
+              } as React.CSSProperties
             }
           >
             <img alt="五月天" height={BAND_PLANET_SIZE} src={getGuestAvatar('五月天')} width={BAND_PLANET_SIZE} />
