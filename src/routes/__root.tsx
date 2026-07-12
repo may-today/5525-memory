@@ -54,12 +54,6 @@ function RootComponent() {
               <Outlet />
             </div>
           </div>
-          <TanStackDevtools
-            eventBusConfig={{
-              connectToServerBus: true,
-            }}
-            plugins={[aiDevtoolsPlugin()]}
-          />
         </ToastProvider>
       </ThemeProvider>
     </RootDocument>
@@ -78,6 +72,12 @@ function RootDocument({ children }: RootDocumentProps) {
       </head>
       <body>
         {children}
+        <TanStackDevtools
+          eventBusConfig={{
+            connectToServerBus: true,
+          }}
+          plugins={[aiDevtoolsPlugin()]}
+        />
         <Scripts />
       </body>
     </html>
