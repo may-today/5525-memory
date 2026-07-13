@@ -12,9 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarmupRouteImport } from './routes/warmup'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ShareRouteImport } from './routes/share'
-import { Route as ReportRouteImport } from './routes/report'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
+import { Route as DataStationRouteImport } from './routes/data-station'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ScriptsGcDotjsRouteImport } from './routes/scripts.gc[.]js'
@@ -36,11 +36,6 @@ const ShareRoute = ShareRouteImport.update({
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportRoute = ReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoadingRoute = LoadingRouteImport.update({
   id: '/loading',
   path: '/loading',
@@ -49,6 +44,11 @@ const LoadingRoute = LoadingRouteImport.update({
 const FormRoute = FormRouteImport.update({
   id: '/form',
   path: '/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataStationRoute = DataStationRouteImport.update({
+  id: '/data-station',
+  path: '/data-station',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -80,9 +80,9 @@ const ApiReportChatRoute = ApiReportChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
-  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -93,9 +93,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
-  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -107,9 +107,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
-  '/report': typeof ReportRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -122,9 +122,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
+    | '/data-station'
     | '/form'
     | '/loading'
-    | '/report'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -135,9 +135,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$'
+    | '/data-station'
     | '/form'
     | '/loading'
-    | '/report'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -148,9 +148,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$'
+    | '/data-station'
     | '/form'
     | '/loading'
-    | '/report'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -162,9 +162,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  DataStationRoute: typeof DataStationRoute
   FormRoute: typeof FormRoute
   LoadingRoute: typeof LoadingRoute
-  ReportRoute: typeof ReportRoute
   ShareRoute: typeof ShareRoute
   SummaryRoute: typeof SummaryRoute
   WarmupRoute: typeof WarmupRoute
@@ -196,13 +196,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/report': {
-      id: '/report'
-      path: '/report'
-      fullPath: '/report'
-      preLoaderRoute: typeof ReportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/loading': {
       id: '/loading'
       path: '/loading'
@@ -215,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/form'
       fullPath: '/form'
       preLoaderRoute: typeof FormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-station': {
+      id: '/data-station'
+      path: '/data-station'
+      fullPath: '/data-station'
+      preLoaderRoute: typeof DataStationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -258,9 +258,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  DataStationRoute: DataStationRoute,
   FormRoute: FormRoute,
   LoadingRoute: LoadingRoute,
-  ReportRoute: ReportRoute,
   ShareRoute: ShareRoute,
   SummaryRoute: SummaryRoute,
   WarmupRoute: WarmupRoute,

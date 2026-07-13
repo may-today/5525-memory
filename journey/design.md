@@ -19,7 +19,7 @@
 
 ```text
 /（封面）→ /form（场次选择）→ /loading（生成过渡）→ /summary（统计回顾）→ /share（分享）
-                                                                        └→ /report（专属报告，效果图）
+                                                                        └→ /data-station（专属报告，效果图）
 
 开放前：/warmup（预热倒计时）→ /form（提前填写，保存后回到 /warmup）
 ```
@@ -65,7 +65,7 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 - **`starlight`**（主操作）：低透明强调色填充 + hairline 边框 + 柔和外辉光——用「发光」而不是白色实心块表达主次。颜色全部经 `color-mix` 从 `var(--starlight, #38bdf8)` 派生（文字向白混 82%、填充 12%、边框 42%），任意祖先覆写 `--starlight` 即可整体换色温。
 - **`glass`**（次操作）：white/10 hairline + white/4 玻璃填充。
 
-应用：`/summary` 最后一页悬浮「生成总结」（`starlight` + `backdrop-blur-md` + `px-8`，悬浮在滚动内容上用毛玻璃保证可读性）；`/share` 三个操作（见分享页章节）；`/warmup` 两个 CTA（覆写 `--starlight: #f97316` 品牌橙，呼应倒计时辉光）；`/form` 的「继续／下一步／保存」用 `starlight`（sky 色温与页面 `--primary` 覆写一致，重量从实心变辉光），「使用我的定位」以 `starlight`/`glass` 表达已定位/未定位。**保留不动**：封面白色圆形箭头 CTA（编辑排版语言的首屏视觉锚点，非深空语境）；`/report` 数据电台自有的橙色圆钮与 chips 形态（仅补 hover 反馈）；`.form-page` 的 `--primary` 覆写继续服务 checkbox 等其他 shadcn 控件。
+应用：`/summary` 最后一页悬浮「生成总结」（`starlight` + `backdrop-blur-md` + `px-8`，悬浮在滚动内容上用毛玻璃保证可读性）；`/share` 三个操作（见分享页章节）；`/warmup` 两个 CTA（覆写 `--starlight: #f97316` 品牌橙，呼应倒计时辉光）；`/form` 的「继续／下一步／保存」用 `starlight`（sky 色温与页面 `--primary` 覆写一致，重量从实心变辉光），「使用我的定位」以 `starlight`/`glass` 表达已定位/未定位。**保留不动**：封面白色圆形箭头 CTA（编辑排版语言的首屏视觉锚点，非深空语境）；`/data-station` 数据电台自有的橙色圆钮与 chips 形态（仅补 hover 反馈）；`.form-page` 的 `--primary` 覆写继续服务 checkbox 等其他 shadcn 控件。
 
 ### 表单页「旅程登记」视觉语言（2026-07-11）
 
@@ -75,7 +75,7 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 
 统计流程限时开放，开放时间由环境变量 `STATS_OPEN_AT`（ISO 8601，建议带时区）配置，缺失或非法时回退到内置默认 `2026-07-13T00:00:00+08:00`（见 `wrangler.jsonc` vars；本地调试用 `.dev.vars` 覆盖）。开放判定以服务器时钟为准（`src/server/launch-gate.ts` 的 `getLaunchGate` server function），客户端时钟只用于倒计时显示（用 `serverNow` 校正偏差）。
 
-- **门禁**：`/`、`/loading`、`/summary`、`/share`、`/report` 在 `beforeLoad` 里经 `ensureStatsOpen()` 未开放时重定向到 `/warmup`；开放结果在模块级缓存（时间单向，开放后不再回查）。`/warmup` 反向守卫：已开放时在 loader 里重定向回 `/`。已知边界：路由守卫不保护 server function 本身，数据非敏感，接受该边界。
+- **门禁**：`/`、`/loading`、`/summary`、`/share`、`/data-station` 在 `beforeLoad` 里经 `ensureStatsOpen()` 未开放时重定向到 `/warmup`；开放结果在模块级缓存（时间单向，开放后不再回查）。`/warmup` 反向守卫：已开放时在 loader 里重定向回 `/`。已知边界：路由守卫不保护 server function 本身，数据非敏感，接受该边界。
 - **预热页**（`/warmup` + `src/pages/WarmupPage.tsx`）：沿用封面页的编辑排版语言（分区边框、texture、Marquee、WJH 标题），倒计时数字用 Doto 点阵体 + 品牌橙辉光；首帧剩余时间由 loader 的 `serverNow` 算出保证 SSR 一致，挂载后每秒 tick；开放日期以北京时间格式化（`Intl.DateTimeFormat` 固定 `Asia/Shanghai`，SSR/客户端确定性一致）。倒计时归零后就地切换为「进入」按钮（导航到 `/`，服务端守卫复核）。
 - **提前填写**：`/form` 不受门禁限制，loader 并行返回 `{ shows, gate }`；未开放时最后一步按钮变为「保存，开放后生成」，点击后 toast 确认并回到 `/warmup`（数据本就随 store 持久化到 localStorage，无需额外保存动作）。
 
@@ -257,7 +257,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **保存图片**：海报根节点以 ref 交给 `html-to-image`，浏览器端等待字体就绪后按 2 倍像素密度导出 PNG，文件名为 `5525-memory-{口令}.png`；生成期间按钮显示进度并禁止重复触发。无已选场次时按钮保持不可用，生成失败时 toast 建议浏览器截图。未实现的原生「分享」按钮不展示。
 - **操作区「深空控制台」（2026-07-14）**：三个入口不再用默认 shadcn 白色实心/描边块。「保存图片」用 Button `starlight` 变体、「将场次保存到...」用 `glass` 变体（见「关键设计决策」的全站按钮体系）；Sheet 内「复制口令」也是 `starlight`。**「你的专属报告」标注为特别企划入口**（`index.css` 的 `.share-plan-entry`，本页专属签名）：左对齐入口卡——eyebrow `SPECIAL PROJECT · 特别企划`（9px 0.3em 字距，与海报档案眉行同语言）+ 标题「5525数据电台 · 你的专属报告」+ 右箭头（hover 右移），边框是星轨三个子主题色（粉→蓝→橙）连成的 1px 渐变 hairline（padding-box 深底 + border-box 渐变双背景），内底带两团极淡角落星云染色，与保存类操作明确区分。
 
-## 报告页「你的专属报告」（/report）
+## 报告页「你的专属报告」（/data-station）
 
 - **组件**：`src/pages/report/`（`ReportPage` TanStack AI 聊天 UI、`ReportCard` 结果卡片、`report-schema.ts` 结构化卡片 schema）；入口为 `/share` 页的「你的专属报告」按钮。
 - **定位**：AI 自然语言查询入口。用户输入统计问题后，前端通过 `@tanstack/ai-react` 的 `useChat` 连接 `/api/report-chat`，服务端用 TanStack AI `chat()`、OpenAI-compatible adapter 和 D1 统计工具生成一张数据卡片。

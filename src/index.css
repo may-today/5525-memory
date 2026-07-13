@@ -1104,7 +1104,7 @@
     opacity: 0.6;
 }
 
-/* /report chat — messages slide in gently; the generated card "prints" like a
+/* /data-station chat — messages slide in gently; the generated card "prints" like a
    thermal receipt (clip-path top-down reveal). All effects are theme-tinted via
    --report-color set per card. */
 .report-msg-in {
@@ -2209,7 +2209,7 @@
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 「特别企划」入口：/report 不是本页的保存操作，而是一档特别企划——
+/* 「特别企划」入口：/data-station 不是本页的保存操作，而是一档特别企划——
    用星轨三个子主题色（5525 粉 / 5525+1 蓝 / 5525+2 橙）连成一圈
    hairline 渐变描边作为标记，内底是带极淡星云染色的深空玻璃。
    padding-box 层自上而下：两团角落染色 → 不透明深底；border-box

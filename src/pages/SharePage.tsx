@@ -152,7 +152,7 @@ export function SharePage() {
         </Sheet>
         <button
           className="share-plan-entry group mt-1 flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-          onClick={() => navigate({ to: '/report' })}
+          onClick={() => navigate({ to: '/data-station' })}
           type="button"
         >
           <span className="flex min-w-0 flex-col gap-1">
