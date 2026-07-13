@@ -1066,10 +1066,10 @@
   inset: -10% -18%;
   width: 136%;
   height: 120%;
-  object-fit: cover;
-  filter: blur(36px) saturate(1.4);
-  opacity: 0.5;
   pointer-events: none;
+  object-fit: cover;
+  opacity: 0.5;
+  filter: blur(36px) saturate(1.4);
   mask-image: radial-gradient(ellipse at center, black 45%, transparent 78%);
 }
 
@@ -1651,6 +1651,195 @@
   }
 }
 
+/* 唱片抽出详情：点击脊线后，封套经 WAAPI FLIP 从架上脊线位置飞到画面中央展开
+   （transform-only，非均匀缩放），飞行期间封套内容与黑胶盘隐藏，
+   -settled 后内容淡入、黑胶盘从封套上沿探出；关闭时反向飞回、整层淡出。
+   覆盖层带 data-summary-gesture-exempt 免疫切页手势；
+   --record-color 由组件写入（曲库紫 / 曲库外金）。 */
+.summary-record-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.summary-record-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background: rgba(7, 6, 10, 0.86);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.26s ease;
+  animation: summary-record-fade-in 0.32s ease both;
+}
+
+@keyframes summary-record-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.summary-record-overlay-closing .summary-record-backdrop {
+  opacity: 0;
+}
+
+.summary-record-stage {
+  position: relative;
+  width: min(58vw, 210px);
+}
+
+/* 黑胶盘：沟槽 + 状态色圆标 + 中心孔，落定后从封套后探出 */
+.summary-record-disc {
+  position: absolute;
+  inset: 4% 3% auto;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(
+      circle,
+      #0d0b11 0 4.5%,
+      color-mix(in oklab, var(--record-color), #17131f 50%) 4.5% 17%,
+      #0d0b11 17% 18.5%,
+      transparent 18.5%
+    ),
+    repeating-radial-gradient(circle, #1a1720 0 1.5px, #0e0c12 1.5px 3.2px);
+  border-radius: 50%;
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transform: translateY(0);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
+    opacity 0.2s ease 0.05s;
+}
+
+.summary-record-stage-settled .summary-record-disc {
+  opacity: 1;
+  transform: translateY(-30%);
+}
+
+.summary-record-sleeve {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  will-change: transform;
+}
+
+.summary-record-sleeve-content {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.summary-record-stage-settled .summary-record-sleeve-content {
+  opacity: 1;
+}
+
+/* 封套配色沿用脊线五种状态的渐变家族，FLIP 飞行时观感即「同一张唱片被放大」 */
+.summary-record-sleeve-heard {
+  color: #f5f2ff;
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--record-color), #0e0a18 26%) 0%,
+    color-mix(in oklab, var(--record-color), #0e0a18 55%) 55%,
+    color-mix(in oklab, var(--record-color), #0e0a18 70%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.summary-record-sleeve-unheard {
+  color: #b9ac9d;
+  background: linear-gradient(150deg, #2f2822 0%, #221c17 60%, #191411 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.summary-record-sleeve-unsung {
+  color: #8f8f98;
+  background: linear-gradient(150deg, #222225 0%, #19191c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.summary-record-sleeve-gold-heard {
+  color: #241804;
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--record-color), #170f04 12%) 0%,
+    color-mix(in oklab, var(--record-color), #170f04 42%) 60%,
+    color-mix(in oklab, var(--record-color), #170f04 58%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 214, 0.5),
+    0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.summary-record-sleeve-gold-unheard {
+  color: #c8a96f;
+  background: linear-gradient(150deg, #382a11 0%, #261c0c 60%, #1a1409 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 178, 0.1),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* 信息面板：封套快落定时淡入上移；关闭时随背景一起淡出 */
+.summary-record-info {
+  transition: opacity 0.22s ease;
+  animation: summary-record-info-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s
+    both;
+}
+
+@keyframes summary-record-info-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-record-overlay-closing .summary-record-info {
+  opacity: 0;
+  animation: none;
+}
+
+.summary-record-show-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.summary-record-show-row:last-child {
+  border-bottom: none;
+}
+
+/* 你在场的场次行：本卡状态色轻染 + 高亮文字 */
+.summary-record-show-row-heard {
+  color: #f4f4f5;
+  background: color-mix(in oklab, var(--record-color), transparent 88%);
+}
+
+.summary-record-section-badge {
+  flex-shrink: 0;
+  padding: 1px 5px;
+  font-size: 9px;
+  color: #a1a1aa;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+
+.summary-record-here-badge {
+  flex-shrink: 0;
+  font-size: 9px;
+  color: color-mix(in oklab, var(--record-color), #fff 25%);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 8px color-mix(in oklab, var(--record-color), transparent 40%);
+}
+
 /* /form 旅程登记：步骤切换整页淡入上移（root div 换 key 强制重挂载），
    城市展开的场次行轻淡入。全部 opacity/transform。 */
 .form-step-in {
@@ -1982,11 +2171,18 @@
   }
 
   /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识）；
-     VU 指针不甩摆，静态停在进度角度，读数直接可见 */
+     VU 指针不甩摆，静态停在进度角度，读数直接可见；
+     唱片详情覆盖层与信息面板不做入场动画（FLIP 由组件侧跳过），探盘不做位移 */
   .summary-shelf-spine-pulled,
   .summary-vu-needle,
-  .summary-vu-readout {
+  .summary-vu-readout,
+  .summary-record-backdrop,
+  .summary-record-info {
     animation: none;
+  }
+
+  .summary-record-disc {
+    transition: none;
   }
 
   /* 最小众歌单卡：纸条飘落与追光淡入停用 */

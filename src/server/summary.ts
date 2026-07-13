@@ -144,6 +144,8 @@ export interface SummaryShowInfo {
   dayLabel: string
   /** 场次在 shows 表中的 id。 */
   id: number
+  /** 场次日期，YYYY-MM-DD 格式；场次列表跨多个年份，MM/DD 不足以区分。 */
+  showDate: string
   /** 场次子主题。 */
   subTheme: string
   /** 巡演名称。 */
@@ -278,6 +280,7 @@ function toSummaryShowInfo(show: Show): SummaryShowInfo {
     venue: show.venue,
     dayLabel: show.dayLabel,
     dateSlash: show.dateSlash,
+    showDate: show.showDate,
   }
 }
 
