@@ -13,8 +13,17 @@ export interface ConcertProfile {
   nickname: string
 }
 
+/** Anonymous report registration details; no profile or location data is included. */
+export interface ReportSubmissionStats {
+  fellowFansByShowId: Record<number, number>
+  reportNumber: number
+  submissionId: string
+}
+
 export interface ConcertState {
   profile: ConcertProfile
+  reportSubmission: ReportSubmissionStats | null
+  reportSubmissionId: string | null
   selectedShows: Show[]
 }
 
@@ -26,8 +35,10 @@ interface PersistedConcertSelection {
   }
   nickname?: string
   profile?: Partial<ConcertProfile>
-  showIndexes?: number[]
+  reportSubmission?: ReportSubmissionStats | null
+  reportSubmissionId?: string | null
   showIds?: number[]
+  showIndexes?: number[]
 }
 
 const DEFAULT_PROFILE: ConcertProfile = {
@@ -36,8 +47,12 @@ const DEFAULT_PROFILE: ConcertProfile = {
   nickname: '',
 }
 
+const SUBMISSION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export const concertStore = new Store<ConcertState>({
   profile: DEFAULT_PROFILE,
+  reportSubmission: null,
+  reportSubmissionId: null,
   selectedShows: [],
 })
 
@@ -108,6 +123,8 @@ function persistConcertState(state: ConcertState): void {
       CONCERT_FORM_STORAGE_KEY,
       JSON.stringify({
         profile: state.profile,
+        reportSubmission: state.reportSubmission,
+        reportSubmissionId: state.reportSubmissionId,
         showIndexes: state.selectedShows.map((show) => show.showIndex),
         showIds: state.selectedShows.map((show) => show.id),
       })
@@ -149,7 +166,16 @@ export function hydrateSelectedShows(allShows: Show[]): void {
   }
 
   const selectedShows = allShows.filter((show) => persistedIds.has(show.id))
-  hydrateConcertStore((state) => ({ ...state, selectedShows }), true)
+  const persistedReport = readPersistedReportSubmission(persistedIds)
+  hydrateConcertStore(
+    (state) => ({
+      ...state,
+      reportSubmission: persistedReport?.stats ?? null,
+      reportSubmissionId: persistedReport?.submissionId ?? null,
+      selectedShows,
+    }),
+    true
+  )
 }
 
 /** Hydrate profile fields from localStorage. */
@@ -176,6 +202,8 @@ export function toggleSelectedShow(show: Show): void {
 
     return {
       ...state,
+      reportSubmission: null,
+      reportSubmissionId: null,
       selectedShows: isSelected
         ? state.selectedShows.filter((selectedShow) => selectedShow.id !== show.id)
         : [...state.selectedShows, show],
@@ -185,7 +213,22 @@ export function toggleSelectedShow(show: Show): void {
 
 /** Clear the global concert selection. */
 export function clearSelectedShows(): void {
-  concertStore.setState((state) => ({ ...state, selectedShows: [] }))
+  concertStore.setState((state) => ({ ...state, reportSubmission: null, reportSubmissionId: null, selectedShows: [] }))
+}
+
+/** Persist the server-confirmed anonymous registration associated with the current selection. */
+export function saveReportSubmission(reportSubmission: ReportSubmissionStats): void {
+  concertStore.setState((state) => ({ ...state, reportSubmission, reportSubmissionId: reportSubmission.submissionId }))
+}
+
+/** Reuse the stable idempotency key if this exact selection already has one. */
+export function getOrCreateReportSubmissionId(): string {
+  const existingId = concertStore.state.reportSubmissionId
+  if (existingId) return existingId
+
+  const reportSubmissionId = crypto.randomUUID()
+  concertStore.setState((state) => ({ ...state, reportSubmissionId }))
+  return reportSubmissionId
 }
 
 /** Read persisted show IDs from localStorage. */
@@ -215,4 +258,33 @@ export function getPersistedShowIndexes(): number[] {
 /** Read the profile snapshot persisted by the form, including optional browser coordinates. */
 export function getPersistedConcertProfile(): ConcertProfile {
   return readPersistedProfile()
+}
+
+/** Restores a report result only when it belongs to the persisted selection. */
+function readPersistedReportSubmission(showIds: Set<number>): { stats: ReportSubmissionStats | null; submissionId: string } | null {
+  if (!isBrowser()) return null
+
+  try {
+    const raw = window.localStorage.getItem(CONCERT_FORM_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as PersistedConcertSelection
+    const persistedShowIds = new Set(parsed.showIds ?? [])
+    if (persistedShowIds.size !== showIds.size || [...persistedShowIds].some((showId) => !showIds.has(showId))) return null
+
+    const submissionId = parsed.reportSubmissionId ?? parsed.reportSubmission?.submissionId
+    if (typeof submissionId !== 'string' || !isSubmissionId(submissionId)) return null
+
+    const stats = parsed.reportSubmission
+    if (!(stats && Number.isInteger(stats.reportNumber)) || stats.reportNumber < 1) {
+      return { stats: null, submissionId }
+    }
+    return { stats, submissionId }
+  } catch {
+    return null
+  }
+}
+
+/** Validates the UUID shape without depending on a browser crypto API during hydration. */
+function isSubmissionId(value: string): boolean {
+  return SUBMISSION_ID_PATTERN.test(value)
 }

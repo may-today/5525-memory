@@ -12,6 +12,7 @@ import { getCityIcon } from '@/lib/city-icon'
 import {
   clearSelectedShows,
   concertStore,
+  getOrCreateReportSubmissionId,
   hydrateConcertProfile,
   hydrateSelectedShows,
   toggleSelectedShow,
@@ -183,6 +184,7 @@ export function FormPage() {
       navigate({ to: '/warmup' })
       return
     }
+    getOrCreateReportSubmissionId()
     navigate({ to: '/loading' })
   }
 

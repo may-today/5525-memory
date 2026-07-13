@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
+import { flushPendingReportSubmission } from '@/lib/report-submission-client'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardDuration } from './cards/SummaryCardDuration'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
@@ -48,6 +49,10 @@ export function SummaryContainer() {
   const cardWrapperRef = useRef<HTMLDivElement>(null)
   const isTransitioning = useRef(false)
   const currentIndexRef = useRef(0)
+
+  useEffect(() => {
+    void flushPendingReportSubmission()
+  }, [data])
 
   useEffect(() => {
     currentIndexRef.current = currentIndex

@@ -1,10 +1,12 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { flushPendingReportSubmission } from '@/lib/report-submission-client'
 
 export function LoadingPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    void flushPendingReportSubmission()
     const timer = setTimeout(() => {
       navigate({ to: '/summary' })
     }, 2000)
