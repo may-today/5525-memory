@@ -39,6 +39,13 @@ export const Route = createRootRoute({
           ]
         : []),
     ],
+    scripts: [
+      {
+        src: '/scripts/ant.js',
+        'data-site-id': '159f27cf0b75',
+        defer: true,
+      },
+    ],
   }),
   component: RootComponent,
 })

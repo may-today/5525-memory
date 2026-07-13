@@ -17,6 +17,7 @@ import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScriptsAntDotjsRouteImport } from './routes/scripts.ant[.]js'
 import { Route as ApiReportChatRouteImport } from './routes/api.report-chat'
 
 const WarmupRoute = WarmupRouteImport.update({
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScriptsAntDotjsRoute = ScriptsAntDotjsRouteImport.update({
+  id: '/scripts/ant.js',
+  path: '/scripts/ant.js',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReportChatRoute = ApiReportChatRouteImport.update({
   id: '/api/report-chat',
   path: '/api/report-chat',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
+  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
+  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
+  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
+    | '/scripts/ant.js'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
+    | '/scripts/ant.js'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
+    | '/scripts/ant.js'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   SummaryRoute: typeof SummaryRoute
   WarmupRoute: typeof WarmupRoute
   ApiReportChatRoute: typeof ApiReportChatRoute
+  ScriptsAntDotjsRoute: typeof ScriptsAntDotjsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scripts/ant.js': {
+      id: '/scripts/ant.js'
+      path: '/scripts/ant.js'
+      fullPath: '/scripts/ant.js'
+      preLoaderRoute: typeof ScriptsAntDotjsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/report-chat': {
       id: '/api/report-chat'
       path: '/api/report-chat'
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   SummaryRoute: SummaryRoute,
   WarmupRoute: WarmupRoute,
   ApiReportChatRoute: ApiReportChatRoute,
+  ScriptsAntDotjsRoute: ScriptsAntDotjsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
