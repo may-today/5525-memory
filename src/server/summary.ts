@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { geoCoordMap } from '@/data/geo-coord'
 import { songList } from '@/data/song-list'
+import { isRandomSongBlacklisted } from '@/data/song-filter'
 import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
@@ -218,14 +219,14 @@ export interface SummaryData {
    * 选中场次的随机曲目统计（「专属歌单」卡）。
    *
    * 口径：item_type = 'song' 且 section = 'request'（点歌）或 section LIKE
-   * 'encore_%'（安可），与报告页 report-stats.ts 的分段过滤一致；主歌单
+   * 'encore_%'（安可），再按场次 subTheme 排除主题固定曲；主歌单
    * （section = 'main'）不计入。
    */
   randomSongStats: RandomSongStats
   /**
    * 选中场次的冷门随机曲目统计（「最小众歌单」卡）。
    *
-   * 与 randomSongStats 同一随机曲目口径，但按用户听到次数升序取最少的几首，
+   * 与 randomSongStats 同一（已排除主题固定曲的）随机曲目口径，但按用户听到次数升序取最少的几首，
    * 并附上该曲目在全巡演非隐藏场次中的出现次数与用户第一次听到它的场次落款。
    */
   rareSongStats: RareSongStats
@@ -334,11 +335,16 @@ const RANDOM_SONG_RANK_LIMIT = 10
 /**
  * "Random songs" are the non-fixed part of a show: request-section songs and
  * encore-section songs (section = 'request' OR section LIKE 'encore_%'),
- * matching the segment filters in report-stats.ts. Main-setlist songs are
+ * excluding songs fixed by the show's sub-theme. Main-setlist songs are
  * excluded — they are identical across shows and would drown out the signal.
  */
-function isRandomSong(item: SummarySetlistItem): boolean {
-  return isSong(item) && (item.section === 'request' || item.section.startsWith('encore_'))
+function isRandomSong(item: SummarySetlistItem, showsById: Map<number, Show>): boolean {
+  const show = showsById.get(item.showId)
+  return (
+    isSong(item) &&
+    (item.section === 'request' || item.section.startsWith('encore_')) &&
+    !(show && isRandomSongBlacklisted(show.subTheme, item.title))
+  )
 }
 
 /** How many rare-song "paper slips" the rare-songs card shows (1 hero + 6 small notes). */
@@ -493,8 +499,8 @@ function buildTourSongs(
 }
 
 /** Builds the playlist-card ranking from the complete in-memory snapshot. */
-function buildRandomSongStats(items: SummarySetlistItem[]): RandomSongStats {
-  const randomSongs = items.filter(isRandomSong)
+function buildRandomSongStats(items: SummarySetlistItem[], showsById: Map<number, Show>): RandomSongStats {
+  const randomSongs = items.filter((item) => isRandomSong(item, showsById))
   const entries = [...countTitles(randomSongs)]
     .map(([title, count]) => ({ title, count }))
     .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))
@@ -520,11 +526,11 @@ function buildRareSongStats(
   selectedShowIds: Set<number>,
   showsById: Map<number, Show>
 ): RareSongStats {
-  const tourCounts = countTitles(allItems.filter(isRandomSong))
+  const tourCounts = countTitles(allItems.filter((item) => isRandomSong(item, showsById)))
   const heardByTitle = new Map<string, { heardCount: number; heardCity: string; heardDate: string }>()
 
   for (const item of allItems) {
-    if (!(selectedShowIds.has(item.showId) && isRandomSong(item))) continue
+    if (!(selectedShowIds.has(item.showId) && isRandomSong(item, showsById))) continue
 
     const show = showsById.get(item.showId)
     if (!show) continue
@@ -714,7 +720,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       travelOrigin: origin ? { longitude: origin[0], latitude: origin[1] } : null,
       songStats: buildSongStats(selectedSetlistItems),
       tourSongs: buildTourSongs(setlistItems, showsById, selectedShowIdSet),
-      randomSongStats: buildRandomSongStats(selectedSetlistItems),
+      randomSongStats: buildRandomSongStats(selectedSetlistItems, showsById),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),
       guestStats: buildGuestStats(allShows, selectedShows),
     }

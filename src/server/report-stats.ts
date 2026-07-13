@@ -1,3 +1,5 @@
+import { randomSongBlackList } from '@/data/song-filter'
+
 interface AttendanceOverview {
   cityCount: number
   dateRange: string | null
@@ -145,6 +147,27 @@ function buildSongSectionCondition(section: SongSectionScope | undefined): strin
   return '1 = 1'
 }
 
+/**
+ * Excludes the fixed songs that the source data places in a request or encore
+ * section for a particular sub-theme. Other section scopes are not random-song
+ * calculations and therefore retain their complete setlist rows.
+ */
+function buildRandomSongBlacklistCondition(section: SongSectionScope | undefined): {
+  params: string[]
+  sql: string
+} {
+  if (section !== 'request' && section !== 'encore') return { params: [], sql: '1 = 1' }
+
+  const themeConditions: string[] = []
+  const params: string[] = []
+  for (const [subTheme, titles] of Object.entries(randomSongBlackList)) {
+    themeConditions.push(`(s.sub_theme = ? AND si.title IN (${titles.map(() => '?').join(',')}))`)
+    params.push(subTheme, ...titles)
+  }
+
+  return { params, sql: `NOT (${themeConditions.join(' OR ')})` }
+}
+
 function formatDateRange(minDate: string | null, maxDate: string | null): string | null {
   if (!(minDate && maxDate)) return null
   return minDate === maxDate ? minDate : `${minDate} - ${maxDate}`
@@ -254,14 +277,15 @@ export async function rankSongs(
   if (showIds.length === 0 && input.concertScope !== 'all') return []
   const scope = buildSetlistScopeCondition(showIds, input)
   const section = buildSongSectionCondition(input.section)
+  const blacklist = buildRandomSongBlacklistCondition(input.section)
   const { results } = await db
     .prepare(
       `SELECT si.title AS label, COUNT(*) AS value FROM setlist_items si
        JOIN shows s ON s.id = si.show_id
-       WHERE ${scope.sql} AND si.item_type = 'song' AND ${section}
+       WHERE ${scope.sql} AND si.item_type = 'song' AND ${section} AND ${blacklist.sql}
        GROUP BY si.title ORDER BY value DESC, si.title ASC`
     )
-    .bind(...scope.params)
+    .bind(...scope.params, ...blacklist.params)
     .all<LabelCountRow>()
   return results
 }
@@ -279,15 +303,16 @@ export async function getSongTimeline(
 
   const scope = buildSetlistScopeCondition(showIds, input)
   const section = buildSongSectionCondition(input.section)
+  const blacklist = buildRandomSongBlacklistCondition(input.section)
   const { results } = await db
     .prepare(
       `SELECT s.city, s.show_date, s.day_label, si.title, si.remark
        FROM setlist_items si
        JOIN shows s ON s.id = si.show_id
-       WHERE ${scope.sql} AND si.item_type = 'song' AND ${section} AND si.title LIKE ?
+       WHERE ${scope.sql} AND si.item_type = 'song' AND ${section} AND ${blacklist.sql} AND si.title LIKE ?
        ORDER BY s.show_date ASC, si.sort_order ASC`
     )
-    .bind(...scope.params, `%${title}%`)
+    .bind(...scope.params, ...blacklist.params, `%${title}%`)
     .all<SongTimelineRow>()
 
   return results.map((row) => ({

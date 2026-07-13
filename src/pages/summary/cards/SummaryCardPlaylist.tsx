@@ -108,7 +108,7 @@ export function SummaryCardPlaylist() {
         </div>
 
         <p className="mt-8 text-xs text-zinc-500">随机曲目从不彩排重逢，这份歌单只可能属于你。</p>
-        <p className="mt-1 text-[10px] text-zinc-600">口径：仅统计点歌与安可段落，主歌单不计入。</p>
+        <p className="mt-1 text-[10px] text-zinc-600">口径：统计点歌与安可段落，主题固定曲不计入。</p>
       </div>
     </div>
   )
