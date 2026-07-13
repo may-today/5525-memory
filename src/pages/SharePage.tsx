@@ -3,7 +3,7 @@ import { useSelector } from '@tanstack/react-store'
 import { toPng } from 'html-to-image'
 import { ArrowRight, Copy } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-
+import wmbkQr from '@/assets/logo/wmbk-qr.webp'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -138,13 +138,40 @@ export function SharePage() {
           <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
             <SheetHeader className="border-b px-5 pt-6 pb-4">
               <SheetTitle className="text-xl">保存场次口令</SheetTitle>
-              <SheetDescription>复制口令，粘贴到其他小程序，即可永久保存你的回忆。</SheetDescription>
+              <SheetDescription>复制口令，粘贴到其他支持的应用，即可永久保存你的回忆。</SheetDescription>
             </SheetHeader>
             <div className="flex flex-col gap-3 px-5 py-5">
               <Input aria-label="场次保存口令" readOnly ref={passcodeInputRef} value={passcode ?? ''} />
               <p className="text-muted-foreground text-xs">口令只记录你选中的场次，不包含昵称、位置或其他个人资料。</p>
+              <section aria-labelledby="supported-apps-title" className="mt-2 w-full border bg-muted/40 p-4">
+                <p className="text-muted-foreground text-xs" id="supported-apps-title">
+                  目前支持的应用
+                </p>
+                <div className="mt-3 flex items-center gap-4">
+                  <img
+                    alt="五迷百科小程序二维码"
+                    className="size-20 rounded-md"
+                    height={300}
+                    src={wmbkQr}
+                    width={300}
+                  />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <h3 className="font-medium text-sm">小程序 五迷百科</h3>
+                    <p className="text-muted-foreground text-xs leading-5">
+                      属于WMLS的五月天数据库：五月天演唱会歌单/公益数据/唱片标记/获奖记录，五迷自定义物料生成
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <p className="text-muted-foreground/50 text-xs leading-5">
+                口令算法已{' '}
+                <a className="underline" href="https://github.com/wmbkapp/5525-memory" rel="noopener" target="_blank">
+                  开源
+                </a>{' '}
+                ，可以快速接入并连接到你的应用。
+              </p>
             </div>
-            <SheetFooter className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <SheetFooter className="flex flex-col gap-4 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <Button className="w-full" onClick={copyPasscode} size="lg" variant="starlight">
                 <Copy data-icon="inline-start" />
                 复制口令
