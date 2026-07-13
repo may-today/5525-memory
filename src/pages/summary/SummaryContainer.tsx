@@ -5,14 +5,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
 import { flushPendingReportSubmission } from '@/lib/report-submission-client'
+import { SummaryCardAlbumProgress } from './cards/SummaryCardAlbumProgress'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardDuration } from './cards/SummaryCardDuration'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
-import { SummaryCardAlbumProgress } from './cards/SummaryCardAlbumProgress'
 import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
 import { SummaryCardRareSongs } from './cards/SummaryCardRareSongs'
+import { SummaryCardSeasonalPlaylist } from './cards/SummaryCardSeasonalPlaylist'
 import { SummaryCardSongWall } from './cards/SummaryCardSongWall'
 import type { SummaryCardProps } from './summary-card-props'
 import { SummaryDataContext } from './summary-data-context'
@@ -25,6 +26,7 @@ const CARDS: React.ComponentType<SummaryCardProps>[] = [
   SummaryCardAlbumProgress,
   SummaryCardPlaylist,
   SummaryCardRareSongs,
+  SummaryCardSeasonalPlaylist,
   SummaryCardGuests,
   SummaryCardMemories,
 ]

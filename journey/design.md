@@ -74,7 +74,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 `SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
 
-需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。
+需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。四季歌单为一屏四宫格，不需要页内滚动。
 
 统计卡片内以 Portal 呈现的覆盖层（如时长卡的 shadcn Sheet）在内容根节点加 `data-summary-gesture-exempt`；`SummaryContainer` 会忽略该区域冒泡而来的 touch / wheel 事件。这样 Sheet 内的长内容始终只滚动自身（`overscroll-contain`），不会触发卡片切页。
 
@@ -191,7 +191,14 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **数据来源**：`getSummaryData` 返回的 `rareSongStats`（服务端从同一份全巡演快照在内存计算选中场次随机曲目、首次听到场次，以及全巡演出现次数，再合并排序）。
 - **数据状态**：已接入真实数据（headless 走查验证多场/单场/零状态三分支）。
 
-### 8. 嘉宾星球
+### 8. 你的四季歌单
+
+- **组件**：`SummaryCardSeasonalPlaylist`
+- **设计目标**：在最小众歌单之后，用春、夏、秋、冬四格为用户收纳随机曲目的季节记忆；先确立轻量四宫格阅读结构，后续再接入每季出现次数最高的歌曲。
+- **主要内容**：页头「你的四季歌单」与一句引言；两列两行的春夏秋冬卡片，每格显示季节与歌名。
+- **数据状态**：当前为展示骨架，按 `randomSongStats.entries` 顺序填充可用歌名；尚未按演出日期聚合每季最高频歌曲。
+
+### 9. 嘉宾星球
 
 - **组件**：`SummaryCardGuests`
 - **设计目标**：以"多重宇宙 / 一期一会"的意象回顾用户与特别嘉宾的同场经历——每位嘉宾是一颗只撞见过一次的星球。
@@ -205,7 +212,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部非隐藏场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
 
-### 9. 你的回忆
+### 10. 你的回忆
 
 - **组件**：`SummaryCardMemories`
 - **设计目标**：以长列表 + 视差滚动的形式，逐场回顾用户参加过的演出中值得纪念的内容，作为进入 /share 前的情感收束（当前为最后一张卡片，底部悬浮「生成总结」按钮压在本页上）。
