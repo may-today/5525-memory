@@ -81,7 +81,6 @@ function buildYearData(year: Year, allShows: Show[]): Activity[] {
 
 export function SummaryCardOverview() {
   const { allShows } = useSummaryDataContext()
-  const reportSubmission = useSelector(concertStore, (s) => s.reportSubmission)
   const selectedShows = useSelector(concertStore, (s) => s.selectedShows)
   const [litShowCount, setLitShowCount] = useState(0)
   const [highlightedDates, setHighlightedDates] = useState<Set<string>>(new Set())
@@ -166,17 +165,6 @@ export function SummaryCardOverview() {
   const selectedTarget = selectedShowsAtMount.current.length
   // 已点亮的「你去过」坐标数，随第二段动画实时递增
   const selectedLit = highlightedDates.size
-  const fellowFanCount = useMemo(() => {
-    if (!reportSubmission) return 0
-    const fellowFanCounts: number[] = []
-    for (const show of selectedShowsAtMount.current) {
-      const count = reportSubmission.fellowFansByShowId[show.id] ?? 0
-      // The aggregate cannot identify people spanning multiple selected shows,
-      // so use the strongest single-show connection instead of summing it.
-      fellowFanCounts.push(Math.max(0, count - 1))
-    }
-    return Math.max(0, ...fellowFanCounts)
-  }, [reportSubmission])
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
@@ -222,19 +210,6 @@ export function SummaryCardOverview() {
               <span className="font-mono text-[11px] text-zinc-400">你去过</span>
             </span>
           </div>
-
-          {reportSubmission && (
-            <p className="mt-5 border-zinc-800/80 border-t pt-4 text-sm text-zinc-400 leading-relaxed">
-              你是第 <span className="overview-count overview-count-lit text-base">{reportSubmission.reportNumber}</span>{' '}
-              位登记这份巡演回忆的人。
-              {fellowFanCount > 0 && (
-                <>
-                  {' '}在你选中的场次里，最多有{' '}
-                  <span className="overview-count overview-count-lit text-base">{fellowFanCount}</span> 位同行者和你看过同一场。
-                </>
-              )}
-            </p>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-8">
