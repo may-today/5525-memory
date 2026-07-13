@@ -39,18 +39,6 @@ export const Route = createRootRoute({
           ]
         : []),
     ],
-    scripts: [
-      {
-        src: '/scripts/ant.js',
-        'data-site-id': '159f27cf0b75',
-        defer: true,
-      },
-      {
-        'data-goatcounter': '/scripts/outline',
-        async: true,
-        src: '/scripts/outline.js',
-      },
-    ],
   }),
   component: RootComponent,
 })
@@ -84,6 +72,8 @@ function RootDocument({ children }: RootDocumentProps) {
       </head>
       <body>
         {children}
+        <script data-site-id="159f27cf0b75" defer src="https://app.rybbit.io/api/script.js" />
+        <script async data-goatcounter="https://5525-memory.goatcounter.com/count" src="/scripts/gc.js" />
         <TanStackDevtools
           eventBusConfig={{
             connectToServerBus: true,

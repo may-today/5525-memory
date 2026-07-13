@@ -21,7 +21,7 @@ async function forwardCountRequest(request: Request): Promise<Response> {
   })
 }
 
-export const Route = createFileRoute('/scripts/outline')({
+export const Route = createFileRoute('/scripts/gc')({
   server: {
     handlers: {
       GET: ({ request }) => forwardCountRequest(request),

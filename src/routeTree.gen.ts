@@ -17,9 +17,8 @@ import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ScriptsOutlineDotjsRouteImport } from './routes/scripts.outline[.]js'
-import { Route as ScriptsOutlineRouteImport } from './routes/scripts.outline'
-import { Route as ScriptsAntDotjsRouteImport } from './routes/scripts.ant[.]js'
+import { Route as ScriptsGcDotjsRouteImport } from './routes/scripts.gc[.]js'
+import { Route as ScriptsGcRouteImport } from './routes/scripts.gc'
 import { Route as ApiReportChatRouteImport } from './routes/api.report-chat'
 
 const WarmupRoute = WarmupRouteImport.update({
@@ -62,19 +61,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScriptsOutlineDotjsRoute = ScriptsOutlineDotjsRouteImport.update({
-  id: '/scripts/outline.js',
-  path: '/scripts/outline.js',
+const ScriptsGcDotjsRoute = ScriptsGcDotjsRouteImport.update({
+  id: '/scripts/gc.js',
+  path: '/scripts/gc.js',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScriptsOutlineRoute = ScriptsOutlineRouteImport.update({
-  id: '/scripts/outline',
-  path: '/scripts/outline',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScriptsAntDotjsRoute = ScriptsAntDotjsRouteImport.update({
-  id: '/scripts/ant.js',
-  path: '/scripts/ant.js',
+const ScriptsGcRoute = ScriptsGcRouteImport.update({
+  id: '/scripts/gc',
+  path: '/scripts/gc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReportChatRoute = ApiReportChatRouteImport.update({
@@ -93,9 +87,8 @@ export interface FileRoutesByFullPath {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
-  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
-  '/scripts/outline': typeof ScriptsOutlineRoute
-  '/scripts/outline.js': typeof ScriptsOutlineDotjsRoute
+  '/scripts/gc': typeof ScriptsGcRoute
+  '/scripts/gc.js': typeof ScriptsGcDotjsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,9 +100,8 @@ export interface FileRoutesByTo {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
-  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
-  '/scripts/outline': typeof ScriptsOutlineRoute
-  '/scripts/outline.js': typeof ScriptsOutlineDotjsRoute
+  '/scripts/gc': typeof ScriptsGcRoute
+  '/scripts/gc.js': typeof ScriptsGcDotjsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,9 +114,8 @@ export interface FileRoutesById {
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
   '/api/report-chat': typeof ApiReportChatRoute
-  '/scripts/ant.js': typeof ScriptsAntDotjsRoute
-  '/scripts/outline': typeof ScriptsOutlineRoute
-  '/scripts/outline.js': typeof ScriptsOutlineDotjsRoute
+  '/scripts/gc': typeof ScriptsGcRoute
+  '/scripts/gc.js': typeof ScriptsGcDotjsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,9 +129,8 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
-    | '/scripts/ant.js'
-    | '/scripts/outline'
-    | '/scripts/outline.js'
+    | '/scripts/gc'
+    | '/scripts/gc.js'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,9 +142,8 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
-    | '/scripts/ant.js'
-    | '/scripts/outline'
-    | '/scripts/outline.js'
+    | '/scripts/gc'
+    | '/scripts/gc.js'
   id:
     | '__root__'
     | '/'
@@ -166,9 +155,8 @@ export interface FileRouteTypes {
     | '/summary'
     | '/warmup'
     | '/api/report-chat'
-    | '/scripts/ant.js'
-    | '/scripts/outline'
-    | '/scripts/outline.js'
+    | '/scripts/gc'
+    | '/scripts/gc.js'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,9 +169,8 @@ export interface RootRouteChildren {
   SummaryRoute: typeof SummaryRoute
   WarmupRoute: typeof WarmupRoute
   ApiReportChatRoute: typeof ApiReportChatRoute
-  ScriptsAntDotjsRoute: typeof ScriptsAntDotjsRoute
-  ScriptsOutlineRoute: typeof ScriptsOutlineRoute
-  ScriptsOutlineDotjsRoute: typeof ScriptsOutlineDotjsRoute
+  ScriptsGcRoute: typeof ScriptsGcRoute
+  ScriptsGcDotjsRoute: typeof ScriptsGcDotjsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,25 +231,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/scripts/outline.js': {
-      id: '/scripts/outline.js'
-      path: '/scripts/outline.js'
-      fullPath: '/scripts/outline.js'
-      preLoaderRoute: typeof ScriptsOutlineDotjsRouteImport
+    '/scripts/gc.js': {
+      id: '/scripts/gc.js'
+      path: '/scripts/gc.js'
+      fullPath: '/scripts/gc.js'
+      preLoaderRoute: typeof ScriptsGcDotjsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/scripts/outline': {
-      id: '/scripts/outline'
-      path: '/scripts/outline'
-      fullPath: '/scripts/outline'
-      preLoaderRoute: typeof ScriptsOutlineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scripts/ant.js': {
-      id: '/scripts/ant.js'
-      path: '/scripts/ant.js'
-      fullPath: '/scripts/ant.js'
-      preLoaderRoute: typeof ScriptsAntDotjsRouteImport
+    '/scripts/gc': {
+      id: '/scripts/gc'
+      path: '/scripts/gc'
+      fullPath: '/scripts/gc'
+      preLoaderRoute: typeof ScriptsGcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/report-chat': {
@@ -285,9 +265,8 @@ const rootRouteChildren: RootRouteChildren = {
   SummaryRoute: SummaryRoute,
   WarmupRoute: WarmupRoute,
   ApiReportChatRoute: ApiReportChatRoute,
-  ScriptsAntDotjsRoute: ScriptsAntDotjsRoute,
-  ScriptsOutlineRoute: ScriptsOutlineRoute,
-  ScriptsOutlineDotjsRoute: ScriptsOutlineDotjsRoute,
+  ScriptsGcRoute: ScriptsGcRoute,
+  ScriptsGcDotjsRoute: ScriptsGcDotjsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

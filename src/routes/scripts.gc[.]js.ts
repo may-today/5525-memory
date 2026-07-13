@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 const GOATCOUNTER_SCRIPT_URL = 'https://gc.zgo.at/count.js'
 
-export const Route = createFileRoute('/scripts/outline.js')({
+export const Route = createFileRoute('/scripts/gc.js')({
   server: {
     handlers: {
       GET: async () => {
