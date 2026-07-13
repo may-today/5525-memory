@@ -45,6 +45,11 @@ export const Route = createRootRoute({
         'data-site-id': '159f27cf0b75',
         defer: true,
       },
+      {
+        'data-goatcounter': '/scripts/outline',
+        async: true,
+        src: '/scripts/outline.js',
+      },
     ],
   }),
   component: RootComponent,
