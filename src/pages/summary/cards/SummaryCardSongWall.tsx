@@ -3,6 +3,7 @@ import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, us
 import { songList } from '@/data/song-list'
 import type { TourSong, TourSongAppearance } from '@/server/summary'
 import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
+import type { SummaryCardProps } from '../summary-card-props'
 import { useSummaryDataContext } from '../summary-data-context'
 
 /** Single accent hue for pulled-out (heard) records — this card's exclusive color, unused elsewhere in /summary. */
@@ -452,9 +453,15 @@ function RecordDetailOverlay({
   )
 }
 
-export function SummaryCardSongWall() {
+export function SummaryCardSongWall({ onDetailOpenChange }: SummaryCardProps) {
   const { tourSongs } = useSummaryDataContext()
   const [takenRecord, setTakenRecord] = useState<TakenRecord | null>(null)
+
+  useEffect(() => {
+    onDetailOpenChange?.(takenRecord !== null)
+  }, [onDetailOpenChange, takenRecord])
+
+  useEffect(() => () => onDetailOpenChange?.(false), [onDetailOpenChange])
 
   const tourSongByTitle = new Map(tourSongs.map((song) => [song.title, song]))
 

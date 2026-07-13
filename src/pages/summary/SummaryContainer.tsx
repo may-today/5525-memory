@@ -45,6 +45,7 @@ export function SummaryContainer() {
   const { data, ready } = useSummaryData()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animState, setAnimState] = useState<AnimState | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const cardWrapperRef = useRef<HTMLDivElement>(null)
   const isTransitioning = useRef(false)
@@ -137,7 +138,7 @@ export function SummaryContainer() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (isTransitioning.current) return
+      if (isDetailOpen || isTransitioning.current) return
       const idx = currentIndexRef.current
 
       if ((e.key === 'ArrowDown' || e.key === 'PageDown') && idx < CARDS.length - 1 && canAdvanceForward()) {
@@ -148,7 +149,7 @@ export function SummaryContainer() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [canAdvanceForward, canGoBack, goForward, goBack])
+  }, [canAdvanceForward, canGoBack, goForward, goBack, isDetailOpen])
 
   if (!(ready && data)) {
     return (
@@ -194,7 +195,7 @@ export function SummaryContainer() {
               key={cardIndex}
               ref={isOutgoing ? undefined : cardWrapperRef}
             >
-              <Card isPaused={Boolean(animState)} />
+              <Card isPaused={Boolean(animState)} onDetailOpenChange={setIsDetailOpen} />
             </div>
           )
         })}
@@ -206,7 +207,12 @@ export function SummaryContainer() {
               生成总结
             </Button>
           ) : (
-            <div className="flex flex-col items-center gap-1">
+            <div
+              aria-hidden={isDetailOpen}
+              className={`flex flex-col items-center gap-1 transition-opacity duration-150 ${
+                isDetailOpen ? 'invisible opacity-0' : ''
+              }`}
+            >
               <span className="text-muted-foreground/70 text-xs">滑动探索</span>
               <ChevronDown className="animate-hint-down text-muted-foreground/70" size={16} />
             </div>

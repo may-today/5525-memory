@@ -9,4 +9,10 @@ export interface SummaryCardProps {
    * canvas) freeze rendering while set so the slide stays smooth.
    */
   isPaused?: boolean
+
+  /**
+   * Reports whether a card-owned full-screen detail overlay is open. The
+   * container uses this to suppress its global navigation affordances.
+   */
+  onDetailOpenChange?: (isOpen: boolean) => void
 }
