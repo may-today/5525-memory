@@ -225,7 +225,7 @@ export function SummaryCardOverview() {
           {reportSubmission && (
             <p className="mt-5 border-zinc-800/80 border-t pt-4 text-sm text-zinc-400 leading-relaxed">
               你是第 <span className="overview-count overview-count-lit text-base">{reportSubmission.reportNumber}</span>{' '}
-              位生成这份巡演报告的人。
+              位登记这份巡演回忆的人。
               {fellowFanCount > 0 && (
                 <>
                   {' '}在你选中的场次里，最多有{' '}

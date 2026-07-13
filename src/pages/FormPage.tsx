@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useToast } from '@/components/ui/toast'
 import { geoCoordMap } from '@/data/geo-coord'
 import { getCityIcon } from '@/lib/city-icon'
+import { flushPendingReportSubmission } from '@/lib/report-submission-client'
 import {
   clearSelectedShows,
   concertStore,
@@ -175,11 +176,11 @@ export function FormPage() {
 
   function handleSubmit() {
     if (!gate.isOpen) {
-      // The store already mirrors every change into localStorage, so "saving"
-      // only needs to confirm and send the user back to the countdown.
+      getOrCreateReportSubmissionId()
+      void flushPendingReportSubmission()
       toast({
-        description: '开放后回来，直接生成你的时空旅行报告。',
-        title: '已保存你的选择',
+        description: '已匿名登记你的场次；开放后回来，直接生成你的时空旅行报告。',
+        title: '已保存并登记',
       })
       navigate({ to: '/warmup' })
       return
