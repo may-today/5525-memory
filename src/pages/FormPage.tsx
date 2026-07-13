@@ -179,8 +179,8 @@ export function FormPage() {
       getOrCreateReportSubmissionId()
       void flushPendingReportSubmission()
       toast({
-        description: '已匿名登记你的场次；开放后回来，直接生成你的时空旅行报告。',
-        title: '已保存并登记',
+        description: '开放后回来，查看你的时空旅行报告。',
+        title: '已保存',
       })
       navigate({ to: '/warmup' })
       return
