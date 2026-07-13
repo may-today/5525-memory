@@ -252,7 +252,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **工具输入兼容**：统计工具会把可选参数的 JSON `null`、部分 OpenAI-compatible 模型生成的字符串 `"null"`，以及空白字符串，规范为未传入；适用于日期、月份、季节、范围和歌曲分段。排行与单曲时间线工具不再暴露 `limit` 参数，并直接返回当前筛选范围的完整结果；报告卡的排行和时间线也不截断工具结果。`month` 兼容纯整数文本（如 `"12"`），真实的日期、月份与枚举错误仍由 Zod 拦截，系统提示也要求模型直接省略未使用字段（2026-07-12）。
 - **文件组织**：`src/routes/api.report-chat.ts` 只保留 TanStack Start route 壳；`src/server/report-chat.ts` 组装一次请求；`src/server/report-prompt.ts` 维护支持维度和系统提示词；`src/server/report-stream.ts` 负责 JSON 文本解析、schema 校验和 structured-output SSE 合成；`src/server/report-stats.ts` / `report-tools.ts` 负责 D1 聚合和 TanStack AI 工具定义。
 - **卡片形态**：保留原效果图的两种展示：排行条和日期时间线；卡片含问题复述、主答案、口径脚注和「5525数据电台」徽标。主答案数字用 Doto 点阵体，中文用 WJH，themeColor 驱动辉光。
-- **动画与状态**：卡片继续使用「热敏打印」clip-path 显现，排行条随后生长；消息入场轻微上滑淡入；工具调用期间显示逐步点亮的计算状态；`prefers-reduced-motion` 下动画停用。
+- **动画与状态**：卡片继续使用「热敏打印」clip-path 显现，排行条随后生长；消息入场轻微上滑淡入；工具调用期间显示逐步点亮的计算状态；可滚动消息区的顶部以贴紧页头底边的短渐变遮罩柔化内容上滑边界；`prefers-reduced-motion` 下动画停用。
 
 ## 待确认与后续工作
 

@@ -142,7 +142,7 @@ export function ReportPage() {
       <div aria-hidden="true" className="summary-space-bg" />
       <div aria-hidden="true" className="summary-space-stars" />
 
-      <header className="relative flex shrink-0 items-center gap-3 px-4 pt-5 pb-3">
+      <header className="report-page-header relative z-10 flex shrink-0 items-center gap-3 px-4 pt-5 pb-3">
         <button
           aria-label="返回"
           className="flex size-8 items-center justify-center rounded-full border border-white/10 text-zinc-400"
@@ -157,7 +157,7 @@ export function ReportPage() {
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1 overflow-y-auto px-4 py-4" ref={scrollRef}>
+      <div className="relative min-h-0 flex-1 overflow-y-auto px-4 pb-4" ref={scrollRef}>
         <div className="flex flex-col gap-4">
           <div className="report-msg-in max-w-[85%] rounded-2xl rounded-bl-md border border-white/10 bg-zinc-900/60 px-4 py-3">
             <p className="text-sm text-zinc-200 leading-relaxed">{REPORT_GREETING}</p>
