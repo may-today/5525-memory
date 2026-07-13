@@ -38,7 +38,7 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 ### 场次数据与 D1（2026-07-08）
 
-场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。`getSummaryData` 每次调用只用一条 `shows` + `setlist_items` 联表语句读取所有未隐藏场次的完整快照（歌单数通过 window count 计算，避免相关子查询重复扫描），随后仅在 Worker 内存里按用户所选场次计算所有指标；原始歌单行不会传到浏览器。完整快照中的 `item_type = 'song'` 标题也会去除演出 emoji／标点／空白差异后与 `src/data/song-list.ts` 的五月天曲库匹配，并以曲库括号前主标题作为兜底，导出为扁平的 `tourSongs: { title, type, appearances }[]`（`type` 为 `mayday` 或 `surprise`；`appearances` 是该曲目在全部非隐藏场次中的出现记录，每条含精简场次信息 `SummaryShowInfo`、该场所属歌单段落 `sectionType`（`main`/`request`/`encore`，由 `setlist_items.section` 归一化）、以及用户是否听过这场 `isHeard`；`SummaryShowInfo` 与嘉宾统计的场次卡片共用同一形状，仅含 `id/city/venue/dayLabel/dateSlash/showDate/subTheme/tourName/versionName`（`showDate` 为 YYYY-MM-DD，2026-07-13 为唱片详情的跨年份场次列表补充），不含 `posterUrl/themeColor/showStartTime/showEndTime/tourTypeId` 等当前无消费方的字段——嘉宾卡片的星球配色已改为固定橙色常量，不再依赖场次 `themeColor`），供后续卡片复用。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md` 与 `journey/plans/2026-07-10-summary-single-query.md`。
+场次、歌单、巡演城市等数据已从 `data/shows.json` 迁移进 Cloudflare D1（`5525-memory-db`），不再把 `raw-data/` 的原始导出直接暴露给前端。数据访问收敛成 `src/server/*.ts` 里的少数 server function（`getAllShows`、`getSummaryData`），后者一次性返回 `/summary` 各卡片需要的全部数据（Overview/City/Card1/Card3/嘉宾统计；Card2 里程暂缓）。`getSummaryData` 每次调用只用一条 `shows` + `setlist_items` 联表语句读取完整场次快照（歌单数通过 window count 计算，避免相关子查询重复扫描），随后仅在 Worker 内存里按用户所选场次计算所有指标；原始歌单行不会传到浏览器。完整快照中的 `item_type = 'song'` 标题也会去除演出 emoji／标点／空白差异后与 `src/data/song-list.ts` 的五月天曲库匹配，并以曲库括号前主标题作为兜底，导出为扁平的 `tourSongs: { title, type, appearances }[]`（`type` 为 `mayday` 或 `surprise`；`appearances` 是该曲目在全部场次中的出现记录，每条含精简场次信息 `SummaryShowInfo`、该场所属歌单段落 `sectionType`（`main`/`request`/`encore`，由 `setlist_items.section` 归一化）、以及用户是否听过这场 `isHeard`；`SummaryShowInfo` 与嘉宾统计的场次卡片共用同一形状，仅含 `id/city/venue/dayLabel/dateSlash/showDate/subTheme/tourName/versionName`（`showDate` 为 YYYY-MM-DD，2026-07-13 为唱片详情的跨年份场次列表补充），不含 `posterUrl/themeColor/showStartTime/showEndTime/tourTypeId` 等当前无消费方的字段——嘉宾卡片的星球配色已改为固定橙色常量，不再依赖场次 `themeColor`），供后续卡片复用。城市经纬度未建表，作为常量写在 `src/server/city-coordinates.ts`，只被 server function 引用。详见 `journey/plans/2026-07-08-d1-data-migration.md`、`journey/plans/2026-07-10-summary-single-query.md` 与 `journey/plans/2026-07-14-simplify-tour-schema.md`。
 
 表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题；写回 store 时会连同解析出的 profile 一起写入（2026-07-11）——此前只写 selectedShows，store 里的空 profile 会被持久化订阅器写回 `localStorage`，把用户填过的城市清空。
 
@@ -143,7 +143,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **视觉方向**：深色背景、发光地球、环形巡演文字和等宽坐标信息。蓝色 `#38bdf8` 是本卡唯一强调色（呼应「蓝色的海」），只用于星轨、出发点与公里数。
 - **奔波距离星轨（2026-07-11）**：挂载时相机先对准用户出发点（`phi = 3π/2 − lng·π/180`，已用 cobe anchor 位置实测验证；theta 维持 0.2），出发点为蓝色 marker + DOM 双圈脉冲环（用 cobe 的 `--cobe-user-origin` CSS anchor 锚定）；蓝色弧线（cobe v2 原生 `arcs`）从出发点连接到每座去过的城市，挂载即完整渲染（曾实现逐条错峰生长动画，同日按产品决定移除），多城市自然交织成以用户为中心的引力场；文案两行在切页安定后约 600ms 先后淡入：「那一天，你从{A}出发，跨越了 {X,XXX} 公里，只为了奔赴那一角蓝色的海。」「你走过的所有路，都变成了舞台上亮起的逆风光。」公里数用 Doto + 蓝辉光，出发城市名去掉行政区划后缀（浙江省→浙江），城市为「不透露」「其他国家或地区」或缺失时退化为「你从家出发」。文案揭示由只在未暂停时推进的 RAF 时钟驱动（避免在切页滑动中途淡入）；`prefers-reduced-motion` 下脉冲隐藏、文案立即可见。**启用条件**：`travelOrigin` 非空且 `mileage > 0` 且至少有一座 `isVisited` 城市（弧线目标只取 isVisited 标记，绝不连未去过的城市）；不满足时卡片与无此特性时完全一致。
 - **性能约束**：地球卸载时必须停止 RAF；渲染像素比最高为 1.5，避免移动端高分屏产生过大的 WebGL 帧缓冲；切页期间暂停 WebGL 绘制和装饰动画，但保留实例及旋转角度。
-- **数据来源**：`getSummaryData` 返回的 `cityMarkers`（始终为全部非隐藏场次城市去重，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出，选中场次覆盖的城市带 `isVisited: true`）、`mileage` 与 `travelOrigin`（出发点坐标：浏览器定位优先，回退所选城市/地区中心）；出发城市名来自 `concertStore.profile.city`。
+- **数据来源**：`getSummaryData` 返回的 `cityMarkers`（始终为全部场次城市去重，服务端用 `city-coordinates.ts` 里的硬编码经纬度表查出，选中场次覆盖的城市带 `isVisited: true`）、`mileage` 与 `travelOrigin`（出发点坐标：浏览器定位优先，回退所选城市/地区中心）；出发城市名来自 `concertStore.profile.city`。
 - **数据状态**：地球标记、底部详情面板与奔波距离星轨均已接入真实数据（headless 走查验证多城市与无地点两分支）。
 
 ### 4. 岁月音乐墙（岁月留声机）
@@ -184,7 +184,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **组件**：`SummaryCardRareSongs`
 - **设计目标**：专属歌单卡的镜像——统计用户听过次数**最少**的随机曲目，浮现「沧海遗珠」：那些全巡演没唱过几次、偏偏被用户撞见的冷门歌。视觉意象为「被抽中的点歌纸条」：点歌环节的歌本来就来自歌迷写的纸条，全巡演只被唱过一次的歌就是只被抽中过一次的纸条（见 `journey/plans/2026-07-10-rare-songs-card.md`；拍立得方案因与「你的回忆」卡照片意象撞车而放弃，磁带/SIDE B 方案因与前一张黑胶卡意象同族相邻而放弃）。
 - **主要内容**：标题「全巡演最少被唱的歌，偏偏被你撞见。」；顶部一束品牌橙静态追光；主纸条（签名元素）——暖白纸片带两道折痕阴影与半透明橙色和纸胶带，落款「点歌纸条 · 城市 日期」（用户第一次听到它的场次）+ WJH 手写感歌名，`tourCount === 1` 时右下角盖一枚旋转橙色描边印章「仅此一次」（radial mask 做印泥不匀）；其下文案「全巡演 N 场，《X》只响起过这一次——而你，就在台下」（tourCount > 1 时改为「只响起过 Y 次——其中 Z 次，你就在台下」）；再往下 2 列小纸条网格（交替 ± 微旋转，歌名 + 「城市 · 全巡演 ×N」）；收尾句「没被唱够的歌，才最像秘密」+ 口径注脚。
-- **数据口径**：与专属歌单同一随机曲目条件（`item_type = 'song'` 且 `section = 'request'` 或 `LIKE 'encore_%'`）；按用户听到次数升序 → 全巡演出现次数升序 → 标题排序，取前 7（1 主 + 6 小）。全巡演次数基于全部非隐藏场次（本地实测 45 首随机曲目全巡演只唱过 1 次）。**小众门槛**：小纸条要求全巡演出现 ≤ 8 次（约 5% 场次），否则单场用户（人人 heardCount = 1）会把《顽固》这类 ×30+ 常驻曲当成冷门曲展示；主纸条不受门槛限制（用户听过的最冷门一首永远值得展示）。
+- **数据口径**：与专属歌单同一随机曲目条件（`item_type = 'song'` 且 `section = 'request'` 或 `LIKE 'encore_%'`）；按用户听到次数升序 → 全巡演出现次数升序 → 标题排序，取前 7（1 主 + 6 小）。全巡演次数基于全部场次（本地实测 45 首随机曲目全巡演只唱过 1 次）。**小众门槛**：小纸条要求全巡演出现 ≤ 8 次（约 5% 场次），否则单场用户（人人 heardCount = 1）会把《顽固》这类 ×30+ 常驻曲当成冷门曲展示；主纸条不受门槛限制（用户听过的最冷门一首永远值得展示）。
 - **动画逻辑**：纸条逐张「飘落入位」（translateY + 旋转过冲收敛 + 淡入，`--i` 错峰）、追光淡入；全部 transform/opacity；`prefers-reduced-motion` 下全部停用。
 - **交互方式**：内容区带 `data-scroll-container`，复用容器滚动优先切页逻辑。
 - **零状态**：标题「纸条箱里还是空的」；未选场次时提示「选好你去过的场次，第一张纸条才会被抽出来」；已选场次但无记录时提示「这些场次还没有留下点歌与安可的记录」。
@@ -194,9 +194,15 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 ### 8. 你的四季歌单
 
 - **组件**：`SummaryCardSeasonalPlaylist`
-- **设计目标**：在最小众歌单之后，用春、夏、秋、冬四格为用户收纳随机曲目的季节记忆；先确立轻量四宫格阅读结构，后续再接入每季出现次数最高的歌曲。
-- **主要内容**：页头「你的四季歌单」与一句引言；两列两行的春夏秋冬卡片，每格显示季节与歌名。
-- **数据状态**：当前为展示骨架，按 `randomSongStats.entries` 顺序填充可用歌名；尚未按演出日期聚合每季最高频歌曲。
+- **设计目标**：在最小众歌单之后，用春、夏、秋、冬收纳随机曲目的季节记忆。视觉意象为「四季光场」：一块细描边圆角画框内，四片季节色渐变从各自象限的外角向中心晕开、衰减为透明，中心保持安静的深色（呼吸感的来源）；象限之间不画分隔线，颜色相遇即边界，每季出现次数最高的歌名嵌在光场里（2026-07-14 由展示骨架重设计，见 `journey/plans/2026-07-14-seasonal-playlist-redesign.md`）。
+- **主要内容**：页头「你的四季歌单」+ 标题「每一个季节，都有一首歌留在耳边。」；画框内 2×2 四象限，每格一个季节字（季节色，贴住所属外角）与该季最高频随机曲目歌名（font-title 白色 text-3xl）+ 「现场响起 ×N」；底部口径注脚。空缺季节显示「这个季节，你还没有出发」（该季无选中场次）或「这个季节没有留下点歌」（有场次无随机曲目），光场压暗为将亮未亮的底色。
+- **布局（签名元素）**：象限按**顺时针 = 一年的循环**排布——左上春、右上夏、右下秋、左下冬；DOM 顺序保持春夏秋冬（朗读顺序即季节顺序），秋冬经 grid-area 换到下排对角位，下排两格 `column-reverse` 让季节字始终贴住屏幕外角。歌名块 `flex: 1` 在象限剩余空间垂直居中，四首歌向画面中带聚拢，避免四角构图的中心空洞。文字对齐跟随外角（左列左对齐、右列右对齐）。画框 `border-white/10` + `rounded-2xl` + `overflow-hidden`，`mx-6` 与页头注脚文字边距对齐——光场区非全屏，无框时与上下文字区边界割裂（用户反馈迭代）。
+- **季节四色**（本卡专属色系统）：春樱粉 `#fda4af`、夏海青 `#5eead4`、秋琥珀 `#fbbf24`、冬蓝紫 `#a5b4fc`；光场峰值透明度压得很低（color-mix 76% transparent 起），四色同屏不吵，与其他卡片强调色可区分。
+- **动画逻辑**：光场按春→夏→秋→冬顺时针错峰淡入（0.18s 间隔），歌名随后淡入上移；常驻呼吸 16s 以 -4s 错相（四个季节各占一年的 1/4 相位）。全部 opacity/transform，compositor-only，无需 `isPaused`；`prefers-reduced-motion` 下全部停用，静态呈现终态。
+- **交互方式**：一屏四宫格，无页内滚动、无点击态——一张安静的海报，不加 `data-scroll-container`。
+- **数据口径**：与专属歌单同一随机曲目口径（`isRandomSong`：request/encore + 主题固定曲黑名单），按场次日期月份分进四季——春 3–5、夏 6–8、秋 9–11、冬 12–2，与报告页 `report-stats.ts` 季节筛选一致；每季按出现次数降序、平票按标题排序取第一（SSR 确定）。
+- **数据来源**：`getSummaryData` 返回的 `seasonalSongStats`（服务端复用 `selectedSetlistItems` 内存快照聚合，无新增 D1 查询；每季附 `showCount` 区分两种空缺文案）。
+- **数据状态**：已接入真实季节聚合数据；用户在本地浏览器确认跨四季场次选择下的视觉终态。
 
 ### 9. 嘉宾星球
 
@@ -209,7 +215,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **视觉方向**：`zinc-950` 深空底色；星球用场次 `themeColor` 经 `color-mix` 着色（呼吸辉光、球面明暗遮罩、每第 3 颗加椭圆光环）；**景深分层**——每第 3 颗（`i % 3 === 1`）作远景处理（`scale .85 + opacity .7 + blur 1px`）；布局为确定性横向散布（尺寸与纵向偏移按索引查常量表 `SLOT_SIZE`/`SLOT_Y`），任意数量不重叠且 SSR 稳定。
 - **关键决策**：仅展示 `isVisited === true` 场次的嘉宾——文案「与你同场」即排他性，渲染未去过场次的嘉宾会稀释情感（曾考虑用远处暗星球暗示、已否决，星空背景本身承担"擦肩而过的宇宙"意象）；嘉宾头像走 `src/pages/summary/guest-avatars.ts`：按「嘉宾名 → 图片 id」映射拼 CDN 地址（`mayday-replay-cdn.ddiu.site/5525/guest/{id}.webp`），未映射的嘉宾回退到内联 SVG 占位图。
 - **备选文案（未用，留存）**：「擦肩而过万千的生命，上一秒他是路人甲，下一秒撞进生命里。」
-- **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部非隐藏场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
+- **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
 
 ### 10. 你的回忆

@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { geoCoordMap } from '@/data/geo-coord'
-import { songList } from '@/data/song-list'
 import { isRandomSongBlacklisted } from '@/data/song-filter'
+import { songList } from '@/data/song-list'
 import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
 import { getDb } from './db'
@@ -105,6 +105,21 @@ export interface RareSongStats {
    * 次数不超过 RARE_SONG_TOUR_COUNT_MAX，避免把巡演常驻曲当成冷门曲展示。
    */
   entries: RareSongEntry[]
+}
+
+export interface SeasonalSongEntry {
+  /** 用户选中场次中落在该季的场次数。 */
+  showCount: number
+  /** 该季用户听过次数最多的随机曲目；该季没有随机曲目记录时为 null。 */
+  song: { count: number; title: string } | null
+}
+
+export interface SeasonalSongStats {
+  /**
+   * 固定按春（3–5 月）、夏（6–8 月）、秋（9–11 月）、冬（12–2 月）顺序的
+   * 四个季节条目；季节划分与报告页 report-stats.ts 的季节筛选一致。
+   */
+  seasons: [SeasonalSongEntry, SeasonalSongEntry, SeasonalSongEntry, SeasonalSongEntry]
 }
 
 export interface DurationShowEntry {
@@ -230,6 +245,13 @@ export interface SummaryData {
    * 并附上该曲目在全巡演非隐藏场次中的出现次数与用户第一次听到它的场次落款。
    */
   rareSongStats: RareSongStats
+  /**
+   * 选中场次的四季随机曲目统计（「四季歌单」卡）。
+   *
+   * 与 randomSongStats 同一（已排除主题固定曲的）随机曲目口径，按场次日期的
+   * 月份分进春夏秋冬四季，各取出现次数最高的一首。
+   */
+  seasonalSongStats: SeasonalSongStats
   /**
    * 根据请求传入的场次 id 解析出的完整 Show 记录。
    *
@@ -513,6 +535,53 @@ function buildRandomSongStats(items: SummarySetlistItem[], showsById: Map<number
   }
 }
 
+/** 春夏秋冬四季的月份划分，与报告页 report-stats.ts 的季节筛选一致。 */
+const SEASON_MONTH_GROUPS: readonly (readonly number[])[] = [
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10, 11],
+  [12, 1, 2],
+]
+
+/** Maps a YYYY-MM-DD show date onto the fixed spring/summer/autumn/winter index. */
+function getSeasonIndex(showDate: string): number {
+  const month = Number(showDate.slice(5, 7))
+  return SEASON_MONTH_GROUPS.findIndex((months) => months.includes(month))
+}
+
+/**
+ * Builds the seasonal-playlist card data: the same random-song condition as
+ * the playlist ranking, split into the four seasons by show date, each season
+ * keeping its single most-heard song (ties broken by title for SSR stability).
+ */
+function buildSeasonalSongStats(
+  items: SummarySetlistItem[],
+  selectedShows: Show[],
+  showsById: Map<number, Show>
+): SeasonalSongStats {
+  const countsBySeason = SEASON_MONTH_GROUPS.map(() => new Map<string, number>())
+  for (const item of items) {
+    if (!isRandomSong(item, showsById)) continue
+    const show = showsById.get(item.showId)
+    if (!show) continue
+    const counts = countsBySeason[getSeasonIndex(show.showDate)]
+    counts?.set(item.title, (counts.get(item.title) ?? 0) + 1)
+  }
+
+  const seasons = countsBySeason.map((counts, seasonIndex) => {
+    const top = [...counts]
+      .map(([title, count]) => ({ title, count }))
+      .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))[0]
+
+    return {
+      showCount: selectedShows.filter((show) => getSeasonIndex(show.showDate) === seasonIndex).length,
+      song: top ?? null,
+    }
+  })
+
+  return { seasons: seasons as SeasonalSongStats['seasons'] }
+}
+
 /**
  * The mirror of the playlist ranking: the user's LEAST-heard random songs
  * (same request/encore condition), ranked by heard count ascending, then by
@@ -722,6 +791,7 @@ export const getSummaryData = createServerFn({ method: 'POST' })
       tourSongs: buildTourSongs(setlistItems, showsById, selectedShowIdSet),
       randomSongStats: buildRandomSongStats(selectedSetlistItems, showsById),
       rareSongStats: buildRareSongStats(setlistItems, selectedShowIdSet, showsById),
+      seasonalSongStats: buildSeasonalSongStats(selectedSetlistItems, selectedShows, showsById),
       guestStats: buildGuestStats(allShows, selectedShows),
     }
   })

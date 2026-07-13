@@ -1384,6 +1384,140 @@
     }
 }
 
+/* 四季歌单卡 ·「四季光场」：四片季节色光场从屏幕四角向中心晕开、衰减为
+   透明，中心保持安静的深色（呼吸感的来源）；象限之间不画边框，颜色相遇
+   即边界。顺时针 春→夏→秋→冬 错峰入场编码一年的循环，常驻呼吸以 1/4
+   周期错相（同一年里的四个季节）。全部 opacity，compositor-only。 */
+.summary-seasons-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 14px;
+    min-height: 0;
+    padding: 20px 24px;
+    /* 比页面底（zinc-950）略亮一阶的不透明深底：画框内不至于死黑，
+       又不会像半透明白底那样把整框罩灰 */
+    background: #0e0e11;
+    animation: summary-seasons-in 0.9s ease-out both;
+    animation-delay: calc(0.15s + var(--i, 0) * 0.18s);
+}
+
+/* 空灵感的关键：光场衰减要快（60% 处已完全透明），四色只亮在各自的
+   外角、不深入对面象限——否则四片低透明度颜色大面积互相叠加，画框中央
+   会糊成一层浑浊的灰幕，「暗心」就没了 */
+.summary-seasons-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(105% 105% at var(--field-x) var(--field-y),
+            color-mix(in oklab, var(--season-color), transparent 62%) 0%,
+            color-mix(in oklab, var(--season-color), transparent 87%) 34%,
+            transparent 60%);
+    animation: summary-seasons-breathe 16s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -4s);
+}
+
+/* 还没有歌的季节：光场压暗成一片将亮未亮的底色 */
+.summary-seasons-field[data-empty]::before {
+    opacity: 0.35;
+    animation: none;
+}
+
+.summary-seasons-field[data-corner="tl"] {
+    --field-x: 0%;
+    --field-y: 0%;
+}
+
+.summary-seasons-field[data-corner="tr"] {
+    --field-x: 100%;
+    --field-y: 0%;
+    align-items: flex-end;
+    text-align: right;
+}
+
+/* 下排两格列向反转：季节字始终贴住所属的屏幕外角，歌名浮向安静的中心 */
+.summary-seasons-field[data-corner="br"] {
+    --field-x: 100%;
+    --field-y: 100%;
+    grid-area: 2 / 2;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.summary-seasons-field[data-corner="bl"] {
+    --field-x: 0%;
+    --field-y: 100%;
+    grid-area: 2 / 1;
+    flex-direction: column-reverse;
+}
+
+.summary-seasons-glyph {
+    font-size: 20px;
+    line-height: 1;
+    color: var(--season-color);
+    text-shadow: 0 0 16px color-mix(in oklab, var(--season-color), transparent 45%);
+}
+
+/* 歌名带一圈极淡的季节色辉光：白字浮在光场上而不是印在灰底上 */
+.summary-seasons-title {
+    text-shadow: 0 0 28px color-mix(in oklab, var(--season-color), transparent 35%);
+}
+
+/* 歌名块占满象限剩余空间并垂直居中：季节字贴住外角，歌名向屏幕中央
+   聚拢，四首歌落在画面中带，填住四角构图留下的空心 */
+.summary-seasons-song {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    animation: summary-seasons-song-in 0.7s ease-out both;
+    animation-delay: calc(0.5s + var(--i, 0) * 0.18s);
+}
+
+.summary-seasons-count {
+    margin-top: 6px;
+    font-size: 11px;
+    color: color-mix(in oklab, var(--season-color), transparent 35%);
+}
+
+@keyframes summary-seasons-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes summary-seasons-song-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes summary-seasons-breathe {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.85;
+    }
+}
+
 /* 岁月音乐墙卡 ·「岁月留声机」：复古木质唱片架上竖排脊线的黑胶唱片。
    听过的唱片用 --wall-color 点亮并从架内向上「抽出」（translateY 错峰过冲），
    没赶上的沉在架内，全巡演未唱的用冷灰唱片排在上层架尾；
@@ -2425,6 +2559,13 @@
     /* 最小众歌单卡：纸条飘落与追光淡入停用 */
     .summary-note,
     .summary-note-spotlight {
+        animation: none;
+    }
+
+    /* 四季歌单卡：光场入场/呼吸与歌名淡入停用，静态呈现终态 */
+    .summary-seasons-field,
+    .summary-seasons-field::before,
+    .summary-seasons-song {
         animation: none;
     }
 
