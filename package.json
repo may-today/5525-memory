@@ -42,6 +42,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && bun run typecheck",
+    "db:pull": "bash scripts/pull-production-d1.sh",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "typecheck": "tsc -b",

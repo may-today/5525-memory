@@ -66,6 +66,16 @@ bunx wrangler d1 migrations apply 5525-memory-db --remote
 bun run deploy
 ```
 
+### 用生产快照覆盖本地 D1
+
+若本地所有 D1 数据都可以丢弃，可先停止本地开发服务器，再执行：
+
+```bash
+bun run db:pull -- --confirm
+```
+
+该命令会先从生产 `5525-memory-db` 导出完整快照（包括 schema、所有表及 migration 记录），再以该快照重建 `.wrangler/state/v3/d1`。本地数据库会完全以生产数据为准，无法恢复原有本地改动；若导入失败，脚本会还原原本的本地状态。命令需要已登录且有该 D1 数据库读取权限的 Cloudflare 帐号。
+
 ## 检查
 
 ```bash

@@ -50,6 +50,8 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 **远程（生产）D1**：迁移应用方式目前选择手动执行——有权限的人在需要发布时手动跑 `wrangler d1 migrations apply 5525-memory-db --remote`，再 `bun run deploy`。规模变大或发布频率变高后可以再考虑接入 CI 自动化。
 
+**生产快照回拉本地**：当本地 D1 数据允许被完全丢弃时，可在停止本地开发服务器后执行 `bun run db:pull -- --confirm`。该脚本先用 `wrangler d1 export --remote` 取得完整生产快照（含 `d1_migrations`），再以 `wrangler d1 execute --local --file` 重建 `.wrangler/state/v3/d1`；因此本地所有表、schema 与 migration 记录均以线上为准。旧状态会临时移走，若导入失败即恢复，导入成功后才丢弃；临时 SQL 不会保存在仓库。该操作需要 Cloudflare 的线上数据库读取权限。
+
 **串烧歌曲口径（2026-07-14）**：`item_type = 'medley'` 是多首实际演唱的歌曲；服务端在单次巡演快照的内存聚合边界按半角或全角加号拆开标题、逐首 `trim` 并忽略空项。歌曲总数、专属／最小众／四季排行与 `tourSongs` 都消费这一展开结果，因此音乐墙和九张专辑的听歌覆盖度会把串烧里的每一首正确计入；VCR、talking、互动等非歌曲类型仍不计入。
 
 ### 匿名报告登记与同场统计（2026-07-13）
