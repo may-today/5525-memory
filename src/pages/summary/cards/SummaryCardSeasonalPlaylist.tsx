@@ -56,7 +56,7 @@ export function SummaryCardSeasonalPlaylist() {
         <h3 className="mt-2 font-title text-white text-xl leading-snug">每一个季节，都有一首歌留在耳边。</h3>
       </div>
 
-      <div className="mx-6 my-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10">
+      <div className="mx-6 my-4 grid min-h-0 flex-1 grid-cols-2 grid-rows-2 overflow-hidden rounded-2xl border border-white/10">
         {SEASON_FIELDS.map((field, index) => {
           const entry = seasons[index]
           const song = entry?.song ?? null
@@ -86,7 +86,7 @@ export function SummaryCardSeasonalPlaylist() {
               <div className="summary-seasons-song">
                 {song ? (
                   <>
-                    <p className="font-title text-3xl text-white leading-snug">{song.title}</p>
+                    <p className="summary-seasons-title font-title text-3xl text-white leading-snug">{song.title}</p>
                     <p className="summary-seasons-count">
                       现场响起 <span className="font-geist">×{song.count}</span>
                     </p>

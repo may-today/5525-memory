@@ -9,7 +9,7 @@ import type { SummarySetlistItem } from './shows'
 import { querySummarySnapshot } from './shows'
 
 export interface CityMarker {
-  /** 城市展示名；来自所有非隐藏场次城市去重，按场次日期顺序排列。 */
+  /** 城市展示名；来自全部场次城市去重，按场次日期顺序排列。 */
   cityName: string
   /** 用户选中场次中是否包含该城市；City 卡据此高亮标记并连接星轨。 */
   isVisited: boolean
@@ -56,7 +56,7 @@ export interface TourSongAppearance {
 
 export interface TourSong {
   /**
-   * 该曲目在全巡演所有非隐藏场次中的出现记录，按场次日期升序排列
+   * 该曲目在全巡演所有场次中的出现记录，按场次日期升序排列
    * （继承自单次巡演快照的查询顺序）。
    */
   appearances: TourSongAppearance[]
@@ -94,7 +94,7 @@ export interface RareSongEntry {
   heardDateSlash: string
   /** setlist_items.title 的精确值，按标题精确分组。 */
   title: string
-  /** 该曲目在全巡演所有非隐藏场次中的出现次数（点歌 + 安可）。 */
+  /** 该曲目在全巡演所有场次中的出现次数（点歌 + 安可）。 */
   tourCount: number
 }
 
@@ -184,13 +184,13 @@ export interface GuestShow {
 }
 
 export interface GuestStats {
-  /** 所有包含嘉宾的非隐藏巡演场次；继承巡演快照日期排序，并为每场标记 isVisited。 */
+  /** 所有包含嘉宾的巡演场次；继承巡演快照日期排序，并为每场标记 isVisited。 */
   guestShows: GuestShow[]
 }
 
 export interface SummaryData {
   /**
-   * 按演出日期排序的完整非隐藏场次目录。
+   * 按演出日期排序的完整场次目录。
    *
    * 由单次巡演快照读取计算，用于 Overview 时间线、City 地球在未选择场次时的兜底城市，
    * 以及嘉宾场次统计。
@@ -242,7 +242,7 @@ export interface SummaryData {
    * 选中场次的冷门随机曲目统计（「最小众歌单」卡）。
    *
    * 与 randomSongStats 同一（已排除主题固定曲的）随机曲目口径，但按用户听到次数升序取最少的几首，
-   * 并附上该曲目在全巡演非隐藏场次中的出现次数与用户第一次听到它的场次落款。
+   * 并附上该曲目在全巡演场次中的出现次数与用户第一次听到它的场次落款。
    */
   rareSongStats: RareSongStats
   /**
@@ -267,7 +267,7 @@ export interface SummaryData {
    */
   songStats: SongStats
   /**
-   * 全巡演实际演唱过的去重歌曲，每首附带在所有非隐藏场次中的出现记录。
+   * 全巡演实际演唱过的去重歌曲，每首附带在所有场次中的出现记录。
    *
    * 只统计 item_type = 'song'；匹配时会忽略演出装饰、标点与空白差异。
    * 五月天歌曲排在前，随后是按标题排序的惊喜歌曲；每首歌的 appearances

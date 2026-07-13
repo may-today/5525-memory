@@ -162,7 +162,7 @@ export const specialEventList: [string[], SpecialEvent][] = [
   [
     ['2025.05.28'],
     {
-      title: 'OAOA',
+      title: '温柔版 OAOA',
       noteId: '683739de000000002102c9d6',
       noteDesc: '相信音乐！这55秒！能不能出官摄！！！求求了',
       noteAuthor: 'GOoOD Bǎi',
@@ -652,6 +652,15 @@ export const specialEventList: [string[], SpecialEvent][] = [
       noteId: '695a811a000000001e003817',
       noteDesc: '我要循环这次安可大乱炖视频直到下次演唱会',
       noteAuthor: '人生海海',
+    },
+  ],
+  [
+    ['2026.07.13'],
+    {
+      title: '合照',
+      noteId: '6a5501ac000000002103e9bd',
+      noteDesc: '5525所有工作人员大合照',
+      noteAuthor: '歪？唔系茉莉（桃园点歌成功版',
     },
   ],
 ] satisfies [string[], SpecialEvent][]
