@@ -39,8 +39,6 @@ interface TrailNode {
 interface SharePosterProps {
   /** 昵称，为空时落款省略。 */
   nickname: string
-  /** 场次口令，作为海报底部的限量编号；为空时显示占位编号。 */
-  passcode: string | null
   /** 海报根节点，供分享页导出成图片。 */
   ref?: Ref<HTMLDivElement>
   /** 用户去过的场次；空数组渲染零状态海报。 */
@@ -316,7 +314,7 @@ function PosterChartArea({ nodes }: { nodes: TrailNode[] }) {
  * 「星轨共振」宇宙航线海报：用户去过的场次连成星座，图底是常驻曲伪声波，
  * 底部落款用场次口令作为限量编号。空场次渲染零状态海报。
  */
-export function SharePoster({ nickname, passcode, ref, shows, signatureSong }: SharePosterProps) {
+export function SharePoster({ nickname, ref, shows, signatureSong }: SharePosterProps) {
   const nodes = useMemo(() => buildTrailNodes(shows), [shows])
   const dominantColor = useMemo(() => getDominantColor(shows), [shows])
   const cityCount = useMemo(() => new Set(shows.map((show) => show.city)).size, [shows])

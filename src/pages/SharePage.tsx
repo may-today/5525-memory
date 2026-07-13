@@ -107,13 +107,7 @@ export function SharePage() {
 
       <div className="flex min-h-0 flex-1 flex-col justify-center">
         {ready && data ? (
-          <SharePoster
-            nickname={nickname}
-            passcode={passcode}
-            ref={posterRef}
-            shows={data.selectedShows}
-            signatureSong={signatureSong}
-          />
+          <SharePoster nickname={nickname} ref={posterRef} shows={data.selectedShows} signatureSong={signatureSong} />
         ) : (
           <div className="mx-auto flex aspect-[5/7] w-full max-w-sm items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950">
             <p className="animate-pulse text-sm text-zinc-500">正在绘制你的星域…</p>
