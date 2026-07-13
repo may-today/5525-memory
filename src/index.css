@@ -2180,29 +2180,31 @@
     }
 }
 
-/* /share 操作区「深空控制台」：主操作是低透明星光蓝 + 辉光，次操作是
-   极淡玻璃 hairline，替代默认 shadcn 白色实心块以贴合海报的深空氛围。
-   背景与 hover 统一收在这里管理（非分层 CSS 稳定压过 Button 变体的
-   Tailwind hover 工具类，避免互相覆盖）。 */
-.share-action-primary {
-    color: #e0f2fe;
-    background-color: rgba(56, 189, 248, 0.12);
-    border-color: rgba(56, 189, 248, 0.42);
-    box-shadow: 0 0 28px -8px rgba(56, 189, 248, 0.5);
+/* 全站「深空控制台」按钮变体（button.tsx 的 starlight / glass）。
+   starlight：低透明强调色填充 + hairline + 柔和外辉光，用「发光」而不是
+   白色实心块表达主操作；颜色全部经 color-mix 从 --starlight 派生，页面在
+   任意祖先覆写 --starlight 即可整体换色温（默认全站 sky-400，/warmup 换
+   品牌橙）。glass：极淡玻璃 hairline 次操作。非分层 CSS 稳定压过 Button
+   变体的 Tailwind hover 工具类（沿用 .form-show-row 先例）。 */
+.btn-starlight {
+    color: color-mix(in oklab, var(--starlight, #38bdf8), white 82%);
+    background-color: color-mix(in oklab, var(--starlight, #38bdf8), transparent 88%);
+    border-color: color-mix(in oklab, var(--starlight, #38bdf8), transparent 58%);
+    box-shadow: 0 0 28px -8px color-mix(in oklab, var(--starlight, #38bdf8), transparent 50%);
 }
 
-.share-action-primary:hover {
-    color: #f0f9ff;
-    background-color: rgba(56, 189, 248, 0.2);
+.btn-starlight:hover {
+    color: color-mix(in oklab, var(--starlight, #38bdf8), white 92%);
+    background-color: color-mix(in oklab, var(--starlight, #38bdf8), transparent 80%);
 }
 
-.share-action-secondary {
+.btn-glass {
     color: #d4d4d8;
     background-color: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.share-action-secondary:hover {
+.btn-glass:hover {
     color: #f4f4f5;
     background-color: rgba(255, 255, 255, 0.08);
 }

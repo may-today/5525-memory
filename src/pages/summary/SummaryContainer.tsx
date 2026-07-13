@@ -207,7 +207,12 @@ export function SummaryContainer() {
         {/* Floating bottom indicator — rendered above both cards */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-8">
           {isLast ? (
-            <Button className="pointer-events-auto" onClick={() => navigate({ to: '/share' })} size="lg">
+            <Button
+              className="pointer-events-auto px-8 backdrop-blur-md"
+              onClick={() => navigate({ to: '/share' })}
+              size="lg"
+              variant="starlight"
+            >
               生成总结
             </Button>
           ) : (

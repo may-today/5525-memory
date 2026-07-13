@@ -119,13 +119,25 @@ export function WarmupPage() {
           )}
         </h1>
         {isCountdownDone ? (
-          <Button className="w-full" onClick={() => navigate({ to: '/' })} size="lg" type="button">
+          <Button
+            className="w-full [--starlight:#f97316]"
+            onClick={() => navigate({ to: '/' })}
+            size="lg"
+            type="button"
+            variant="starlight"
+          >
             进入你的时空旅行报告
             <ArrowRight className="size-4" />
           </Button>
         ) : (
           <>
-            <Button className="w-full" onClick={() => navigate({ to: '/form' })} size="lg" type="button">
+            <Button
+              className="w-full [--starlight:#f97316]"
+              onClick={() => navigate({ to: '/form' })}
+              size="lg"
+              type="button"
+              variant="starlight"
+            >
               先填好你去过的场次
               <ArrowRight className="size-4" />
             </Button>

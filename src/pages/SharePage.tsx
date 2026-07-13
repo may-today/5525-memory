@@ -99,8 +99,8 @@ export function SharePage() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col p-6">
       <div className="mb-5">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Final Stop · 终点站</p>
-        <h2 className="mt-1.5 font-semibold text-xl">这趟时空旅行的纪念品</h2>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Final Stop</p>
+        <h2 className="mt-1.5 font-semibold font-title text-xl">时空旅行纪念品</h2>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col justify-center">
@@ -121,18 +121,16 @@ export function SharePage() {
 
       <div className="mt-6 flex flex-col gap-3">
         <Button
-          className="share-action-primary w-full"
+          className="w-full"
           disabled={!data || data.selectedShows.length === 0 || isSavingImage}
           onClick={savePosterImage}
           size="lg"
+          variant="starlight"
         >
           {isSavingImage ? '正在保存图片…' : '保存图片'}
         </Button>
         <Sheet>
-          <SheetTrigger
-            disabled={!passcode}
-            render={<Button className="share-action-secondary w-full" size="lg" variant="outline" />}
-          >
+          <SheetTrigger disabled={!passcode} render={<Button className="w-full" size="lg" variant="glass" />}>
             将场次保存到...
           </SheetTrigger>
           <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
@@ -145,7 +143,7 @@ export function SharePage() {
               <p className="text-muted-foreground text-xs">口令只记录你选中的场次，不包含昵称、位置或其他个人资料。</p>
             </div>
             <SheetFooter className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <Button className="w-full" onClick={copyPasscode} size="lg">
+              <Button className="w-full" onClick={copyPasscode} size="lg" variant="starlight">
                 <Copy data-icon="inline-start" />
                 复制口令
               </Button>

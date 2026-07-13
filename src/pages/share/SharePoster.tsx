@@ -266,7 +266,7 @@ function SignatureWave({
   const bars = useMemo(() => buildWaveBars(song.title), [song.title])
 
   return (
-    <div className="relative px-6">
+    <div className="relative px-6 py-4">
       <svg
         aria-hidden="true"
         className="w-full"
@@ -324,7 +324,7 @@ export function SharePoster({ nickname, passcode, ref, shows, signatureSong }: S
 
   return (
     <div
-      className="share-poster-in relative mx-auto flex aspect-[5/7] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100"
+      className="share-poster-in relative mx-auto flex aspect-5/7 w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100"
       ref={ref}
     >
       <div className="summary-space-bg" />
@@ -332,8 +332,8 @@ export function SharePoster({ nickname, passcode, ref, shows, signatureSong }: S
       <div className="summary-space-stars summary-space-stars-twinkle absolute" />
 
       <header className="relative z-10 flex items-baseline justify-between border-white/10 border-b px-5 pt-4 pb-3">
-        <p className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">Mayday #5525</p>
-        <p className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">星轨共振 · Resonance</p>
+        <p className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">#5525 时空旅行报告</p>
+        <p className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">{nickname}</p>
       </header>
 
       <div className="relative z-10 min-h-0 flex-1">
@@ -342,31 +342,29 @@ export function SharePoster({ nickname, passcode, ref, shows, signatureSong }: S
 
       {hasShows && signatureSong && <SignatureWave dominantColor={dominantColor} song={signatureSong} />}
 
-      <div className="relative z-10 px-6 pt-5 pb-4 text-center">
+      {/*<div className="relative z-10 px-6 pt-5 pb-4 text-center">
         <p
-          className="whitespace-nowrap font-wjh text-[clamp(0.9rem,4.7vw,1.2rem)] text-zinc-100 leading-relaxed"
+          className="whitespace-nowrap font-title text-[clamp(0.9rem,4.7vw,1.2rem)] text-zinc-100 leading-relaxed"
           style={{ textShadow: `0 0 22px ${dominantColor}59` }}
         >
           宇宙很大，
           <br />
-          但谢谢我们在 <span className="align-baseline font-geist">5525</span> 号星域相撞。
+          但谢谢我们在 5525 号星域相撞。
         </p>
-      </div>
+      </div>*/}
 
       <footer className="relative z-10 flex items-baseline justify-between gap-3 border-white/10 border-t px-5 pt-3 pb-4">
         <p className="whitespace-nowrap text-[10px] text-zinc-500">
           {hasShows ? (
             <>
-              <span className="font-geist text-zinc-300">{shows.length}</span> 场 ·{' '}
-              <span className="font-geist text-zinc-300">{cityCount}</span> 城{nickname && ` · ${nickname}`}
+              <span className="font-geist text-zinc-300">{cityCount}</span> 城 ·{' '}
+              <span className="font-geist text-zinc-300">{shows.length}</span> 场
             </>
           ) : (
             'MEMORY PRESS'
           )}
         </p>
-        <p className="min-w-0 truncate font-mono text-[9px] text-zinc-600 uppercase tracking-wider">
-          NO.{passcode ?? '5525'}
-        </p>
+        <p className="min-w-0 truncate font-mono text-[9px] text-zinc-600 uppercase tracking-wider">5525.MAYDAY.LAND</p>
       </footer>
     </div>
   )

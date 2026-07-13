@@ -18,6 +18,11 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        /* 深空控制台主操作：低透明强调色 + hairline + 辉光，页面可覆写
+           --starlight 换色温；样式实体在 index.css 的 .btn-starlight。 */
+        starlight: "btn-starlight",
+        /* 深空控制台次操作：极淡玻璃 hairline；样式实体在 index.css 的 .btn-glass。 */
+        glass: "btn-glass",
       },
       size: {
         default:

@@ -145,7 +145,7 @@ export function ReportPage() {
       <header className="report-page-header relative z-10 flex shrink-0 items-center gap-3 px-4 pt-5 pb-3">
         <button
           aria-label="返回"
-          className="flex size-8 items-center justify-center rounded-full border border-white/10 text-zinc-400"
+          className="flex size-8 items-center justify-center rounded-full border border-white/10 text-zinc-400 transition-colors hover:border-white/25 hover:text-zinc-200"
           onClick={() => navigate({ to: '/share' })}
           type="button"
         >
@@ -215,7 +215,7 @@ export function ReportPage() {
         <div className="report-chip-row mb-3 flex gap-2 overflow-x-auto">
           {REPORT_SUGGESTIONS.map((suggestion) => (
             <button
-              className="shrink-0 rounded-full border border-white/15 bg-zinc-900/70 px-3 py-1.5 text-xs text-zinc-300 transition-colors active:bg-zinc-800 disabled:opacity-40"
+              className="shrink-0 rounded-full border border-white/15 bg-zinc-900/70 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/30 hover:text-zinc-100 active:bg-zinc-800 disabled:opacity-40"
               disabled={isLoading}
               key={suggestion}
               onClick={() => ask(suggestion)}
@@ -241,7 +241,7 @@ export function ReportPage() {
           />
           <button
             aria-label={isLoading ? '停止' : '发送'}
-            className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-zinc-950 transition-opacity disabled:opacity-30"
+            className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-zinc-950 transition-[opacity,background-color] hover:bg-orange-400 disabled:opacity-30"
             disabled={!(isLoading || draft.trim())}
             onClick={(event) => {
               if (!isLoading) return

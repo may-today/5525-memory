@@ -310,7 +310,7 @@ export function FormPage() {
                 onClick={handleLocate}
                 size="sm"
                 type="button"
-                variant={profile.coordinates ? 'default' : 'outline'}
+                variant={profile.coordinates ? 'starlight' : 'glass'}
               >
                 {isLocating ? '定位中...' : '使用我的定位'}
               </Button>
@@ -336,7 +336,7 @@ export function FormPage() {
         </div>
 
         <div className="sticky bottom-0 border-border border-t bg-background/95 px-4 pt-3 pb-8 backdrop-blur-sm">
-          <Button className="w-full" onClick={() => setStep('shows')} size="lg" type="button">
+          <Button className="w-full" onClick={() => setStep('shows')} size="lg" type="button" variant="starlight">
             继续
           </Button>
         </div>
@@ -457,7 +457,14 @@ export function FormPage() {
             </button>
           )}
         </div>
-        <Button className="w-full" disabled={totalCount === 0} onClick={handleSubmit} size="lg" type="button">
+        <Button
+          className="w-full"
+          disabled={totalCount === 0}
+          onClick={handleSubmit}
+          size="lg"
+          type="button"
+          variant="starlight"
+        >
           {gate.isOpen ? '下一步' : '保存，开放后生成'}
         </Button>
       </div>

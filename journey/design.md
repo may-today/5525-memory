@@ -58,6 +58,15 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 用户提交场次时（含预热期间的提前填写）会立刻建立匿名登记，不等待统计写入。客户端会将浏览器生成的 UUID 随当前选择持久化到 localStorage，并由提交动作、`/loading` 与 `/summary` 的共享后台任务调用 `registerReportSubmission`；短暂拥堵会以相同 UUID 做三次带抖动退避重试，刷新页面后仍会再次补送。D1 的 `report_submissions` 保存稳定的整数登记序号和 UUID；`report_submission_shows` 为每个已选场次保存一行关联记录。昵称、出发城市与浏览器定位始终只保留在客户端，不进入这两张表。服务端通过 `INSERT OR IGNORE` 和关联表复合主键保证不会重复计数；写入、关联和当次聚合在一个 D1 `batch()` 内完成，失败时整体回滚。概览卡在登记完成后显示全局登记序号，以及所选场次中单场最多的其他匿名报告数；统计允许随之后续报告而变化，不承诺实时刷新。详见 `journey/plans/2026-07-13-report-submission-stats.md`。
 
+### 全站按钮体系「深空控制台」（2026-07-14）
+
+shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体在 `index.css` 的 `.btn-starlight` / `.btn-glass`，非分层 CSS 稳定压过变体的 Tailwind hover 工具类）：
+
+- **`starlight`**（主操作）：低透明强调色填充 + hairline 边框 + 柔和外辉光——用「发光」而不是白色实心块表达主次。颜色全部经 `color-mix` 从 `var(--starlight, #38bdf8)` 派生（文字向白混 82%、填充 12%、边框 42%），任意祖先覆写 `--starlight` 即可整体换色温。
+- **`glass`**（次操作）：white/10 hairline + white/4 玻璃填充。
+
+应用：`/summary` 最后一页悬浮「生成总结」（`starlight` + `backdrop-blur-md` + `px-8`，悬浮在滚动内容上用毛玻璃保证可读性）；`/share` 三个操作（见分享页章节）；`/warmup` 两个 CTA（覆写 `--starlight: #f97316` 品牌橙，呼应倒计时辉光）；`/form` 的「继续／下一步／保存」用 `starlight`（sky 色温与页面 `--primary` 覆写一致，重量从实心变辉光），「使用我的定位」以 `starlight`/`glass` 表达已定位/未定位。**保留不动**：封面白色圆形箭头 CTA（编辑排版语言的首屏视觉锚点，非深空语境）；`/report` 数据电台自有的橙色圆钮与 chips 形态（仅补 hover 反馈）；`.form-page` 的 `--primary` 覆写继续服务 checkbox 等其他 shadcn 控件。
+
 ### 表单页「旅程登记」视觉语言（2026-07-11）
 
 表单页以「时空旅行登记」为叙事：步骤一登记旅客（eyebrow `PASSENGER`，标题「出发之前，先认识你」，出发地字段文案呼应城市卡「你从X出发」），步骤二登记时间坐标（eyebrow `TIME COORDINATES`，标题「你去过哪几场？」）。页头统一为 `FormStepHeader`：eyebrow + Doto 步骤号 + 两段式步骤进度（当前段 `sky-400` + 辉光）；表单根节点也在作用域内把 shadcn primary 设为 `sky-400`，让主要操作按钮一致使用蓝色。城市按首演日期排序即巡演路线，城市头部用 Doto 站号编码这条时间线。**签名元素**：场次行勾选后按巡演子主题点亮（5525 粉色 `#f472b6`、5525+1 蓝色 `#38bdf8`、5525+2 橙色 `#fb923c`；未知主题回退场次原始 `themeColor`），并用于左侧色条、复选块填色发光、行背景轻染与子主题标签；聚合选中数（城市徽标、底栏「已选 N 场 · M 座城市」的 Doto 数字）统一用 `sky-400`。步骤切换用 root div 换 `key` 触发 `form-step-in` 淡入上移；行背景（含 hover）统一收在 `index.css` 的 `.form-show-row` 里管理，避免与 Tailwind hover 工具类互相覆盖；新动画均已加入 reduced-motion 停用清单。见 `journey/plans/2026-07-11-form-redesign.md` 与 `journey/plans/2026-07-11-form-color-themes.md`。
@@ -246,7 +255,7 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **零状态**：星空 + 「你的星域还一片寂静 / 回到场次选择，点亮属于你的星轨」，落款退化为 MEMORY PRESS。
 - **reduced-motion**：全部动画停用并显式归位（星轨 dashoffset 归零、节点直接可见、引力波静止为三圈渐淡同心环）。
 - **保存图片**：海报根节点以 ref 交给 `html-to-image`，浏览器端等待字体就绪后按 2 倍像素密度导出 PNG，文件名为 `5525-memory-{口令}.png`；生成期间按钮显示进度并禁止重复触发。无已选场次时按钮保持不可用，生成失败时 toast 建议浏览器截图。未实现的原生「分享」按钮不展示。
-- **操作区「深空控制台」（2026-07-14）**：三个入口不再用默认 shadcn 白色实心/描边块，样式收在 `index.css` 的 `.share-action-*` / `.share-plan-entry`（非分层 CSS 稳定压过 Button 变体的 hover 工具类，沿用 `.form-show-row` 的先例）。主操作「保存图片」为低透明星光蓝（`#38bdf8` hairline + 12% 填充 + 柔和外辉光）；「将场次保存到...」为极淡玻璃 hairline（white/10 边 + white/4 填充）。**「你的专属报告」标注为特别企划入口**：改为左对齐的入口卡——eyebrow `SPECIAL PROJECT · 特别企划`（9px 0.3em 字距，与海报档案眉行同语言）+ 标题 + 右箭头（hover 右移），边框是星轨三个子主题色（粉→蓝→橙）连成的 1px 渐变 hairline（padding-box 深底 + border-box 渐变双背景），内底带两团极淡角落星云染色，与保存类操作明确区分。
+- **操作区「深空控制台」（2026-07-14）**：三个入口不再用默认 shadcn 白色实心/描边块。「保存图片」用 Button `starlight` 变体、「将场次保存到...」用 `glass` 变体（见「关键设计决策」的全站按钮体系）；Sheet 内「复制口令」也是 `starlight`。**「你的专属报告」标注为特别企划入口**（`index.css` 的 `.share-plan-entry`，本页专属签名）：左对齐入口卡——eyebrow `SPECIAL PROJECT · 特别企划`（9px 0.3em 字距，与海报档案眉行同语言）+ 标题「5525数据电台 · 你的专属报告」+ 右箭头（hover 右移），边框是星轨三个子主题色（粉→蓝→橙）连成的 1px 渐变 hairline（padding-box 深底 + border-box 渐变双背景），内底带两团极淡角落星云染色，与保存类操作明确区分。
 
 ## 报告页「你的专属报告」（/report）
 
