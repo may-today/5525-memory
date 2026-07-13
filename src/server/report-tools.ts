@@ -184,7 +184,7 @@ const RankGuestsTool = toolDefinition({
  * 创建本次请求可用的服务端统计工具。
  *
  * 所有工具默认查询当前用户传入的 showIds；当模型明确识别到“所有场次/全巡演”时，
- * 可以传 `concertScope: "all"` 切到全量非隐藏场次。模型只能读取这些工具返回的聚合
+ * 可以传 `concertScope: "all"` 切到全量场次。模型只能读取这些工具返回的聚合
  * 结果，不能自由访问 D1 或拼接 SQL。
  */
 export function createReportTools(db: D1Database, showIds: number[]) {

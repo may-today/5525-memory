@@ -86,7 +86,7 @@ function buildShowScopeCondition(
 ): { params: Array<number | string>; sql: string } {
   const concertScope =
     input.concertScope === 'all'
-      ? { params: [], sql: 's.is_hidden = 0' }
+      ? { params: [], sql: '1 = 1' }
       : { params: showIds, sql: createSelectedShowsWhere(showIds) }
   const timeRange = buildTimeRangeCondition(input)
   return {
@@ -101,7 +101,7 @@ function buildSetlistScopeCondition(
 ): { params: Array<number | string>; sql: string } {
   const concertScope =
     input.concertScope === 'all'
-      ? { params: [], sql: 's.is_hidden = 0' }
+      ? { params: [], sql: '1 = 1' }
       : { params: showIds, sql: createSelectedSetlistWhere(showIds) }
   const timeRange = buildTimeRangeCondition(input)
   return {

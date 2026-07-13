@@ -6,23 +6,14 @@ interface ShowRow {
   city: string
   contributor: string | null
   day_label: string
-  global_effects: string
-  guests: string
+  guests: string | null
   id: number
-  is_announced: number
-  is_hidden: number
-  lineup: string
   playlist_img: string
-  poster_url: string
   setlist_count: number
-  setlist_visible: number
   show_date: string
   show_end_time: string | null
   show_start_time: string | null
   sub_theme: string
-  theme_color: string
-  tour_name: string
-  tour_type_id: number
   venue: string
   version_name: string
 }
@@ -53,30 +44,39 @@ function nullable(value: string | null): string | null {
   return value === null || value === 'NULL' ? null : value
 }
 
+function parseGuestList(value: string | null): string[] {
+  const normalized = nullable(value)
+  if (!normalized || normalized === '[]') return []
+
+  if (normalized.startsWith('[')) {
+    const parsed = JSON.parse(normalized)
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : []
+  }
+
+  return normalized
+    .split(/[，,]/)
+    .map((guest) => guest.trim())
+    .filter(Boolean)
+}
+
 function mapShowRow(row: ShowRow, showIndex: number): Show {
   return {
     id: row.id,
     showIndex,
-    tourName: row.tour_name,
+    // These presentation fallbacks are no longer stored per show in D1.
+    tourName: '回到那一天 25周年巡演',
     subTheme: row.sub_theme,
     versionName: row.version_name,
     city: row.city,
     venue: row.venue,
     showDate: row.show_date,
     dayLabel: row.day_label,
-    lineup: JSON.parse(row.lineup) as string[],
-    guests: JSON.parse(row.guests) as string[],
-    globalEffects: JSON.parse(row.global_effects),
+    guests: parseGuestList(row.guests),
     contributor: nullable(row.contributor),
-    posterUrl: row.poster_url,
     playlistImg: row.playlist_img,
-    themeColor: row.theme_color,
+    themeColor: '#1E90FF',
     showStartTime: nullable(row.show_start_time),
     showEndTime: nullable(row.show_end_time),
-    isAnnounced: row.is_announced,
-    isHidden: row.is_hidden,
-    setlistVisible: row.setlist_visible,
-    tourTypeId: row.tour_type_id,
     setlistCount: row.setlist_count,
     date: row.show_date,
     dateSlash: row.show_date.slice(5).replace('-', '/'),
@@ -84,16 +84,18 @@ function mapShowRow(row: ShowRow, showIndex: number): Show {
 }
 
 const SHOW_SELECT = `
-  SELECT s.*, (
+  SELECT s.id, s.sub_theme, s.version_name, s.city, s.venue, s.show_date,
+    s.day_label, s.guests, s.contributor, s.playlist_img, s.show_start_time,
+    s.show_end_time, (
     SELECT COUNT(*) FROM setlist_items si WHERE si.show_id = s.id
   ) AS setlist_count
   FROM shows s
 `
 
-/** All non-hidden shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
+/** All shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
 export async function queryAllShows(db: D1Database): Promise<Show[]> {
   const { results } = await db
-    .prepare(`${SHOW_SELECT} WHERE s.is_hidden = 0 ORDER BY s.show_date ASC, s.id ASC`)
+    .prepare(`${SHOW_SELECT} ORDER BY s.show_date ASC, s.id ASC`)
     .all<ShowRow>()
   return results.map((row, showIndex) => mapShowRow(row, showIndex))
 }
@@ -110,20 +112,21 @@ export async function queryShowsByIds(db: D1Database, ids: number[]): Promise<Sh
 }
 
 /**
- * Reads every non-hidden show and its setlist rows with one D1 statement.
+ * Reads every show and its setlist rows with one D1 statement.
  * Summary statistics are then calculated from this snapshot in Worker memory.
  */
 export async function querySummarySnapshot(db: D1Database): Promise<SummarySnapshot> {
   const { results } = await db
     .prepare(
-      `SELECT s.*, COUNT(si.id) OVER (PARTITION BY s.id) AS setlist_count,
+      `SELECT s.id, s.sub_theme, s.version_name, s.city, s.venue, s.show_date,
+       s.day_label, s.guests, s.contributor, s.playlist_img, s.show_start_time,
+       s.show_end_time, COUNT(si.id) OVER (PARTITION BY s.id) AS setlist_count,
        si.show_id AS setlist_show_id,
        si.section AS setlist_section,
        si.item_type AS setlist_item_type,
        si.title AS setlist_title
        FROM shows s
        LEFT JOIN setlist_items si ON si.show_id = s.id
-       WHERE s.is_hidden = 0
        ORDER BY s.show_date ASC, s.id ASC, si.sort_order ASC`
     )
     .all<SummarySnapshotRow>()

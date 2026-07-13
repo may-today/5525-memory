@@ -28,11 +28,11 @@ function getUniqueShowIds(showIds: number[]): number[] {
   return [...new Set(showIds)].toSorted((a, b) => a - b)
 }
 
-/** Verifies that every requested show is currently available for public selection. */
-async function hasVisibleShows(db: D1Database, showIds: number[]): Promise<boolean> {
+/** Verifies that every requested show still exists. */
+async function hasExistingShows(db: D1Database, showIds: number[]): Promise<boolean> {
   const placeholders = showIds.map(() => '?').join(',')
   const result = await db
-    .prepare(`SELECT COUNT(*) AS count FROM shows WHERE is_hidden = 0 AND id IN (${placeholders})`)
+    .prepare(`SELECT COUNT(*) AS count FROM shows WHERE id IN (${placeholders})`)
     .bind(...showIds)
     .first<{ count: number }>()
   return result?.count === showIds.length
@@ -49,7 +49,7 @@ export const registerReportSubmission = createServerFn({ method: 'POST' })
     const db = await getDb()
     const showIds = getUniqueShowIds(data.showIds)
 
-    if (!(await hasVisibleShows(db, showIds))) {
+    if (!(await hasExistingShows(db, showIds))) {
       throw new Error('包含不可用的场次，请重新选择后再生成。')
     }
 
