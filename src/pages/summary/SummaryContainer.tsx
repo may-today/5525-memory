@@ -9,7 +9,6 @@ import { SummaryCardAlbumProgress } from './cards/SummaryCardAlbumProgress'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardDuration } from './cards/SummaryCardDuration'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
-import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
 import { SummaryCardRareSongs } from './cards/SummaryCardRareSongs'
@@ -28,7 +27,6 @@ const CARDS: React.ComponentType<SummaryCardProps>[] = [
   SummaryCardRareSongs,
   SummaryCardSeasonalPlaylist,
   SummaryCardGuests,
-  SummaryCardMemories,
 ]
 
 /** Must match the CSS animation duration so the exiting card is cleaned up after it finishes. */

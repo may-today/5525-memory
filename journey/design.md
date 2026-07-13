@@ -87,7 +87,7 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 
 `SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
 
-需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`、`SummaryCardMemories`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。四季歌单为一屏四宫格，不需要页内滚动。
+需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。四季歌单为一屏四宫格，不需要页内滚动。
 
 统计卡片内以 Portal 呈现的覆盖层（如时长卡的 shadcn Sheet）在内容根节点加 `data-summary-gesture-exempt`；`SummaryContainer` 会忽略该区域冒泡而来的 touch / wheel 事件。这样 Sheet 内的长内容始终只滚动自身（`overscroll-contain`），不会触发卡片切页。
 
@@ -231,10 +231,11 @@ request/encore 歌曲排行与时间线采用同一排除规则；主歌单和�
 - **数据来源**：`getSummaryData` 返回的 `guestStats.guestShows`（服务端从全部场次中筛选 `guests.length > 0` 的场次，并用用户所选场次 ID 标记 `isVisited`）；每项包含 `showDate`、基础场次展示信息、嘉宾名数组 `guests`、`isVisited`。前端按嘉宾名去重聚合多次相遇。
 - **数据状态**：嘉宾与场次为真实数据；嘉宾头像已接入 CDN 真实照片（映射表覆盖的嘉宾），未映射者显示占位图。
 
-### 10. 你的回忆
+### 10. 你的回忆（暂时下线，2026-07-14）
 
-- **组件**：`SummaryCardMemories`
-- **设计目标**：以长列表 + 视差滚动的形式，逐场回顾用户参加过的演出中值得纪念的内容，作为进入 /share 前的情感收束（当前为最后一张卡片，底部悬浮「生成总结」按钮压在本页上）。
+- **组件**：`SummaryCardMemories` 暂时保留在代码库中，但已从 `SummaryContainer` 的卡片序列移除，不会出现在 `/summary`；「嘉宾星球」现为最后一页并承接底部悬浮的「生成总结」按钮。
+- **恢复方式**：重新将该组件加入 `SummaryContainer` 的 `CARDS` 列表即可恢复；相关数据、素材与样式均未删除。
+- **原设计目标**：以长列表 + 视差滚动的形式，逐场回顾用户参加过的演出中值得纪念的内容，作为进入 /share 前的情感收束。
 - **主要内容**：回忆按**场次聚合**成组（一场可有多个事件；talking 是场次属性，不是事件属性）：每组一个大号日期标题（主题色 + 光晕）、城市/场馆/场次标签/子主题，组内展示该晚全部事件的封面与主题标题，组尾一段暂存的 talking 占位文字（每组一条）。单事件场次沿用单图布局（左右交替对齐）；多事件场次用**横向胶片条**（复用 `summary-space-scroller` 隐藏滚动条 + 两侧渐隐，200px 定宽 3:4 卡片交替微倾斜、各带自己的主题标题，氛围辉光取首张封面垫在整条后面，一组只栅格化一层模糊）。封面 URL 为 `//mayday-replay-cdn.ddiu.site/5526-events/{noteId}.webp`，事件标题直接使用回忆 `title`；条目背后有超大描边幽灵序号和主题色辉光（按组编号）。跨日事件只归入最早匹配的场次，两个范围（专属/全部）都不会重复出现。
 - **范围切换与零状态**：页头提供「专属回忆／全部回忆」切换；默认显示用户所选场次命中的专属回忆。若没有命中项，专属入口禁用并默认回退到全部回忆，文案明确说明该状态。
 - **交互方式**：滚动容器带 `data-scroll-container`，复用容器的滚动优先切页逻辑（滚到底才能前进、滚到顶才能后退）。
