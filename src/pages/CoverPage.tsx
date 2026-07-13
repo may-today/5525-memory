@@ -1,12 +1,14 @@
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { ArrowRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import MaydayLiveLogo from '@/assets/logo/maydaylive.webp'
 import OctoCraftLogo from '@/assets/logo/octocraft.webp'
 import MaydayIcon from '@/assets/mayday.svg'
 import { CoverBackground } from '@/components/cover-background'
 import { Marquee } from '@/components/marquee'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { hasVisitedSharePage } from '@/lib/share-page-visit'
 
 const rootRouteApi = getRouteApi('__root__')
 
@@ -135,6 +137,11 @@ const NextButton: React.FC<{ onClick: () => void; className?: string }> = ({ onC
 export function CoverPage() {
   const navigate = useNavigate()
   const { staticFileHost } = rootRouteApi.useLoaderData()
+  const [hasVisitedShare, setHasVisitedShare] = useState(false)
+
+  useEffect(() => {
+    setHasVisitedShare(hasVisitedSharePage())
+  }, [])
 
   return (
     <div className="relative flex min-h-svh flex-col items-stretch justify-stretch">
@@ -160,6 +167,14 @@ export function CoverPage() {
           时空旅行报告
         </h1>
         <Logos />
+        {hasVisitedShare ? (
+          <Link
+            className="mt-4 inline-flex min-h-10 items-center rounded-full border border-white/20 bg-white/8 px-4 font-medium text-foreground text-sm transition-colors hover:border-white/40 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+            to="/share"
+          >
+            回顾分享页
+          </Link>
+        ) : null}
         <p className="mt-2 -ml-1 flex items-center text-muted-foreground text-xs">
           <PrivacyStatement />
           <Credits />

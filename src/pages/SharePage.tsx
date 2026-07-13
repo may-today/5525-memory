@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 import { toPng } from 'html-to-image'
 import { ArrowRight, Copy } from 'lucide-react'
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/sheet'
 import { useToast } from '@/components/ui/toast'
 import { useSummaryData } from '@/hooks/useSummaryData'
+import { markSharePageVisited } from '@/lib/share-page-visit'
 import { encodeShowPasscode } from '@/lib/show-passcode'
 import { concertStore, getPersistedShowIndexes } from '@/stores/concert-store'
 import { SharePoster } from './share/SharePoster'
@@ -33,6 +34,7 @@ export function SharePage() {
   const { data, ready } = useSummaryData()
 
   useEffect(() => {
+    markSharePageVisited()
     setRestoredShowIndexes(getPersistedShowIndexes())
   }, [])
 
@@ -164,13 +166,9 @@ export function SharePage() {
             className="size-4 shrink-0 text-zinc-500 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-200"
           />
         </button>
-        <button
-          className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4"
-          onClick={() => navigate({ to: '/summary' })}
-          type="button"
-        >
-          返回总结
-        </button>
+        <Link className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4" to="/">
+          重新回顾
+        </Link>
       </div>
     </div>
   )
