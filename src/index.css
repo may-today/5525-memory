@@ -1,711 +1,689 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-mono);
-  --font-mono: "Geist Mono Variable", monospace;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+    --font-heading: var(--font-mono);
+    --font-mono: monospace;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+    * {
+        @apply border-border outline-ring/50;
+    }
 
-  body {
-    @apply bg-background text-foreground;
-  }
+    body {
+        @apply bg-background text-foreground;
+    }
 
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
 }
 
 @font-face {
-  font-family: "Doto";
-  src: url("./assets/doto.woff2") format("woff2-variations");
-  font-style: normal;
+    font-family: "Doto";
+    src: url("./assets/doto.woff2") format("woff2-variations");
+    font-style: normal;
 }
 
 @font-face {
-  font-family: "WJH";
-  src: url("./assets/wjh.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
+    font-family: "WJH";
+    src: url("./assets/wjh.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
 }
 
 .font-geist {
-  font-family: "Doto", monospace;
-  font-weight: 300;
+    font-family: "Doto", monospace;
+    font-weight: 300;
 }
 
 .font-wjh {
-  font-family: "WJH", sans-serif;
-  line-height: 1.125;
+    font-family: "WJH", sans-serif;
+    line-height: 1.125;
 }
 
 .font-title {
-  font-family: "ChillDINGothic Std", sans-serif;
+    font-family: "ChillDINGothic Std", sans-serif;
 }
 
 .cover-background-strip {
-  display: flex;
-  width: max-content;
-  height: 100%;
-  animation-duration: 60s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  will-change: transform;
+    display: flex;
+    width: max-content;
+    height: 100%;
+    animation-duration: 60s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
 }
 
 .cover-background-image {
-  display: block;
-  flex: 0 0 auto;
-  width: auto;
-  max-width: none;
-  height: 100%;
-  /* 压低亮度与饱和度，让图片墙的色调更贴近下方深色版面 */
-  filter: brightness(0.86) saturate(0.92);
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    /* 压低亮度与饱和度，让图片墙的色调更贴近下方深色版面 */
+    filter: brightness(0.86) saturate(0.92);
 }
 
 /* 图片墙铺满整页：顶部轻压暗 + 向下渐暗 + 暗角。
    底部不完全收成底色——下半区面板自带半透明渐变背景，
    让图片在面板后隐约透出，收底由面板渐变完成。 */
 .cover-background-fade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--background), transparent 45%) 0%,
-      transparent 18%
-    ),
-    linear-gradient(
-      to bottom,
-      transparent 38%,
-      color-mix(in oklab, var(--background), transparent 62%) 72%,
-      color-mix(in oklab, var(--background), transparent 40%) 100%
-    ),
-    radial-gradient(
-      120% 90% at 50% 40%,
-      transparent 55%,
-      color-mix(in oklab, var(--background), transparent 68%) 100%
-    );
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(to bottom,
+            color-mix(in oklab, var(--background), transparent 45%) 0%,
+            transparent 18%),
+        linear-gradient(to bottom,
+            transparent 38%,
+            color-mix(in oklab, var(--background), transparent 62%) 72%,
+            color-mix(in oklab, var(--background), transparent 40%) 100%),
+        radial-gradient(120% 90% at 50% 40%,
+            transparent 55%,
+            color-mix(in oklab, var(--background), transparent 68%) 100%);
 }
 
 .cover-background-row {
-  width: 100%;
-  /* 行高按视口定高：上半区（约 60svh）恰好露出 5 行，
+    width: 100%;
+    /* 行高按视口定高：上半区（约 60svh）恰好露出 5 行，
        不随图片容器铺满整页而被拉高。 */
-  height: 12svh;
-  overflow: hidden;
-  line-height: 0;
+    height: 12svh;
+    overflow: hidden;
+    line-height: 0;
 }
 
 .cover-background-vertical-track {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  /* 内容定高：两组各 9 行（共 216svh），位移 -50% 恰好是一组，循环无缝。 */
-  height: max-content;
-  animation: cover-strip-drift-up 60s linear infinite;
-  will-change: transform;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* 内容定高：两组各 9 行（共 216svh），位移 -50% 恰好是一组，循环无缝。 */
+    height: max-content;
+    animation: cover-strip-drift-up 60s linear infinite;
+    will-change: transform;
 }
 
 .cover-background-group {
-  flex: none;
-  width: 100%;
+    flex: none;
+    width: 100%;
 }
 
 .cover-background-strip--right {
-  animation-name: cover-strip-drift-right;
+    animation-name: cover-strip-drift-right;
 }
 
 .cover-background-strip--left {
-  animation-name: cover-strip-drift-left;
+    animation-name: cover-strip-drift-left;
 }
 
 @media (max-width: 767px) {
-  .cover-background-strip {
-    animation-duration: 90s;
-  }
+    .cover-background-strip {
+        animation-duration: 90s;
+    }
 }
 
 @keyframes cover-strip-drift-right {
-  from {
-    transform: translateX(-33.333333%);
-  }
+    from {
+        transform: translateX(-33.333333%);
+    }
 
-  to {
-    transform: translateX(0);
-  }
+    to {
+        transform: translateX(0);
+    }
 }
 
 @keyframes cover-strip-drift-left {
-  from {
-    transform: translateX(0);
-  }
+    from {
+        transform: translateX(0);
+    }
 
-  to {
-    transform: translateX(-33.333333%);
-  }
+    to {
+        transform: translateX(-33.333333%);
+    }
 }
 
 @keyframes cover-strip-drift-up {
-  from {
-    transform: translateY(0);
-  }
+    from {
+        transform: translateY(0);
+    }
 
-  to {
-    transform: translateY(-50%);
-  }
+    to {
+        transform: translateY(-50%);
+    }
 }
 
 .summary-globe-container {
-  position: relative;
-  width: 100%;
-  contain: layout style;
-  user-select: none;
+    position: relative;
+    width: 100%;
+    contain: layout style;
+    user-select: none;
 }
 
 .summary-globe-canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  contain: layout style;
-  user-select: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    contain: layout style;
+    user-select: none;
 }
 
 .summary-globe-orbit-ring {
-  position: absolute;
-  inset: -2%;
-  z-index: 1;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 40%,
-    black 48%,
-    black 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 40%,
-    black 48%,
-    black 100%
-  );
+    position: absolute;
+    inset: -2%;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.1) 40%,
+            black 48%,
+            black 100%);
+    mask-image: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.1) 40%,
+            black 48%,
+            black 100%);
 }
 
 .summary-globe-orbit-svg {
-  width: 100%;
-  height: 100%;
-  -webkit-transform: rotateX(62deg);
-  transform: rotateX(62deg);
-  animation:
-    orbit-spin 30s linear infinite,
-    fade-in 1.7s ease 0.5s both;
+    width: 100%;
+    height: 100%;
+    -webkit-transform: rotateX(62deg);
+    transform: rotateX(62deg);
+    animation:
+        orbit-spin 30s linear infinite,
+        fade-in 1.7s ease 0.5s both;
 }
 
 .summary-globe-container[data-paused] .summary-globe-orbit-svg {
-  animation-play-state: paused;
+    animation-play-state: paused;
 }
 
 .summary-globe-orbit-text {
-  font-family: var(--font-mono), monospace;
-  font-size: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  fill: #ffffff;
+    font-family: var(--font-mono), monospace;
+    font-size: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    fill: #ffffff;
 }
 
 /* 城市胶片条：横向滚动浏览全部巡演城市，两侧渐隐暗示更多内容，滚动条隐藏。 */
 .summary-city-strip {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 20px,
-    black calc(100% - 20px),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 20px,
-    black calc(100% - 20px),
-    transparent
-  );
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right,
+            transparent,
+            black 20px,
+            black calc(100% - 20px),
+            transparent);
+    mask-image: linear-gradient(to right,
+            transparent,
+            black 20px,
+            black calc(100% - 20px),
+            transparent);
 }
 
 .summary-city-strip::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .summary-city-chip {
-  flex: none;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.75rem;
-  color: #71717a;
-  white-space: nowrap;
-  cursor: pointer;
-  background: transparent;
-  border: 1px solid #27272a;
-  border-radius: 9999px;
-  transition:
-    color 0.2s,
-    background-color 0.2s,
-    border-color 0.2s;
+    flex: none;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    color: #71717a;
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #27272a;
+    border-radius: 9999px;
+    transition:
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s;
 }
 
 /* 用户去过的城市：白色文字 + 蓝色光点前缀，与星轨同色。 */
 .summary-city-chip[data-visited] {
-  color: #ffffff;
+    color: #ffffff;
 }
 
 .summary-city-chip[data-visited]::before {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  margin-right: 5px;
-  vertical-align: 1px;
-  content: "";
-  background: #38bdf8;
-  border-radius: 9999px;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-right: 5px;
+    vertical-align: 1px;
+    content: "";
+    background: #38bdf8;
+    border-radius: 9999px;
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
 }
 
 .summary-city-chip[data-active] {
-  background: #18181b;
-  border-color: #52525b;
+    background: #18181b;
+    border-color: #52525b;
 }
 
 /* 用户出发点的蓝色电波：两圈错峰扩散的脉冲环，锚定在 cobe 的 origin marker 上。 */
 .summary-globe-origin-pulse {
-  position: absolute;
-  top: anchor(center);
-  left: anchor(center);
-  z-index: 2;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
-  translate: -50% -50%;
-  transition: opacity 0.8s;
+    position: absolute;
+    top: anchor(center);
+    left: anchor(center);
+    z-index: 2;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    translate: -50% -50%;
+    transition: opacity 0.8s;
 }
 
 .summary-globe-origin-pulse::before,
 .summary-globe-origin-pulse::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  border: 1px solid rgba(56, 189, 248, 0.9);
-  border-radius: 9999px;
-  animation: origin-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+    position: absolute;
+    inset: 0;
+    content: "";
+    border: 1px solid rgba(56, 189, 248, 0.9);
+    border-radius: 9999px;
+    animation: origin-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .summary-globe-origin-pulse::after {
-  animation-delay: 1.5s;
+    animation-delay: 1.5s;
 }
 
 .summary-globe-container[data-paused] .summary-globe-origin-pulse::before,
 .summary-globe-container[data-paused] .summary-globe-origin-pulse::after {
-  animation-play-state: paused;
+    animation-play-state: paused;
 }
 
 @keyframes origin-ping {
-  0% {
-    opacity: 0.9;
-    transform: scale(0.4);
-  }
+    0% {
+        opacity: 0.9;
+        transform: scale(0.4);
+    }
 
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(3.2);
-  }
+    70%,
+    100% {
+        opacity: 0;
+        transform: scale(3.2);
+    }
 }
 
 /* 奔波距离文案：弧线全部抵达后两行先后淡入，覆盖在地球上方的暗部区域。 */
 .summary-globe-travel-copy {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 3;
-  text-shadow: 0 1px 8px rgba(9, 9, 11, 0.9);
-  pointer-events: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 3;
+    text-shadow: 0 1px 8px rgba(9, 9, 11, 0.9);
+    pointer-events: none;
 }
 
 .summary-travel-line {
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 1.4s ease,
-    transform 1.4s ease;
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+        opacity 1.4s ease,
+        transform 1.4s ease;
 }
 
 .summary-globe-travel-copy[data-visible] .summary-travel-line {
-  opacity: 1;
-  transform: none;
+    opacity: 1;
+    transform: none;
 }
 
-.summary-globe-travel-copy[data-visible]
-  .summary-travel-line
-  + .summary-travel-line {
-  transition-delay: 1.2s;
+.summary-globe-travel-copy[data-visible] .summary-travel-line+.summary-travel-line {
+    transition-delay: 1.2s;
 }
 
 .summary-travel-distance {
-  font-family: "Doto", monospace;
-  font-weight: 700;
-  color: #38bdf8;
-  text-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+    font-family: "Doto", monospace;
+    font-weight: 700;
+    color: #38bdf8;
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
 }
 
 /* 时长统计卡背景「多巴胺弥散光」：三团巡演子主题色（5525 粉 / 5525+1 蓝 /
    5525+2 橙）的低透明度光斑，粉橙两团 transform-only 慢漂移，蓝团静置在
    数字后方补辉光。canvas 用 lighter 混合，光斑透过粒子层自然叠亮。 */
 .summary-duration-aurora {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: radial-gradient(
-    46% 26% at 50% 60%,
-    rgba(56, 189, 248, 0.13),
-    transparent 70%
-  );
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(46% 26% at 50% 60%,
+            rgba(56, 189, 248, 0.13),
+            transparent 70%);
 }
 
 .summary-duration-aurora::before,
 .summary-duration-aurora::after {
-  position: absolute;
-  width: 72vmin;
-  height: 72vmin;
-  content: "";
-  border-radius: 50%;
-  will-change: transform;
+    position: absolute;
+    width: 72vmin;
+    height: 72vmin;
+    content: "";
+    border-radius: 50%;
+    will-change: transform;
 }
 
 .summary-duration-aurora::before {
-  top: -8%;
-  left: -20%;
-  background: radial-gradient(
-    closest-side,
-    rgba(244, 114, 182, 0.16),
-    transparent 72%
-  );
-  animation: duration-aurora-drift-a 26s ease-in-out infinite alternate;
+    top: -8%;
+    left: -20%;
+    background: radial-gradient(closest-side,
+            rgba(244, 114, 182, 0.16),
+            transparent 72%);
+    animation: duration-aurora-drift-a 26s ease-in-out infinite alternate;
 }
 
 .summary-duration-aurora::after {
-  right: -22%;
-  bottom: -12%;
-  background: radial-gradient(
-    closest-side,
-    rgba(251, 146, 60, 0.14),
-    transparent 72%
-  );
-  animation: duration-aurora-drift-b 32s ease-in-out infinite alternate;
+    right: -22%;
+    bottom: -12%;
+    background: radial-gradient(closest-side,
+            rgba(251, 146, 60, 0.14),
+            transparent 72%);
+    animation: duration-aurora-drift-b 32s ease-in-out infinite alternate;
 }
 
 @keyframes duration-aurora-drift-a {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+    from {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
 
-  to {
-    transform: translate3d(9%, 7%, 0) scale(1.15);
-  }
+    to {
+        transform: translate3d(9%, 7%, 0) scale(1.15);
+    }
 }
 
 @keyframes duration-aurora-drift-b {
-  from {
-    transform: translate3d(0, 0, 0) scale(1.1);
-  }
+    from {
+        transform: translate3d(0, 0, 0) scale(1.1);
+    }
 
-  to {
-    transform: translate3d(-8%, -6%, 0) scale(0.95);
-  }
+    to {
+        transform: translate3d(-8%, -6%, 0) scale(0.95);
+    }
 }
 
 /* 时长统计卡「时光隧道」：粒子穿越隧道聚成数字后淡出，真实 DOM
    数字块随 data-visible 淡入交接——最终帧锐利、可被屏幕阅读器朗读。 */
 .summary-duration-hero-copy {
-  opacity: 0;
-  transition: opacity 0.9s ease;
+    opacity: 0;
+    transition: opacity 0.9s ease;
 }
 
 .summary-duration-hero-copy[data-visible] {
-  opacity: 1;
+    opacity: 1;
 }
 
 /* 顶部引导语：滚动启程（进度越过滞回阈值）后淡出，滚回起点再淡入。 */
 .summary-duration-intro {
-  opacity: 1;
-  transition: opacity 0.7s ease;
+    opacity: 1;
+    transition: opacity 0.7s ease;
 }
 
 .summary-duration-intro[data-hidden] {
-  opacity: 0;
+    opacity: 0;
 }
 
 /* 总分钟数：Doto 点阵体 + 荧光蓝辉光，与城市卡星轨/公里数同一强调色。 */
 .summary-duration-number {
-  font-family: "Doto", monospace;
-  font-weight: 700;
-  color: #e0f2fe;
-  text-shadow:
-    0 0 16px rgba(56, 189, 248, 0.6),
-    0 0 42px rgba(56, 189, 248, 0.3);
+    font-family: "Doto", monospace;
+    font-weight: 700;
+    color: #e0f2fe;
+    text-shadow:
+        0 0 16px rgba(56, 189, 248, 0.6),
+        0 0 42px rgba(56, 189, 248, 0.3);
 }
 
 /* 巡演时间轴引导语里的坐标数字：Doto 点阵体，与全站强调数字一致。 */
 .overview-count {
-  font-family: "Doto", monospace;
-  font-weight: 700;
-  color: #e4e4e7;
+    font-family: "Doto", monospace;
+    font-weight: 700;
+    color: #e4e4e7;
 }
 
 .overview-count-lit {
-  color: #fef08a;
-  text-shadow:
-    0 0 10px rgba(253, 224, 71, 0.55),
-    0 0 24px rgba(253, 224, 71, 0.25);
+    color: #fef08a;
+    text-shadow:
+        0 0 10px rgba(253, 224, 71, 0.55),
+        0 0 24px rgba(253, 224, 71, 0.25);
 }
 
 /* 「你去过」的坐标：子主题色（--dot-color）呼吸辉光，成为一眼可辨的最亮光点。
    基础 filter 提供静态辉光，reduced-motion 停用动画后仍保留可辨识度。 */
 .overview-dot-lit {
-  filter: drop-shadow(0 0 2px var(--dot-color))
-    drop-shadow(0 0 4px var(--dot-color));
-  animation:
-    overview-dot-reveal 0.4s ease-out both,
-    overview-dot-pulse 1.9s ease-in-out 0.4s infinite;
+    filter: drop-shadow(0 0 2px var(--dot-color)) drop-shadow(0 0 4px var(--dot-color));
+    animation:
+        overview-dot-reveal 0.4s ease-out both,
+        overview-dot-pulse 1.9s ease-in-out 0.4s infinite;
 }
 
 @keyframes overview-dot-reveal {
-  from {
-    opacity: 0.4;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0.4;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes overview-dot-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 2px var(--dot-color))
-      drop-shadow(0 0 4px var(--dot-color));
-  }
-  50% {
-    filter: drop-shadow(0 0 3px var(--dot-color))
-      drop-shadow(0 0 8px var(--dot-color));
-  }
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px var(--dot-color)) drop-shadow(0 0 4px var(--dot-color));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 3px var(--dot-color)) drop-shadow(0 0 8px var(--dot-color));
+    }
 }
 
 /* Page transition — exit and enter must share the same easing so the two
    pages appear physically connected (no gap or overlap at their seam). */
 .summary-card-layer {
-  contain: layout paint;
-  backface-visibility: hidden;
-  will-change: transform;
+    contain: layout paint;
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 @keyframes page-exit-up {
-  from {
-    transform: translateY(0);
-  }
+    from {
+        transform: translateY(0);
+    }
 
-  to {
-    transform: translateY(-100%);
-  }
+    to {
+        transform: translateY(-100%);
+    }
 }
 
 @keyframes page-enter-up {
-  from {
-    transform: translateY(100%);
-  }
+    from {
+        transform: translateY(100%);
+    }
 
-  to {
-    transform: translateY(0);
-  }
+    to {
+        transform: translateY(0);
+    }
 }
 
 @keyframes page-exit-down {
-  from {
-    transform: translateY(0);
-  }
+    from {
+        transform: translateY(0);
+    }
 
-  to {
-    transform: translateY(100%);
-  }
+    to {
+        transform: translateY(100%);
+    }
 }
 
 @keyframes page-enter-down {
-  from {
-    transform: translateY(-100%);
-  }
+    from {
+        transform: translateY(-100%);
+    }
 
-  to {
-    transform: translateY(0);
-  }
+    to {
+        transform: translateY(0);
+    }
 }
 
 .animate-page-exit-up {
-  animation: page-exit-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    animation: page-exit-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 .animate-page-enter-up {
-  animation: page-enter-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    animation: page-enter-up 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 .animate-page-exit-down {
-  animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    animation: page-exit-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 .animate-page-enter-down {
-  animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    animation: page-enter-down 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 /* Subtle downward nudge hint — replaces Tailwind's animate-bounce for the
    swipe-to-explore indicator. Ease-out-expo feels physical; the bounce does not. */
 @keyframes hint-down {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
 
-  50% {
-    transform: translateY(5px);
-  }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(5px);
+    }
 }
 
 .animate-hint-down {
-  animation: hint-down 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    animation: hint-down 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 @keyframes orbit-spin {
-  from {
-    transform: rotateX(62deg) rotateZ(0deg);
-  }
+    from {
+        transform: rotateX(62deg) rotateZ(0deg);
+    }
 
-  to {
-    transform: rotateX(62deg) rotateZ(-360deg);
-  }
+    to {
+        transform: rotateX(62deg) rotateZ(-360deg);
+    }
 }
 
 /* Guest Planets card — deep-space background. Stars are tiny radial-gradient
@@ -714,271 +692,249 @@
    layers animate transform/opacity only (compositor-only), and are oversized
    past the card edges so slow drifts never expose a gap. */
 .summary-space-bg {
-  position: absolute;
-  inset: -10%;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      60% 45% at 18% 12%,
-      rgba(99, 102, 241, 0.14),
-      transparent 70%
-    ),
-    radial-gradient(
-      55% 40% at 85% 70%,
-      rgba(168, 85, 247, 0.12),
-      transparent 70%
-    );
-  animation: space-nebula-drift 45s ease-in-out infinite alternate;
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 45% at 18% 12%,
+            rgba(99, 102, 241, 0.14),
+            transparent 70%),
+        radial-gradient(55% 40% at 85% 70%,
+            rgba(168, 85, 247, 0.12),
+            transparent 70%);
+    animation: space-nebula-drift 45s ease-in-out infinite alternate;
 }
 
 @keyframes space-nebula-drift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+    from {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
 
-  to {
-    transform: translate3d(-3%, 2%, 0) scale(1.08);
-  }
+    to {
+        transform: translate3d(-3%, 2%, 0) scale(1.08);
+    }
 }
 
 .summary-space-stars {
-  position: absolute;
-  inset: -80px;
-  pointer-events: none;
-  background-image:
-    radial-gradient(1px 1px at 22px 34px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(
-      1px 1px at 118px 90px,
-      rgba(255, 255, 255, 0.5),
-      transparent
-    ),
-    radial-gradient(
-      1.5px 1.5px at 65px 151px,
-      rgba(255, 255, 255, 0.8),
-      transparent
-    ),
-    radial-gradient(
-      1px 1px at 160px 12px,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
-  background-size:
-    173px 211px,
-    229px 191px,
-    251px 163px,
-    199px 227px;
-  animation: space-drift 90s linear infinite alternate;
+    position: absolute;
+    inset: -80px;
+    pointer-events: none;
+    background-image:
+        radial-gradient(1px 1px at 22px 34px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 118px 90px,
+            rgba(255, 255, 255, 0.5),
+            transparent),
+        radial-gradient(1.5px 1.5px at 65px 151px,
+            rgba(255, 255, 255, 0.8),
+            transparent),
+        radial-gradient(1px 1px at 160px 12px,
+            rgba(255, 255, 255, 0.4),
+            transparent);
+    background-size:
+        173px 211px,
+        229px 191px,
+        251px 163px,
+        199px 227px;
+    animation: space-drift 90s linear infinite alternate;
 }
 
 .summary-space-stars-twinkle {
-  background-image:
-    radial-gradient(1px 1px at 45px 67px, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(
-      1.5px 1.5px at 150px 130px,
-      rgba(255, 255, 255, 0.6),
-      transparent
-    ),
-    radial-gradient(
-      1px 1px at 90px 200px,
-      rgba(255, 255, 255, 0.7),
-      transparent
-    );
-  background-size:
-    181px 239px,
-    211px 173px,
-    233px 197px;
-  /* Opposite, slower drift than the base layer — a subtle parallax depth cue. */
-  animation:
-    space-twinkle 5s ease-in-out infinite alternate,
-    space-drift 140s linear infinite alternate-reverse;
+    background-image:
+        radial-gradient(1px 1px at 45px 67px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1.5px 1.5px at 150px 130px,
+            rgba(255, 255, 255, 0.6),
+            transparent),
+        radial-gradient(1px 1px at 90px 200px,
+            rgba(255, 255, 255, 0.7),
+            transparent);
+    background-size:
+        181px 239px,
+        211px 173px,
+        233px 197px;
+    /* Opposite, slower drift than the base layer — a subtle parallax depth cue. */
+    animation:
+        space-twinkle 5s ease-in-out infinite alternate,
+        space-drift 140s linear infinite alternate-reverse;
 }
 
 @keyframes space-twinkle {
-  from {
-    opacity: 0.3;
-  }
+    from {
+        opacity: 0.3;
+    }
 
-  to {
-    opacity: 0.9;
-  }
+    to {
+        opacity: 0.9;
+    }
 }
 
 @keyframes space-drift {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
+    from {
+        transform: translate3d(0, 0, 0);
+    }
 
-  to {
-    transform: translate3d(-60px, 30px, 0);
-  }
+    to {
+        transform: translate3d(-60px, 30px, 0);
+    }
 }
 
 /* One faint meteor streaking across every ~9s; base opacity is 0 so with
    animation: none (reduced motion) it simply never appears. */
 .summary-space-shooting-star {
-  position: absolute;
-  top: 18%;
-  left: -12%;
-  width: 90px;
-  height: 1px;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9));
-  opacity: 0;
-  animation: shooting-star 9s linear infinite;
-  animation-delay: 3s;
+    position: absolute;
+    top: 18%;
+    left: -12%;
+    width: 90px;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9));
+    opacity: 0;
+    animation: shooting-star 9s linear infinite;
+    animation-delay: 3s;
 }
 
 @keyframes shooting-star {
-  0%,
-  92% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) rotate(16deg);
-  }
 
-  94% {
-    opacity: 1;
-  }
+    0%,
+    92% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) rotate(16deg);
+    }
 
-  100% {
-    opacity: 0;
-    transform: translate3d(120vw, 34vw, 0) rotate(16deg);
-  }
+    94% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate3d(120vw, 34vw, 0) rotate(16deg);
+    }
 }
 
 /* Horizontal planet-field scroller: hidden scrollbar + edge fades that both
    soften clipping and hint at more content off-screen. */
 .summary-space-scroller {
-  scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 6%,
-    black 94%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 6%,
-    black 94%,
-    transparent
-  );
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right,
+            transparent,
+            black 6%,
+            black 94%,
+            transparent);
+    mask-image: linear-gradient(to right,
+            transparent,
+            black 6%,
+            black 94%,
+            transparent);
 }
 
 .summary-space-scroller::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 /* Negative delay pre-staggers the phase so planets never sync up on mount;
    per-row duration desyncs their periods. Compositor-only (transform), so the
    card stays cheap during page transitions — no isPaused plumbing needed. */
 @keyframes guest-planet-float {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
+    from {
+        transform: translate3d(0, 0, 0);
+    }
 
-  to {
-    transform: translate3d(5px, -14px, 0);
-  }
+    to {
+        transform: translate3d(5px, -14px, 0);
+    }
 }
 
 @keyframes guest-planet-float-far {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
+    from {
+        transform: translate3d(0, 0, 0);
+    }
 
-  to {
-    transform: translate3d(-4px, -8px, 0);
-  }
+    to {
+        transform: translate3d(-4px, -8px, 0);
+    }
 }
 
 .summary-guest-planet-row {
-  animation: guest-planet-float calc(6s + var(--i, 0) * 0.4s) ease-in-out
-    infinite alternate;
-  animation-delay: calc(var(--i, 0) * -1.7s);
+    animation: guest-planet-float calc(6s + var(--i, 0) * 0.4s) ease-in-out infinite alternate;
+    animation-delay: calc(var(--i, 0) * -1.7s);
 }
 
 /* Depth layer: "far" planets are smaller, dimmer, softer and float slower. */
 .summary-guest-planet-row--far {
-  opacity: 0.7;
-  filter: blur(1px);
-  scale: 0.85;
-  animation-name: guest-planet-float-far;
-  animation-duration: calc(9s + var(--i, 0) * 0.5s);
+    opacity: 0.7;
+    filter: blur(1px);
+    scale: 0.85;
+    animation-name: guest-planet-float-far;
+    animation-duration: calc(9s + var(--i, 0) * 0.5s);
 }
 
 .summary-guest-planet {
-  position: relative;
-  width: var(--planet-size);
-  height: var(--planet-size);
-  border-radius: 9999px;
-  box-shadow: 0 0 28px color-mix(in oklab, var(--planet-color), transparent 65%);
-  /* Contain the negative-z glow so it can't slip behind the card background. */
-  isolation: isolate;
+    position: relative;
+    width: var(--planet-size);
+    height: var(--planet-size);
+    border-radius: 9999px;
+    box-shadow: 0 0 28px color-mix(in oklab, var(--planet-color), transparent 65%);
+    /* Contain the negative-z glow so it can't slip behind the card background. */
+    isolation: isolate;
 }
 
 /* Breathing halo behind the planet face (opacity-only, compositor-friendly). */
 .summary-guest-planet::after {
-  position: absolute;
-  inset: -22%;
-  z-index: -1;
-  pointer-events: none;
-  content: "";
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--planet-color), transparent 55%),
-    transparent 70%
-  );
-  border-radius: 9999px;
-  filter: blur(14px);
-  animation: guest-planet-glow 4s ease-in-out infinite alternate;
+    position: absolute;
+    inset: -22%;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background: radial-gradient(circle,
+            color-mix(in oklab, var(--planet-color), transparent 55%),
+            transparent 70%);
+    border-radius: 9999px;
+    filter: blur(14px);
+    animation: guest-planet-glow 4s ease-in-out infinite alternate;
 }
 
 @keyframes guest-planet-glow {
-  from {
-    opacity: 0.45;
-  }
+    from {
+        opacity: 0.45;
+    }
 
-  to {
-    opacity: 1;
-  }
+    to {
+        opacity: 1;
+    }
 }
 
-.summary-guest-planet > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  user-select: none;
-  object-fit: cover;
-  border-radius: 9999px;
+.summary-guest-planet>img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    object-fit: cover;
+    border-radius: 9999px;
 }
 
 /* Sphere shading: top-left highlight + bottom-right terminator + a themeColor
    wash that tints any flat avatar (or the shared placeholder) into a planet. */
 .summary-guest-planet-shade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      rgba(255, 255, 255, 0.35),
-      transparent 45%
-    ),
-    radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.55), transparent 60%),
-    color-mix(in oklab, var(--planet-color), transparent 55%);
-  border-radius: 9999px;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 30% 28%,
+            rgba(255, 255, 255, 0.35),
+            transparent 45%),
+        radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.55), transparent 60%),
+        color-mix(in oklab, var(--planet-color), transparent 55%);
+    border-radius: 9999px;
 }
 
 .summary-guest-planet-ring {
-  position: absolute;
-  inset: -18%;
-  pointer-events: none;
-  border: 1px solid color-mix(in oklab, var(--planet-color), white 40%);
-  border-radius: 9999px;
-  opacity: 0.5;
-  transform: rotate(-18deg) scaleY(0.38);
+    position: absolute;
+    inset: -18%;
+    pointer-events: none;
+    border: 1px solid color-mix(in oklab, var(--planet-color), white 40%);
+    border-radius: 9999px;
+    opacity: 0.5;
+    transform: rotate(-18deg) scaleY(0.38);
 }
 
 /* "Your Memories" parallax gallery: each entry exposes --parallax (viewport-
@@ -986,75 +942,69 @@
    --memory-color (the show's themeColor). Decorative layers translate at
    different rates for depth; transform-only so scrolling stays cheap. */
 .summary-memory-entry {
-  --parallax: 0;
+    --parallax: 0;
 }
 
 /* Oversized outlined index floating behind the entry — fastest layer. */
 .summary-memory-ghost {
-  position: absolute;
-  top: -0.4em;
-  right: -0.06em;
-  z-index: 0;
-  font-size: 7.5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1px
-    color-mix(in oklab, var(--memory-color), transparent 45%);
-  pointer-events: none;
-  opacity: 0.55;
-  transform: translate3d(0, calc(var(--parallax) * 90px), 0);
-  will-change: transform;
+    position: absolute;
+    top: -0.4em;
+    right: -0.06em;
+    z-index: 0;
+    font-size: 7.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in oklab, var(--memory-color), transparent 45%);
+    pointer-events: none;
+    opacity: 0.55;
+    transform: translate3d(0, calc(var(--parallax) * 90px), 0);
+    will-change: transform;
 }
 
 /* Theme-colored nebula glow drifting behind the entry — mid-speed layer. */
 .summary-memory-glow {
-  position: absolute;
-  top: 8%;
-  left: -30%;
-  width: 80vw;
-  max-width: 420px;
-  height: 80vw;
-  max-height: 420px;
-  pointer-events: none;
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--memory-color), transparent 50%),
-    transparent 70%
-  );
-  opacity: 0.35;
-  filter: blur(48px);
-  transform: translate3d(0, calc(var(--parallax) * 140px), 0);
-  will-change: transform;
+    position: absolute;
+    top: 8%;
+    left: -30%;
+    width: 80vw;
+    max-width: 420px;
+    height: 80vw;
+    max-height: 420px;
+    pointer-events: none;
+    background: radial-gradient(circle,
+            color-mix(in oklab, var(--memory-color), transparent 50%),
+            transparent 70%);
+    opacity: 0.35;
+    filter: blur(48px);
+    transform: translate3d(0, calc(var(--parallax) * 140px), 0);
+    will-change: transform;
 }
 
 /* The photo counter-scrolls slightly; the quote trails a touch behind it. */
 .summary-memory-photo {
-  transform: translate3d(0, calc(var(--parallax) * -36px), 0);
-  will-change: transform;
+    transform: translate3d(0, calc(var(--parallax) * -36px), 0);
+    will-change: transform;
 }
 
 .summary-memory-quote {
-  transform: translate3d(0, calc(var(--parallax) * -14px), 0);
-  will-change: transform;
+    transform: translate3d(0, calc(var(--parallax) * -14px), 0);
+    will-change: transform;
 }
 
 .summary-memory-date {
-  color: color-mix(in oklab, var(--memory-color), white 30%);
-  text-shadow: 0 0 24px
-    color-mix(in oklab, var(--memory-color), transparent 40%);
+    color: color-mix(in oklab, var(--memory-color), white 30%);
+    text-shadow: 0 0 24px color-mix(in oklab, var(--memory-color), transparent 40%);
 }
 
 .summary-memory-caption {
-  border-left: 2px solid
-    color-mix(in oklab, var(--memory-color), transparent 10%);
+    border-left: 2px solid color-mix(in oklab, var(--memory-color), transparent 10%);
 }
 
 /* Flipped entries align the photo (and its caption) to the right edge. */
 .summary-memory-caption-flip {
-  border-right: 2px solid
-    color-mix(in oklab, var(--memory-color), transparent 10%);
-  border-left: 0;
+    border-right: 2px solid color-mix(in oklab, var(--memory-color), transparent 10%);
+    border-left: 0;
 }
 
 /* Ambient echo: the photo itself, enlarged and heavily blurred, glows behind
@@ -1062,369 +1012,345 @@
    falloff soft; the layer is static so blur rasterizes once and rides the
    photo's transform-only parallax for free. */
 .summary-memory-photo-echo {
-  position: absolute;
-  inset: -10% -18%;
-  width: 136%;
-  height: 120%;
-  pointer-events: none;
-  object-fit: cover;
-  opacity: 0.5;
-  filter: blur(36px) saturate(1.4);
-  mask-image: radial-gradient(ellipse at center, black 45%, transparent 78%);
+    position: absolute;
+    inset: -10% -18%;
+    width: 136%;
+    height: 120%;
+    pointer-events: none;
+    object-fit: cover;
+    opacity: 0.5;
+    filter: blur(36px) saturate(1.4);
+    mask-image: radial-gradient(ellipse at center, black 45%, transparent 78%);
 }
 
 /* Placeholder photo frame: theme-tinted gradient + a periodic light sweep
    (transform-only ::after inside the clipped frame). */
 .summary-memory-photo-frame {
-  background:
-    radial-gradient(
-      circle at 18% 12%,
-      color-mix(in oklab, var(--memory-color), transparent 40%),
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at 85% 92%,
-      color-mix(in oklab, var(--memory-color), black 55%),
-      transparent 60%
-    ),
-    #18181b;
+    background:
+        radial-gradient(circle at 18% 12%,
+            color-mix(in oklab, var(--memory-color), transparent 40%),
+            transparent 55%),
+        radial-gradient(circle at 85% 92%,
+            color-mix(in oklab, var(--memory-color), black 55%),
+            transparent 60%),
+        #18181b;
 }
 
 .summary-memory-photo-frame::after {
-  position: absolute;
-  inset: -60%;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(
-    115deg,
-    transparent 42%,
-    rgba(255, 255, 255, 0.08) 50%,
-    transparent 58%
-  );
-  transform: translateX(-70%);
-  animation: memory-shimmer 6s ease-in-out infinite;
+    position: absolute;
+    inset: -60%;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(115deg,
+            transparent 42%,
+            rgba(255, 255, 255, 0.08) 50%,
+            transparent 58%);
+    transform: translateX(-70%);
+    animation: memory-shimmer 6s ease-in-out infinite;
 }
 
 @keyframes memory-shimmer {
-  0%,
-  50% {
-    transform: translateX(-70%);
-  }
 
-  100% {
-    transform: translateX(70%);
-  }
+    0%,
+    50% {
+        transform: translateX(-70%);
+    }
+
+    100% {
+        transform: translateX(70%);
+    }
 }
 
 /* Giant opening quote mark behind the talking excerpt. */
 .summary-memory-quote-mark {
-  position: absolute;
-  top: -0.42em;
-  left: -0.08em;
-  font-size: 5rem;
-  line-height: 1;
-  color: color-mix(in oklab, var(--memory-color), transparent 40%);
-  pointer-events: none;
-  opacity: 0.6;
+    position: absolute;
+    top: -0.42em;
+    left: -0.08em;
+    font-size: 5rem;
+    line-height: 1;
+    color: color-mix(in oklab, var(--memory-color), transparent 40%);
+    pointer-events: none;
+    opacity: 0.6;
 }
 
 /* /report chat — messages slide in gently; the generated card "prints" like a
    thermal receipt (clip-path top-down reveal). All effects are theme-tinted via
    --report-color set per card. */
 .report-msg-in {
-  animation: report-msg-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: report-msg-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes report-msg-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .report-card-print {
-  animation: report-card-print 1.1s cubic-bezier(0.76, 0, 0.24, 1) both;
+    animation: report-card-print 1.1s cubic-bezier(0.76, 0, 0.24, 1) both;
 }
 
 @keyframes report-card-print {
-  from {
-    clip-path: inset(0 0 100% 0);
-    transform: translateY(6px);
-  }
+    from {
+        clip-path: inset(0 0 100% 0);
+        transform: translateY(6px);
+    }
 
-  to {
-    clip-path: inset(0 0 0 0);
-    transform: translateY(0);
-  }
+    to {
+        clip-path: inset(0 0 0 0);
+        transform: translateY(0);
+    }
 }
 
 /* Theme-tinted radial wash behind the card content. */
 .report-card-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      70% 55% at 85% 0%,
-      color-mix(in oklab, var(--report-color), transparent 82%),
-      transparent 70%
-    ),
-    radial-gradient(
-      50% 40% at 0% 100%,
-      color-mix(in oklab, var(--report-color), transparent 90%),
-      transparent 70%
-    );
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(70% 55% at 85% 0%,
+            color-mix(in oklab, var(--report-color), transparent 82%),
+            transparent 70%),
+        radial-gradient(50% 40% at 0% 100%,
+            color-mix(in oklab, var(--report-color), transparent 90%),
+            transparent 70%);
 }
 
 .report-hero {
-  color: color-mix(in oklab, var(--report-color), white 35%);
-  text-shadow: 0 0 28px
-    color-mix(in oklab, var(--report-color), transparent 45%);
+    color: color-mix(in oklab, var(--report-color), white 35%);
+    text-shadow: 0 0 28px color-mix(in oklab, var(--report-color), transparent 45%);
 }
 
 /* Rank bars grow left-to-right after the print reveal has passed them. */
 .report-bar {
-  transform-origin: left center;
-  animation: report-bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(0.5s + var(--i, 0) * 0.1s);
+    transform-origin: left center;
+    animation: report-bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(0.5s + var(--i, 0) * 0.1s);
 }
 
 @keyframes report-bar-grow {
-  from {
-    transform: scaleX(0);
-  }
+    from {
+        transform: scaleX(0);
+    }
 
-  to {
-    transform: scaleX(1);
-  }
+    to {
+        transform: scaleX(1);
+    }
 }
 
 /* 专属歌单卡：时光黑胶。盘面 12s 匀速旋转——沟槽纹旋转对称，环形蚀刻文字
    是「唱片在转」的视觉证据；高光层静止在盘面之上，模拟固定光源。常驻曲
    hero 带主题色辉光；tracklist 逐行错峰淡入。全部 transform/opacity。 */
 .summary-playlist-hero {
-  color: color-mix(in oklab, var(--playlist-color), white 35%);
-  text-shadow: 0 0 28px
-    color-mix(in oklab, var(--playlist-color), transparent 45%);
+    color: color-mix(in oklab, var(--playlist-color), white 35%);
+    text-shadow: 0 0 28px color-mix(in oklab, var(--playlist-color), transparent 45%);
 }
 
 .summary-vinyl {
-  position: relative;
-  animation: summary-vinyl-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+    animation: summary-vinyl-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes summary-vinyl-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .summary-vinyl-disc {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      circle closest-side,
-      transparent 53%,
-      rgba(255, 255, 255, 0.06) 53.8% 54.6%,
-      transparent 55.4%,
-      transparent 67%,
-      rgba(255, 255, 255, 0.055) 67.8% 68.6%,
-      transparent 69.4%,
-      transparent 81%,
-      rgba(255, 255, 255, 0.05) 81.8% 82.6%,
-      transparent 83.4%
-    ),
-    repeating-radial-gradient(
-      circle closest-side,
-      #0a0a0c 0 1.6px,
-      #141417 1.6px 3.2px
-    );
-  border-radius: 9999px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 0 24px rgba(0, 0, 0, 0.85),
-    0 30px 60px -28px
-    color-mix(in oklab, var(--playlist-color), transparent 50%);
-  animation: summary-vinyl-spin 12s linear infinite;
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle closest-side,
+            transparent 53%,
+            rgba(255, 255, 255, 0.06) 53.8% 54.6%,
+            transparent 55.4%,
+            transparent 67%,
+            rgba(255, 255, 255, 0.055) 67.8% 68.6%,
+            transparent 69.4%,
+            transparent 81%,
+            rgba(255, 255, 255, 0.05) 81.8% 82.6%,
+            transparent 83.4%),
+        repeating-radial-gradient(circle closest-side,
+            #0a0a0c 0 1.6px,
+            #141417 1.6px 3.2px);
+    border-radius: 9999px;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 0 24px rgba(0, 0, 0, 0.85),
+        0 30px 60px -28px color-mix(in oklab, var(--playlist-color), transparent 50%);
+    animation: summary-vinyl-spin 12s linear infinite;
 }
 
 @keyframes summary-vinyl-spin {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .summary-vinyl-etch {
-  font-family: "Doto", monospace;
-  letter-spacing: 0.14em;
-  fill: rgba(212, 212, 216, 0.45);
+    font-family: "Doto", monospace;
+    letter-spacing: 0.14em;
+    fill: rgba(212, 212, 216, 0.45);
 }
 
 .summary-vinyl-label {
-  position: absolute;
-  inset: 31%;
-  background: radial-gradient(circle, #fb923c 0%, #f97316 52%, #c2410c 100%);
-  border-radius: 9999px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-    inset 0 0 14px rgba(124, 45, 18, 0.55);
+    position: absolute;
+    inset: 31%;
+    background: radial-gradient(circle, #fb923c 0%, #f97316 52%, #c2410c 100%);
+    border-radius: 9999px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+        inset 0 0 14px rgba(124, 45, 18, 0.55);
 }
 
 .summary-vinyl-hole {
-  position: absolute;
-  inset: 46%;
-  background: #09090b;
-  border-radius: 9999px;
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+    position: absolute;
+    inset: 46%;
+    background: #09090b;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.22);
 }
 
 .summary-vinyl-sheen {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: conic-gradient(
-    from 205deg,
-    transparent 0deg,
-    rgba(255, 255, 255, 0.09) 18deg,
-    rgba(255, 255, 255, 0.02) 40deg,
-    transparent 65deg,
-    transparent 175deg,
-    rgba(255, 255, 255, 0.07) 195deg,
-    rgba(255, 255, 255, 0.015) 215deg,
-    transparent 245deg
-  );
-  border-radius: 9999px;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: conic-gradient(from 205deg,
+            transparent 0deg,
+            rgba(255, 255, 255, 0.09) 18deg,
+            rgba(255, 255, 255, 0.02) 40deg,
+            transparent 65deg,
+            transparent 175deg,
+            rgba(255, 255, 255, 0.07) 195deg,
+            rgba(255, 255, 255, 0.015) 215deg,
+            transparent 245deg);
+    border-radius: 9999px;
 }
 
 .summary-playlist-row {
-  animation: playlist-row-in 0.5s ease-out both;
-  animation-delay: calc(0.2s + var(--i, 0) * 0.08s);
+    animation: playlist-row-in 0.5s ease-out both;
+    animation-delay: calc(0.2s + var(--i, 0) * 0.08s);
 }
 
 @keyframes playlist-row-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* 最小众歌单卡：被抽中的点歌纸条。暖白纸片带两道折痕阴影（展开的三折
    纸条），逐张飘落入位；主纸条贴一段半透明和纸胶带，「仅此一次」盖橙色
    印章；顶部一束静态追光。全部 transform/opacity。 */
 .summary-note {
-  --note-tilt: -1.6deg;
-  background:
-    linear-gradient(
-      180deg,
-      transparent 0 32%,
-      rgba(120, 100, 70, 0.1) 33%,
-      transparent 34.5%,
-      transparent 65%,
-      rgba(120, 100, 70, 0.08) 66%,
-      transparent 67.5%
-    ),
-    linear-gradient(180deg, #f7f2e7 0%, #efe8d8 100%);
-  border-radius: 4px;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 14px 32px -18px rgba(0, 0, 0, 0.85);
-  transform: rotate(var(--note-tilt));
-  animation: summary-note-drop 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
-  animation-delay: calc(0.15s + var(--i, 0) * 0.09s);
+    --note-tilt: -1.6deg;
+    background:
+        linear-gradient(180deg,
+            transparent 0 32%,
+            rgba(120, 100, 70, 0.1) 33%,
+            transparent 34.5%,
+            transparent 65%,
+            rgba(120, 100, 70, 0.08) 66%,
+            transparent 67.5%),
+        linear-gradient(180deg, #f7f2e7 0%, #efe8d8 100%);
+    border-radius: 4px;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.5),
+        0 14px 32px -18px rgba(0, 0, 0, 0.85);
+    transform: rotate(var(--note-tilt));
+    animation: summary-note-drop 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation-delay: calc(0.15s + var(--i, 0) * 0.09s);
 }
 
 .summary-note-hero {
-  --note-tilt: -2deg;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 24px 48px -20px rgba(0, 0, 0, 0.9),
-    0 30px 70px -30px color-mix(in oklab, var(--rare-color), transparent 55%);
+    --note-tilt: -2deg;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.5),
+        0 24px 48px -20px rgba(0, 0, 0, 0.9),
+        0 30px 70px -30px color-mix(in oklab, var(--rare-color), transparent 55%);
 }
 
 @keyframes summary-note-drop {
-  from {
-    opacity: 0;
-    transform: translateY(-16px) rotate(calc(var(--note-tilt) + 4deg));
-  }
+    from {
+        opacity: 0;
+        transform: translateY(-16px) rotate(calc(var(--note-tilt) + 4deg));
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(var(--note-tilt));
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0) rotate(var(--note-tilt));
+    }
 }
 
 .summary-note-tape {
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  width: 72px;
-  height: 22px;
-  background: color-mix(in oklab, var(--rare-color), transparent 68%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  transform: translateX(-50%) rotate(-3deg);
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 72px;
+    height: 22px;
+    background: color-mix(in oklab, var(--rare-color), transparent 68%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    transform: translateX(-50%) rotate(-3deg);
 }
 
 .summary-note-seal {
-  position: absolute;
-  right: 14px;
-  bottom: 12px;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  font-size: 13px;
-  line-height: 1.05;
-  color: color-mix(in oklab, var(--rare-color), #7c2d12 18%);
-  text-align: center;
-  border: 2px solid color-mix(in oklab, var(--rare-color), transparent 22%);
-  border-radius: 9999px;
-  /* 印泥不匀的手工感：局部轻微缺墨 */
-  mask-image: radial-gradient(
-    circle at 32% 26%,
-    rgba(0, 0, 0, 0.65) 0 18%,
-    black 42%
-  );
-  transform: rotate(9deg);
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    font-size: 13px;
+    line-height: 1.05;
+    color: color-mix(in oklab, var(--rare-color), #7c2d12 18%);
+    text-align: center;
+    border: 2px solid color-mix(in oklab, var(--rare-color), transparent 22%);
+    border-radius: 9999px;
+    /* 印泥不匀的手工感：局部轻微缺墨 */
+    mask-image: radial-gradient(circle at 32% 26%,
+            rgba(0, 0, 0, 0.65) 0 18%,
+            black 42%);
+    transform: rotate(9deg);
 }
 
 .summary-note-spotlight {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 340px;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 62% 78% at 50% -12%,
-    color-mix(in oklab, var(--rare-color), transparent 82%) 0%,
-    transparent 70%
-  );
-  animation: summary-spotlight-in 1.2s ease-out both;
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 340px;
+    pointer-events: none;
+    background: radial-gradient(ellipse 62% 78% at 50% -12%,
+            color-mix(in oklab, var(--rare-color), transparent 82%) 0%,
+            transparent 70%);
+    animation: summary-spotlight-in 1.2s ease-out both;
 }
 
 @keyframes summary-spotlight-in {
-  from {
-    opacity: 0;
-  }
+    from {
+        opacity: 0;
+    }
 
-  to {
-    opacity: 1;
-  }
+    to {
+        opacity: 1;
+    }
 }
 
 /* 岁月音乐墙卡 ·「岁月留声机」：复古木质唱片架上竖排脊线的黑胶唱片。
@@ -1434,221 +1360,213 @@
    行高固定 120px（14px 抽出余量 + 96px 唱片 + 10px 架板），
    架板由容器 repeating-linear-gradient 按行高绘制，无需按行切分数据。 */
 .summary-shelf-frame {
-  padding: 8px;
-  background:
-    repeating-linear-gradient(
-      98deg,
-      rgba(255, 226, 178, 0.025) 0 2px,
-      transparent 2px 7px
-    ),
-    linear-gradient(155deg, #4e3620 0%, #3a2814 45%, #2a1c0e 100%);
-  border-radius: 10px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 214, 156, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
-    0 14px 30px rgba(0, 0, 0, 0.45);
+    padding: 8px;
+    background:
+        repeating-linear-gradient(98deg,
+            rgba(255, 226, 178, 0.025) 0 2px,
+            transparent 2px 7px),
+        linear-gradient(155deg, #4e3620 0%, #3a2814 45%, #2a1c0e 100%);
+    border-radius: 10px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 214, 156, 0.16),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+        0 14px 30px rgba(0, 0, 0, 0.45);
 }
 
 .summary-shelf-inner {
-  background: #120c07;
-  border-radius: 5px;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
-    inset 0 8px 16px rgba(0, 0, 0, 0.4);
+    background: #120c07;
+    border-radius: 5px;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+        inset 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 .summary-shelf-bed {
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 110px,
-    #5a3f27 110px 111px,
-    #3c2a17 111px 114px,
-    #2b1d10 114px 118px,
-    #17100a 118px 120px
-  );
+    background: repeating-linear-gradient(to bottom,
+            transparent 0 110px,
+            #5a3f27 110px 111px,
+            #3c2a17 111px 114px,
+            #2b1d10 114px 118px,
+            #17100a 118px 120px);
 }
 
 .summary-shelf-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17px, 1fr));
-  grid-auto-rows: 120px;
-  column-gap: 3px;
-  align-items: end;
-  padding: 0 6px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17px, 1fr));
+    grid-auto-rows: 120px;
+    column-gap: 3px;
+    align-items: end;
+    padding: 0 6px;
 }
 
 .summary-shelf-rowtrack {
-  display: flex;
-  column-gap: 3px;
-  align-items: flex-end;
-  width: max-content;
-  min-width: 100%;
-  height: 120px;
-  padding: 0 10px;
+    display: flex;
+    column-gap: 3px;
+    align-items: flex-end;
+    width: max-content;
+    min-width: 100%;
+    height: 120px;
+    padding: 0 10px;
 }
 
 .summary-shelf-spine {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-width: 0;
-  height: 96px;
-  padding: 7px 0 5px;
-  margin-bottom: 10px;
-  border-radius: 2px 2px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    height: 96px;
+    padding: 7px 0 5px;
+    margin-bottom: 10px;
+    border-radius: 2px 2px 0 0;
 }
 
 .summary-shelf-spine-title {
-  display: block;
-  max-height: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+    display: block;
+    max-height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
 }
 
 /* 沉在架内的唱片：暖褐色系，nth-child 轻微变调避免整架读成一张平铺纹理 */
 .summary-shelf-spine-unheard {
-  color: #93887c;
-  background: linear-gradient(to bottom, #2b2420, #211b17 60%, #191411);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset -1px 0 0 rgba(0, 0, 0, 0.4);
+    color: #93887c;
+    background: linear-gradient(to bottom, #2b2420, #211b17 60%, #191411);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        inset -1px 0 0 rgba(0, 0, 0, 0.4);
 }
 
 .summary-shelf-spine-unheard:nth-child(3n) {
-  background: linear-gradient(to bottom, #282326, #1e1a1d 60%, #161316);
+    background: linear-gradient(to bottom, #282326, #1e1a1d 60%, #161316);
 }
 
 .summary-shelf-spine-unheard:nth-child(7n + 2) {
-  background: linear-gradient(to bottom, #2e2419, #231b12 60%, #1a140d);
+    background: linear-gradient(to bottom, #2e2419, #231b12 60%, #1a140d);
 }
 
 /* 全巡演未唱：冷灰、低饱和，沉得更暗 */
 .summary-shelf-spine-unsung {
-  color: #55555c;
-  background: linear-gradient(to bottom, #1d1d1f, #171719);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  opacity: 0.8;
+    color: #55555c;
+    background: linear-gradient(to bottom, #1d1d1f, #171719);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    opacity: 0.8;
 }
 
 .summary-shelf-spine-heard {
-  color: #f5f2ff;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--wall-color), #0e0a18 34%),
-    color-mix(in oklab, var(--wall-color), #0e0a18 58%) 55%,
-    color-mix(in oklab, var(--wall-color), #0e0a18 72%)
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 1px 0 0 rgba(255, 255, 255, 0.1),
-    inset -1px 0 0 rgba(10, 6, 22, 0.55),
-    0 0 3px color-mix(in oklab, var(--wall-color), transparent 40%),
-    0 0 10px color-mix(in oklab, var(--wall-color), transparent 62%);
+    color: #f5f2ff;
+    background: linear-gradient(to bottom,
+            color-mix(in oklab, var(--wall-color), #0e0a18 34%),
+            color-mix(in oklab, var(--wall-color), #0e0a18 58%) 55%,
+            color-mix(in oklab, var(--wall-color), #0e0a18 72%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 1px 0 0 rgba(255, 255, 255, 0.1),
+        inset -1px 0 0 rgba(10, 6, 22, 0.55),
+        0 0 3px color-mix(in oklab, var(--wall-color), transparent 40%),
+        0 0 10px color-mix(in oklab, var(--wall-color), transparent 62%);
 }
 
 .summary-shelf-spine-gold-unheard {
-  color: #9c8354;
-  background: linear-gradient(to bottom, #33270f, #241b0b 60%, #191307);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 226, 178, 0.08),
-    inset -1px 0 0 rgba(0, 0, 0, 0.4);
+    color: #9c8354;
+    background: linear-gradient(to bottom, #33270f, #241b0b 60%, #191307);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 226, 178, 0.08),
+        inset -1px 0 0 rgba(0, 0, 0, 0.4);
 }
 
 .summary-shelf-spine-gold-heard {
-  color: #201503;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--wall-gold), #170f04 10%),
-    color-mix(in oklab, var(--wall-gold), #170f04 42%) 55%,
-    color-mix(in oklab, var(--wall-gold), #170f04 60%)
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, 0.45),
-    inset 1px 0 0 rgba(255, 244, 214, 0.16),
-    inset -1px 0 0 rgba(30, 18, 2, 0.55),
-    0 0 3px color-mix(in oklab, var(--wall-gold), transparent 40%),
-    0 0 10px color-mix(in oklab, var(--wall-gold), transparent 62%);
+    color: #201503;
+    background: linear-gradient(to bottom,
+            color-mix(in oklab, var(--wall-gold), #170f04 10%),
+            color-mix(in oklab, var(--wall-gold), #170f04 42%) 55%,
+            color-mix(in oklab, var(--wall-gold), #170f04 60%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 244, 214, 0.45),
+        inset 1px 0 0 rgba(255, 244, 214, 0.16),
+        inset -1px 0 0 rgba(30, 18, 2, 0.55),
+        0 0 3px color-mix(in oklab, var(--wall-gold), transparent 40%),
+        0 0 10px color-mix(in oklab, var(--wall-gold), transparent 62%);
 }
 
 /* 抽出动画：错峰过冲收敛，both 保证延迟期间停在架内；
    reduced-motion 下停用动画后由类上的静态 transform 保持抽出状态 */
 .summary-shelf-spine-pulled {
-  transform: translateY(-10px);
-  animation: summary-shelf-pull 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: calc(0.4s + var(--i) * 35ms);
+    transform: translateY(-10px);
+    animation: summary-shelf-pull 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(0.4s + var(--i) * 35ms);
 }
 
 @keyframes summary-shelf-pull {
-  from {
-    transform: translateY(0);
-  }
+    from {
+        transform: translateY(0);
+    }
 
-  to {
-    transform: translateY(-10px);
-  }
+    to {
+        transform: translateY(-10px);
+    }
 }
 
 /* 共振频率 VU 表盘：与唱片架共用木纹外框，内为琥珀背光功放面板。
    指针从表盘左端（-50deg）甩出，过冲回摆后定格在 --vu-angle
    （组件按听歌进度写入 -50deg..50deg），读数在指针收摆期间淡入。 */
 .summary-vu-face {
-  padding: 10px 12px 12px;
-  background: #140d07;
-  border-radius: 5px;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
-    inset 0 6px 14px rgba(0, 0, 0, 0.45);
+    padding: 10px 12px 12px;
+    background: #140d07;
+    border-radius: 5px;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+        inset 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
 .summary-vu-needle {
-  transform: rotate(var(--vu-angle));
-  transform-origin: 110px 112px;
-  transform-box: view-box;
-  animation: summary-vu-swing 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: 0.45s;
+    transform: rotate(var(--vu-angle));
+    transform-origin: 110px 112px;
+    transform-box: view-box;
+    animation: summary-vu-swing 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.45s;
 }
 
 @keyframes summary-vu-swing {
-  0% {
-    transform: rotate(-50deg);
-  }
+    0% {
+        transform: rotate(-50deg);
+    }
 
-  52% {
-    transform: rotate(calc(var(--vu-angle) + 7deg));
-  }
+    52% {
+        transform: rotate(calc(var(--vu-angle) + 7deg));
+    }
 
-  74% {
-    transform: rotate(calc(var(--vu-angle) - 3deg));
-  }
+    74% {
+        transform: rotate(calc(var(--vu-angle) - 3deg));
+    }
 
-  88% {
-    transform: rotate(calc(var(--vu-angle) + 1.2deg));
-  }
+    88% {
+        transform: rotate(calc(var(--vu-angle) + 1.2deg));
+    }
 
-  100% {
-    transform: rotate(var(--vu-angle));
-  }
+    100% {
+        transform: rotate(var(--vu-angle));
+    }
 }
 
 .summary-vu-readout {
-  animation: summary-vu-readout-in 0.5s ease-out both;
-  animation-delay: 1.75s;
+    animation: summary-vu-readout-in 0.5s ease-out both;
+    animation-delay: 1.75s;
 }
 
 @keyframes summary-vu-readout-in {
-  from {
-    opacity: 0;
-  }
+    from {
+        opacity: 0;
+    }
 
-  to {
-    opacity: 1;
-  }
+    to {
+        opacity: 1;
+    }
 }
 
 /* 唱片抽出详情：点击脊线后，封套经 WAAPI FLIP 从架上脊线位置飞到画面中央展开
@@ -1657,350 +1575,342 @@
    覆盖层带 data-summary-gesture-exempt 免疫切页手势；
    --record-color 由组件写入（曲库紫 / 曲库外金）。 */
 .summary-record-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
 }
 
 .summary-record-backdrop {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  background: rgba(7, 6, 10, 0.86);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  transition: opacity 0.26s ease;
-  animation: summary-record-fade-in 0.32s ease both;
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: rgba(7, 6, 10, 0.86);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: opacity 0.26s ease;
+    animation: summary-record-fade-in 0.32s ease both;
 }
 
 @keyframes summary-record-fade-in {
-  from {
-    opacity: 0;
-  }
+    from {
+        opacity: 0;
+    }
 }
 
 .summary-record-overlay-closing .summary-record-backdrop {
-  opacity: 0;
+    opacity: 0;
 }
 
 .summary-record-stage {
-  position: relative;
-  width: min(58vw, 210px);
+    position: relative;
+    width: min(58vw, 210px);
 }
 
 /* 黑胶盘：沟槽 + 状态色圆标 + 中心孔，落定后从封套后探出 */
 .summary-record-disc {
-  position: absolute;
-  inset: 4% 3% auto;
-  aspect-ratio: 1;
-  background:
-    radial-gradient(
-      circle,
-      #0d0b11 0 4.5%,
-      color-mix(in oklab, var(--record-color), #17131f 50%) 4.5% 17%,
-      #0d0b11 17% 18.5%,
-      transparent 18.5%
-    ),
-    repeating-radial-gradient(circle, #1a1720 0 1.5px, #0e0c12 1.5px 3.2px);
-  border-radius: 50%;
-  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  transform: translateY(0);
-  transition:
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
-    opacity 0.2s ease 0.05s;
+    position: absolute;
+    inset: 4% 3% auto;
+    aspect-ratio: 1;
+    background:
+        radial-gradient(circle,
+            #0d0b11 0 4.5%,
+            color-mix(in oklab, var(--record-color), #17131f 50%) 4.5% 17%,
+            #0d0b11 17% 18.5%,
+            transparent 18.5%),
+        repeating-radial-gradient(circle, #1a1720 0 1.5px, #0e0c12 1.5px 3.2px);
+    border-radius: 50%;
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transform: translateY(0);
+    transition:
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
+        opacity 0.2s ease 0.05s;
 }
 
 .summary-record-stage-settled .summary-record-disc {
-  opacity: 1;
-  transform: translateY(-30%);
+    opacity: 1;
+    transform: translateY(-30%);
 }
 
 .summary-record-sleeve {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 6px;
-  will-change: transform;
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    will-change: transform;
 }
 
 .summary-record-sleeve-content {
-  opacity: 0;
-  transition: opacity 0.25s ease;
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
 .summary-record-stage-settled .summary-record-sleeve-content {
-  opacity: 1;
+    opacity: 1;
 }
 
 /* 封套配色沿用脊线五种状态的渐变家族，FLIP 飞行时观感即「同一张唱片被放大」 */
 .summary-record-sleeve-heard {
-  color: #f5f2ff;
-  background: linear-gradient(
-    150deg,
-    color-mix(in oklab, var(--record-color), #0e0a18 26%) 0%,
-    color-mix(in oklab, var(--record-color), #0e0a18 55%) 55%,
-    color-mix(in oklab, var(--record-color), #0e0a18 70%) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
-    0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #f5f2ff;
+    background: linear-gradient(150deg,
+            color-mix(in oklab, var(--record-color), #0e0a18 26%) 0%,
+            color-mix(in oklab, var(--record-color), #0e0a18 55%) 55%,
+            color-mix(in oklab, var(--record-color), #0e0a18 70%) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
+        0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
 .summary-record-sleeve-unheard {
-  color: #b9ac9d;
-  background: linear-gradient(150deg, #2f2822 0%, #221c17 60%, #191411 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #b9ac9d;
+    background: linear-gradient(150deg, #2f2822 0%, #221c17 60%, #191411 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
 .summary-record-sleeve-unsung {
-  color: #8f8f98;
-  background: linear-gradient(150deg, #222225 0%, #19191c 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #8f8f98;
+    background: linear-gradient(150deg, #222225 0%, #19191c 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
 .summary-record-sleeve-gold-heard {
-  color: #241804;
-  background: linear-gradient(
-    150deg,
-    color-mix(in oklab, var(--record-color), #170f04 12%) 0%,
-    color-mix(in oklab, var(--record-color), #170f04 42%) 60%,
-    color-mix(in oklab, var(--record-color), #170f04 58%) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, 0.5),
-    0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
-    0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #241804;
+    background: linear-gradient(150deg,
+            color-mix(in oklab, var(--record-color), #170f04 12%) 0%,
+            color-mix(in oklab, var(--record-color), #170f04 42%) 60%,
+            color-mix(in oklab, var(--record-color), #170f04 58%) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 244, 214, 0.5),
+        0 0 22px color-mix(in oklab, var(--record-color), transparent 55%),
+        0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
 .summary-record-sleeve-gold-unheard {
-  color: #c8a96f;
-  background: linear-gradient(150deg, #382a11 0%, #261c0c 60%, #1a1409 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 226, 178, 0.1),
-    0 18px 40px rgba(0, 0, 0, 0.5);
+    color: #c8a96f;
+    background: linear-gradient(150deg, #382a11 0%, #261c0c 60%, #1a1409 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 226, 178, 0.1),
+        0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* 信息面板：封套快落定时淡入上移；关闭时随背景一起淡出 */
 .summary-record-info {
-  transition: opacity 0.22s ease;
-  animation: summary-record-info-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s
-    both;
+    transition: opacity 0.22s ease;
+    animation: summary-record-info-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 
 @keyframes summary-record-info-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .summary-record-overlay-closing .summary-record-info {
-  opacity: 0;
-  animation: none;
+    opacity: 0;
+    animation: none;
 }
 
 .summary-record-show-row {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .summary-record-show-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 /* 你在场的场次行：本卡状态色轻染 + 高亮文字 */
 .summary-record-show-row-heard {
-  color: #f4f4f5;
-  background: color-mix(in oklab, var(--record-color), transparent 88%);
+    color: #f4f4f5;
+    background: color-mix(in oklab, var(--record-color), transparent 88%);
 }
 
 .summary-record-section-badge {
-  flex-shrink: 0;
-  padding: 1px 5px;
-  font-size: 9px;
-  color: #a1a1aa;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
+    flex-shrink: 0;
+    padding: 1px 5px;
+    font-size: 9px;
+    color: #a1a1aa;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
 }
 
 .summary-record-here-badge {
-  flex-shrink: 0;
-  font-size: 9px;
-  color: color-mix(in oklab, var(--record-color), #fff 25%);
-  letter-spacing: 0.1em;
-  text-shadow: 0 0 8px color-mix(in oklab, var(--record-color), transparent 40%);
+    flex-shrink: 0;
+    font-size: 9px;
+    color: color-mix(in oklab, var(--record-color), #fff 25%);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 8px color-mix(in oklab, var(--record-color), transparent 40%);
 }
 
 /* /form 旅程登记：步骤切换整页淡入上移（root div 换 key 强制重挂载），
    城市展开的场次行轻淡入。全部 opacity/transform。 */
 .form-step-in {
-  animation: form-step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: form-step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes form-step-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .form-rows-in {
-  animation: form-rows-in 0.35s ease-out both;
+    animation: form-rows-in 0.35s ease-out both;
 }
 
 @keyframes form-rows-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* /form 的通用强调色是 sky-400；在此作用域覆写 primary，让现有 shadcn
    操作组件也统一跟随页面主题。 */
 .form-page {
-  --primary: #38bdf8;
-  --primary-foreground: #082f49;
+    --primary: #38bdf8;
+    --primary-foreground: #082f49;
 }
 
 /* /form 场次行：勾选后按巡演子主题点亮——5525 粉、5525+1 蓝、5525+2 橙；
    左侧色条、复选块填色发光、行背景轻染、子主题标签同色。行背景（含 hover）
    统一在这里管理，避免与 Tailwind hover 工具类互相覆盖。 */
 .form-show-row {
-  position: relative;
-  transition: background-color 0.2s;
+    position: relative;
+    transition: background-color 0.2s;
 }
 
 .form-show-row:hover {
-  background-color: color-mix(in oklab, var(--color-muted), transparent 80%);
+    background-color: color-mix(in oklab, var(--color-muted), transparent 80%);
 }
 
 .form-show-row::before {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
-  content: "";
-  background: var(--show-color);
-  opacity: 0;
-  transition: opacity 0.2s;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    content: "";
+    background: var(--show-color);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .form-show-row[data-selected] {
-  background-color: color-mix(in oklab, var(--show-color), transparent 92%);
+    background-color: color-mix(in oklab, var(--show-color), transparent 92%);
 }
 
 .form-show-row[data-selected]:hover {
-  background-color: color-mix(in oklab, var(--show-color), transparent 88%);
+    background-color: color-mix(in oklab, var(--show-color), transparent 88%);
 }
 
 .form-show-row[data-selected]::before {
-  opacity: 1;
+    opacity: 1;
 }
 
 .form-show-check {
-  border: 1px solid
-    color-mix(in oklab, var(--color-muted-foreground), transparent 50%);
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    box-shadow 0.2s;
+    border: 1px solid color-mix(in oklab, var(--color-muted-foreground), transparent 50%);
+    transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .form-show-check-icon {
-  opacity: 0;
-  transition: opacity 0.2s;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .form-show-row[data-selected] .form-show-check {
-  background: var(--show-color);
-  border-color: var(--show-color);
-  box-shadow: 0 0 10px color-mix(in oklab, var(--show-color), transparent 45%);
+    background: var(--show-color);
+    border-color: var(--show-color);
+    box-shadow: 0 0 10px color-mix(in oklab, var(--show-color), transparent 45%);
 }
 
 .form-show-row[data-selected] .form-show-check-icon {
-  opacity: 1;
+    opacity: 1;
 }
 
 .form-show-row[data-selected] .form-show-date {
-  color: var(--color-foreground);
+    color: var(--color-foreground);
 }
 
 .form-show-tag {
-  transition:
-    color 0.2s,
-    border-color 0.2s;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
 }
 
 .form-show-row[data-selected] .form-show-tag {
-  color: color-mix(in oklab, var(--show-color), white 45%);
-  border-color: color-mix(in oklab, var(--show-color), transparent 45%);
+    color: color-mix(in oklab, var(--show-color), white 45%);
+    border-color: color-mix(in oklab, var(--show-color), transparent 45%);
 }
 
 /* 底栏「已选 N 场」：Doto 点阵数字 + sky-400 辉光。 */
 .form-selected-count {
-  font-family: "Doto", monospace;
-  font-weight: 700;
-  color: #38bdf8;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    font-family: "Doto", monospace;
+    font-weight: 700;
+    color: #38bdf8;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
 }
 
 .report-timeline-dot {
-  flex-shrink: 0;
-  width: 6px;
-  height: 6px;
-  background: var(--report-color);
-  border-radius: 9999px;
-  box-shadow: 0 0 8px color-mix(in oklab, var(--report-color), transparent 40%);
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--report-color);
+    border-radius: 9999px;
+    box-shadow: 0 0 8px color-mix(in oklab, var(--report-color), transparent 40%);
 }
 
 /* Pulsing dot marking the currently "running" thinking step. */
 .report-thinking-dot {
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid #f97316;
-  border-radius: 9999px;
-  animation: report-thinking-pulse 1s ease-in-out infinite alternate;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #f97316;
+    border-radius: 9999px;
+    animation: report-thinking-pulse 1s ease-in-out infinite alternate;
 }
 
 @keyframes report-thinking-pulse {
-  from {
-    opacity: 0.35;
-    transform: scale(0.8);
-  }
+    from {
+        opacity: 0.35;
+        transform: scale(0.8);
+    }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .report-chip-row {
-  scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to right, black 92%, transparent);
-  mask-image: linear-gradient(to right, black 92%, transparent);
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, black 92%, transparent);
+    mask-image: linear-gradient(to right, black 92%, transparent);
 }
 
 .report-chip-row::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 /* Accessibility: respect the OS "Reduce Motion" preference (WCAG 2.3.3).
@@ -2010,241 +1920,241 @@
 
 /* 海报整体入场：数据就绪后淡入上移一次。 */
 .share-poster-in {
-  animation: share-poster-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: share-poster-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes share-poster-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
-  }
+    from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+    }
 
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 /* 星轨连线 draw-in：pathLength 归一到 1，dashoffset 从 1 收到 0。 */
 .share-trail-path {
-  filter: drop-shadow(0 0 4px rgba(148, 163, 184, 0.55));
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: share-trail-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
+    filter: drop-shadow(0 0 4px rgba(148, 163, 184, 0.55));
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: share-trail-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
 }
 
 @keyframes share-trail-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
+    to {
+        stroke-dashoffset: 0;
+    }
 }
 
 /* 星轨节点按日期顺序错峰点亮（--i 由组件按序号传入）。 */
 .share-node {
-  opacity: 0;
-  animation: share-node-in 0.7s ease-out forwards;
-  animation-delay: calc(0.4s + var(--i) * 0.16s);
+    opacity: 0;
+    animation: share-node-in 0.7s ease-out forwards;
+    animation-delay: calc(0.4s + var(--i) * 0.16s);
 }
 
 @keyframes share-node-in {
-  to {
-    opacity: 1;
-  }
+    to {
+        opacity: 1;
+    }
 }
 
 /* 点亮后的持续微闪烁；负延迟让节点相位彼此错开。 */
 .share-node-core {
-  animation: share-node-twinkle 3.4s ease-in-out infinite alternate;
-  animation-delay: calc(var(--i, 0) * -0.8s);
+    animation: share-node-twinkle 3.4s ease-in-out infinite alternate;
+    animation-delay: calc(var(--i, 0) * -0.8s);
 }
 
 @keyframes share-node-twinkle {
-  from {
-    opacity: 1;
-  }
+    from {
+        opacity: 1;
+    }
 
-  to {
-    opacity: 0.55;
-  }
+    to {
+        opacity: 0.55;
+    }
 }
 
 /* 孤勇星球的引力波：三圈错峰向外扩散。 */
 .share-gravity-ring {
-  opacity: 0;
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: share-gravity-wave 4.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-  animation-delay: calc(var(--i) * 1.4s);
+    opacity: 0;
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: share-gravity-wave 4.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    animation-delay: calc(var(--i) * 1.4s);
 }
 
 @keyframes share-gravity-wave {
-  0% {
-    opacity: 0;
-    transform: scale(0.55);
-  }
+    0% {
+        opacity: 0;
+        transform: scale(0.55);
+    }
 
-  14% {
-    opacity: 0.5;
-  }
+    14% {
+        opacity: 0.5;
+    }
 
-  100% {
-    opacity: 0;
-    transform: scale(2.9);
-  }
+    100% {
+        opacity: 0;
+        transform: scale(2.9);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cover-background-strip {
-    animation: none;
-  }
+    .cover-background-strip {
+        animation: none;
+    }
 
-  .cover-background-vertical-track {
-    animation: none;
-  }
+    .cover-background-vertical-track {
+        animation: none;
+    }
 
-  /* Page slide transitions → instant swap */
-  .animate-page-exit-up,
-  .animate-page-exit-down,
-  .animate-page-enter-up,
-  .animate-page-enter-down {
-    animation: none;
-  }
+    /* Page slide transitions → instant swap */
+    .animate-page-exit-up,
+    .animate-page-exit-down,
+    .animate-page-enter-up,
+    .animate-page-enter-down {
+        animation: none;
+    }
 
-  /* Globe orbit ring spin */
-  .summary-globe-orbit-svg {
-    animation: none;
-  }
+    /* Globe orbit ring spin */
+    .summary-globe-orbit-svg {
+        animation: none;
+    }
 
-  /* 巡演时间轴「你去过」光点：停用呼吸，保留基础静态辉光与放大即可辨识 */
-  .overview-dot-lit {
-    animation: none;
-  }
+    /* 巡演时间轴「你去过」光点：停用呼吸，保留基础静态辉光与放大即可辨识 */
+    .overview-dot-lit {
+        animation: none;
+    }
 
-  /* 城市地图卡：出发点脉冲环静止隐藏（蓝色 marker 仍在），文案直接可见 */
-  .summary-globe-origin-pulse::before,
-  .summary-globe-origin-pulse::after {
-    opacity: 0;
-    animation: none;
-  }
+    /* 城市地图卡：出发点脉冲环静止隐藏（蓝色 marker 仍在），文案直接可见 */
+    .summary-globe-origin-pulse::before,
+    .summary-globe-origin-pulse::after {
+        opacity: 0;
+        animation: none;
+    }
 
-  .summary-travel-line {
-    transition: none;
-  }
+    .summary-travel-line {
+        transition: none;
+    }
 
-  /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），
+    /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），
      引导语保持可见，弥散光静止 */
-  .summary-duration-hero-copy,
-  .summary-duration-intro {
-    transition: none;
-  }
+    .summary-duration-hero-copy,
+    .summary-duration-intro {
+        transition: none;
+    }
 
-  .summary-duration-aurora::before,
-  .summary-duration-aurora::after {
-    animation: none;
-  }
+    .summary-duration-aurora::before,
+    .summary-duration-aurora::after {
+        animation: none;
+    }
 
-  /* Memories: parallax layers freeze in place, photo light sweep stops */
-  .summary-memory-ghost,
-  .summary-memory-glow,
-  .summary-memory-photo,
-  .summary-memory-quote {
-    transform: none;
-  }
+    /* Memories: parallax layers freeze in place, photo light sweep stops */
+    .summary-memory-ghost,
+    .summary-memory-glow,
+    .summary-memory-photo,
+    .summary-memory-quote {
+        transform: none;
+    }
 
-  .summary-memory-photo-frame::after {
-    animation: none;
-  }
+    .summary-memory-photo-frame::after {
+        animation: none;
+    }
 
-  /* Report chat: message slide-in, card print reveal, bars, thinking pulse */
-  .report-msg-in,
-  .report-card-print,
-  .report-bar,
-  .report-thinking-dot {
-    animation: none;
-  }
+    /* Report chat: message slide-in, card print reveal, bars, thinking pulse */
+    .report-msg-in,
+    .report-card-print,
+    .report-bar,
+    .report-thinking-dot {
+        animation: none;
+    }
 
-  /* 专属歌单卡：黑胶停转、盘面入场与排行行淡入停用 */
-  .summary-playlist-row,
-  .summary-vinyl,
-  .summary-vinyl-disc {
-    animation: none;
-  }
+    /* 专属歌单卡：黑胶停转、盘面入场与排行行淡入停用 */
+    .summary-playlist-row,
+    .summary-vinyl,
+    .summary-vinyl-disc {
+        animation: none;
+    }
 
-  /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识）；
+    /* 岁月留声机：抽出动画停用，听过的唱片静态保持抽出与辉光（静态即可辨识）；
      VU 指针不甩摆，静态停在进度角度，读数直接可见；
      唱片详情覆盖层与信息面板不做入场动画（FLIP 由组件侧跳过），探盘不做位移 */
-  .summary-shelf-spine-pulled,
-  .summary-vu-needle,
-  .summary-vu-readout,
-  .summary-record-backdrop,
-  .summary-record-info {
-    animation: none;
-  }
+    .summary-shelf-spine-pulled,
+    .summary-vu-needle,
+    .summary-vu-readout,
+    .summary-record-backdrop,
+    .summary-record-info {
+        animation: none;
+    }
 
-  .summary-record-disc {
-    transition: none;
-  }
+    .summary-record-disc {
+        transition: none;
+    }
 
-  /* 最小众歌单卡：纸条飘落与追光淡入停用 */
-  .summary-note,
-  .summary-note-spotlight {
-    animation: none;
-  }
+    /* 最小众歌单卡：纸条飘落与追光淡入停用 */
+    .summary-note,
+    .summary-note-spotlight {
+        animation: none;
+    }
 
-  /* 表单页：步骤切换与场次行展开动画停用 */
-  .form-step-in,
-  .form-rows-in {
-    animation: none;
-  }
+    /* 表单页：步骤切换与场次行展开动画停用 */
+    .form-step-in,
+    .form-rows-in {
+        animation: none;
+    }
 
-  /* 星轨共振海报：入场/draw-in/闪烁全部停用，静态终态直接可见；
+    /* 星轨共振海报：入场/draw-in/闪烁全部停用，静态终态直接可见；
      引力波圆环静止为三圈渐淡的同心环 */
-  .share-poster-in,
-  .share-trail-path,
-  .share-node,
-  .share-node-core,
-  .share-gravity-ring {
-    animation: none;
-  }
+    .share-poster-in,
+    .share-trail-path,
+    .share-node,
+    .share-node-core,
+    .share-gravity-ring {
+        animation: none;
+    }
 
-  .share-node {
-    opacity: 1;
-  }
+    .share-node {
+        opacity: 1;
+    }
 
-  .share-trail-path {
-    stroke-dashoffset: 0;
-  }
+    .share-trail-path {
+        stroke-dashoffset: 0;
+    }
 
-  .share-gravity-ring {
-    opacity: 0.3;
-  }
+    .share-gravity-ring {
+        opacity: 0.3;
+    }
 
-  .share-gravity-ring:nth-of-type(2) {
-    opacity: 0.16;
-    transform: scale(1.9);
-  }
+    .share-gravity-ring:nth-of-type(2) {
+        opacity: 0.16;
+        transform: scale(1.9);
+    }
 
-  .share-gravity-ring:nth-of-type(3) {
-    opacity: 0.08;
-    transform: scale(2.8);
-  }
+    .share-gravity-ring:nth-of-type(3) {
+        opacity: 0.08;
+        transform: scale(2.8);
+    }
 
-  /* Guest Planets: float, glow, star drift/twinkle, nebula, meteor */
-  .summary-guest-planet-row,
-  .summary-guest-planet::after,
-  .summary-space-stars,
-  .summary-space-stars-twinkle,
-  .summary-space-bg,
-  .summary-space-shooting-star {
-    animation: none;
-  }
+    /* Guest Planets: float, glow, star drift/twinkle, nebula, meteor */
+    .summary-guest-planet-row,
+    .summary-guest-planet::after,
+    .summary-space-stars,
+    .summary-space-stars-twinkle,
+    .summary-space-bg,
+    .summary-space-shooting-star {
+        animation: none;
+    }
 
-  /* Tailwind utility animations (e.g. animate-bounce, animate-spin) */
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
+    /* Tailwind utility animations (e.g. animate-bounce, animate-spin) */
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }

@@ -25,7 +25,7 @@ export const Route = createRootRoute({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1, user-scalable=no',
       },
-      { title: '5525 Memory' },
+      { title: '5525·你的时空旅行报告' },
     ],
     links: [
       { rel: 'stylesheet', href: indexCss },
