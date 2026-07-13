@@ -81,11 +81,11 @@ export function SummaryCardPlaylist() {
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950" style={{ '--playlist-color': PLAYLIST_COLOR } as CSSProperties}>
-      <div className="shrink-0 px-6 pt-6 pb-3">
+      <div className="shrink-0 px-6 pt-6 pb-4">
         <h3 className="font-title text-white text-xl leading-snug">点歌与安可，替你压成一张时光黑胶。</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+      <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
         <SummaryScrollFadeTop />
         <div className="mb-10 flex flex-col items-center text-center">
           <VinylDisc />

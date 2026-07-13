@@ -180,11 +180,11 @@ export function SummaryCardOverview() {
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
-      <div className="shrink-0 px-6 pt-6 pb-3">
+      <div className="shrink-0 px-6 pt-6 pb-4">
         <h1 className="font-title text-white text-xl leading-snug">5525 巡演时间轴</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+      <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
         <SummaryScrollFadeTop />
         {/* 引导语：把冰冷的日历翻译成「航道 / 坐标 / 光点」的叙事 */}
         <div className="border-zinc-800/80 border-b pb-6">

@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from 'react'
  * while the body is at the top (so it never dims the first content) and fades in
  * only once content has scrolled underneath. Must be rendered as the first child
  * of the `[data-scroll-container]` element — it reads its own parent as the
- * scroller.
+ * scroller. The scroller must not have top padding: sticky pinning anchors below
+ * the scroller's own padding-top, which would leave a gap above the mask.
  */
 export function SummaryScrollFadeTop() {
   const ref = useRef<HTMLDivElement>(null)

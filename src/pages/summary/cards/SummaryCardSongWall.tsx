@@ -521,11 +521,11 @@ export function SummaryCardSongWall({ onDetailOpenChange }: SummaryCardProps) {
       className="flex h-svh flex-col bg-zinc-950"
       style={{ '--wall-color': WALL_COLOR, '--wall-gold': GOLD_COLOR } as CSSProperties}
     >
-      <div className="shrink-0 px-6 pt-6 pb-3">
+      <div className="shrink-0 px-6 pt-6 pb-4">
         <h3 className="font-title text-white text-xl leading-snug">曲库内外，这是你的 5525 岁月留声机。</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+      <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
         <SummaryScrollFadeTop />
         <p className="text-sm text-zinc-400 leading-relaxed">
           五月天曲库收录 <span className="font-geist text-zinc-100">{totalMayday}</span> 首作品，全巡演里还唱过{' '}
