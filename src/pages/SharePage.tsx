@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
+import { toPng } from 'html-to-image'
 import { Copy } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -26,7 +27,9 @@ export function SharePage() {
   const selectedShowIndexes = useSelector(concertStore, (state) => state.selectedShows.map((show) => show.showIndex))
   const nickname = useSelector(concertStore, (state) => state.profile.nickname)
   const passcodeInputRef = useRef<HTMLInputElement>(null)
+  const posterRef = useRef<HTMLDivElement>(null)
   const [restoredShowIndexes, setRestoredShowIndexes] = useState<number[]>([])
+  const [isSavingImage, setIsSavingImage] = useState(false)
   const { data, ready } = useSummaryData()
 
   useEffect(() => {
@@ -63,6 +66,36 @@ export function SharePage() {
     toast({ title: '口令已复制', description: '把它粘贴到其他小程序，即可保存这份回忆。' })
   }
 
+  /** Renders the poster DOM at double density and saves the resulting PNG locally. */
+  async function savePosterImage() {
+    const poster = posterRef.current
+    if (!poster || isSavingImage) return
+
+    setIsSavingImage(true)
+    try {
+      await document.fonts?.ready
+      const dataUrl = await toPng(poster, {
+        cacheBust: true,
+        height: poster.offsetHeight,
+        pixelRatio: 2,
+        width: poster.offsetWidth,
+      })
+      const anchor = document.createElement('a')
+      anchor.download = `5525-memory-${passcode ?? 'poster'}.png`
+      anchor.href = dataUrl
+      anchor.click()
+      toast({ title: '图片已保存', description: '这份星轨纪念品已经生成。' })
+    } catch {
+      toast({
+        title: '图片生成失败',
+        description: '请检查网络后重试，或使用浏览器的截图功能保存海报。',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSavingImage(false)
+    }
+  }
+
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col p-6">
       <div className="mb-5">
@@ -75,6 +108,7 @@ export function SharePage() {
           <SharePoster
             nickname={nickname}
             passcode={passcode}
+            ref={posterRef}
             shows={data.selectedShows}
             signatureSong={signatureSong}
           />
@@ -86,11 +120,13 @@ export function SharePage() {
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
-        <Button className="w-full" disabled size="lg">
-          保存图片
-        </Button>
-        <Button className="w-full" disabled size="lg" variant="outline">
-          分享
+        <Button
+          className="w-full"
+          disabled={!data || data.selectedShows.length === 0 || isSavingImage}
+          onClick={savePosterImage}
+          size="lg"
+        >
+          {isSavingImage ? '正在保存图片…' : '保存图片'}
         </Button>
         <Sheet>
           <SheetTrigger disabled={!passcode} render={<Button className="w-full" size="lg" variant="outline" />}>
