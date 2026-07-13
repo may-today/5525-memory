@@ -50,6 +50,8 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 **远程（生产）D1**：迁移应用方式目前选择手动执行——有权限的人在需要发布时手动跑 `wrangler d1 migrations apply 5525-memory-db --remote`，再 `bun run deploy`。规模变大或发布频率变高后可以再考虑接入 CI 自动化。
 
+**串烧歌曲口径（2026-07-14）**：`item_type = 'medley'` 是多首实际演唱的歌曲；服务端在单次巡演快照的内存聚合边界按半角或全角加号拆开标题、逐首 `trim` 并忽略空项。歌曲总数、专属／最小众／四季排行与 `tourSongs` 都消费这一展开结果，因此音乐墙和九张专辑的听歌覆盖度会把串烧里的每一首正确计入；VCR、talking、互动等非歌曲类型仍不计入。
+
 ### 匿名报告登记与同场统计（2026-07-13）
 
 用户提交场次时（含预热期间的提前填写）会立刻建立匿名登记，不等待统计写入。客户端会将浏览器生成的 UUID 随当前选择持久化到 localStorage，并由提交动作、`/loading` 与 `/summary` 的共享后台任务调用 `registerReportSubmission`；短暂拥堵会以相同 UUID 做三次带抖动退避重试，刷新页面后仍会再次补送。D1 的 `report_submissions` 保存稳定的整数登记序号和 UUID；`report_submission_shows` 为每个已选场次保存一行关联记录。昵称、出发城市与浏览器定位始终只保留在客户端，不进入这两张表。服务端通过 `INSERT OR IGNORE` 和关联表复合主键保证不会重复计数；写入、关联和当次聚合在一个 D1 `batch()` 内完成，失败时整体回滚。概览卡在登记完成后显示全局登记序号，以及所选场次中单场最多的其他匿名报告数；统计允许随之后续报告而变化，不承诺实时刷新。详见 `journey/plans/2026-07-13-report-submission-stats.md`。

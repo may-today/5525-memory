@@ -38,7 +38,7 @@ export interface SummaryRequest {
 export interface SongStats {
   /** 选中场次中出现次数最多的歌曲，按歌曲标题精确分组统计；没有歌曲记录时为 null。 */
   topSong: { title: string; count: number } | null
-  /** 选中场次中 item_type = 'song' 的歌单行总数。 */
+  /** 选中场次中歌曲数；`medley` 歌单行会按加号拆为多首后计入。 */
   totalSongs: number
 }
 
@@ -233,7 +233,7 @@ export interface SummaryData {
   /**
    * 选中场次的随机曲目统计（「专属歌单」卡）。
    *
-   * 口径：item_type = 'song' 且 section = 'request'（点歌）或 section LIKE
+   * 口径：歌曲或串烧拆分后的歌曲，且 section = 'request'（点歌）或 section LIKE
    * 'encore_%'（安可），再按场次 subTheme 排除主题固定曲；主歌单
    * （section = 'main'）不计入。
    */
@@ -262,14 +262,15 @@ export interface SummaryData {
   /**
    * 选中场次的歌曲统计。
    *
-   * 从 setlist_items 中筛选 show_id 属于请求场次 id 且 item_type = 'song' 的记录计算。
-   * 安可歌曲会被计入；VCR、talking、互动、嘉宾标记等非歌曲行会被排除。
+   * 从 setlist_items 中筛选 show_id 属于请求场次 id 的歌曲记录计算；`medley`
+   * 会按加号拆分并去除首尾空白。安可歌曲会被计入；VCR、talking、互动、嘉宾
+   * 标记等非歌曲行会被排除。
    */
   songStats: SongStats
   /**
    * 全巡演实际演唱过的去重歌曲，每首附带在所有场次中的出现记录。
    *
-   * 只统计 item_type = 'song'；匹配时会忽略演出装饰、标点与空白差异。
+   * 统计 item_type = 'song' 与拆分后的 `medley`；匹配时会忽略演出装饰、标点与空白差异。
    * 五月天歌曲排在前，随后是按标题排序的惊喜歌曲；每首歌的 appearances
    * 记录该曲目出现过的场次、在该场所属的歌单段落，以及用户是否听过这场。
    */
@@ -344,11 +345,12 @@ function getOriginCoordinates(city: string, coordinates: LocationCoordinates | n
 }
 
 /**
- * Whether a setlist row counts toward "songs heard". This INCLUDES encore
- * songs and EXCLUDES medley/vcr/talking/event/special_guest/interaction rows.
+ * Whether a setlist row contains one or more performed songs. This includes
+ * encore songs and medleys, but excludes vcr/talking/event/special_guest/
+ * interaction rows.
  */
 function isSong(item: SummarySetlistItem): boolean {
-  return item.itemType === 'song'
+  return item.itemType === 'song' || item.itemType === 'medley'
 }
 
 /** How many ranked entries the playlist card shows. */
@@ -375,6 +377,7 @@ const RARE_SONG_RANK_LIMIT = 7
 const SONG_DECORATION_PATTERN = /\p{Extended_Pictographic}|\uFE0F/gu
 const SONG_FEATURING_SUFFIX_PATTERN = /\s+ft\..*$/iu
 const SONG_WHITESPACE_PATTERN = /\s+/g
+const MEDLEY_SONG_SEPARATOR_PATTERN = /[+＋]/
 const SONG_COMPARISON_NOISE_PATTERN = /[\p{P}\p{Z}]/gu
 const SONG_PARENTHESES_PATTERN = /[（(]/
 /** Known setlist spelling and event-label variants that belong to 五月天 catalog songs. */
@@ -412,9 +415,32 @@ function countTitles(items: SummarySetlistItem[]): Map<string, number> {
   return counts
 }
 
+/**
+ * Flattens song-bearing setlist rows into individual songs. A regular `song`
+ * stays intact; a `medley` splits on either plus sign and discards blank parts.
+ */
+function expandSongItems(items: SummarySetlistItem[]): SummarySetlistItem[] {
+  const songs: SummarySetlistItem[] = []
+
+  for (const item of items) {
+    if (!isSong(item)) continue
+    if (item.itemType === 'song') {
+      songs.push(item)
+      continue
+    }
+
+    for (const title of item.title.split(MEDLEY_SONG_SEPARATOR_PATTERN)) {
+      const trimmedTitle = title.trim()
+      if (trimmedTitle) songs.push({ ...item, title: trimmedTitle })
+    }
+  }
+
+  return songs
+}
+
 /** Builds the songs-heard card statistics from the complete in-memory snapshot. */
 function buildSongStats(items: SummarySetlistItem[]): SongStats {
-  const songs = items.filter(isSong)
+  const songs = expandSongItems(items)
   const entries = [...countTitles(songs)].map(([title, count]) => ({ title, count }))
   entries.sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))
 
@@ -474,9 +500,7 @@ function buildTourSongs(
     if (!catalogByBaseTitleKey.has(baseTitleKey)) catalogByBaseTitleKey.set(baseTitleKey, song)
   }
 
-  for (const item of items) {
-    if (!isSong(item)) continue
-
+  for (const item of expandSongItems(items)) {
     const titleKey = getCanonicalSongTitleKey(item.title)
     const song = catalogByTitleKey.get(titleKey) ?? catalogByBaseTitleKey.get(titleKey)
     const appearanceKey = song ? `mayday:${song.slug}` : `surprise:${titleKey}`
@@ -522,7 +546,7 @@ function buildTourSongs(
 
 /** Builds the playlist-card ranking from the complete in-memory snapshot. */
 function buildRandomSongStats(items: SummarySetlistItem[], showsById: Map<number, Show>): RandomSongStats {
-  const randomSongs = items.filter((item) => isRandomSong(item, showsById))
+  const randomSongs = expandSongItems(items).filter((item) => isRandomSong(item, showsById))
   const entries = [...countTitles(randomSongs)]
     .map(([title, count]) => ({ title, count }))
     .sort((a, b) => b.count - a.count || compareTitles(a.title, b.title))
@@ -560,7 +584,7 @@ function buildSeasonalSongStats(
   showsById: Map<number, Show>
 ): SeasonalSongStats {
   const countsBySeason = SEASON_MONTH_GROUPS.map(() => new Map<string, number>())
-  for (const item of items) {
+  for (const item of expandSongItems(items)) {
     if (!isRandomSong(item, showsById)) continue
     const show = showsById.get(item.showId)
     if (!show) continue
@@ -595,11 +619,12 @@ function buildRareSongStats(
   selectedShowIds: Set<number>,
   showsById: Map<number, Show>
 ): RareSongStats {
-  const tourCounts = countTitles(allItems.filter((item) => isRandomSong(item, showsById)))
+  const randomSongs = expandSongItems(allItems).filter((item) => isRandomSong(item, showsById))
+  const tourCounts = countTitles(randomSongs)
   const heardByTitle = new Map<string, { heardCount: number; heardCity: string; heardDate: string }>()
 
-  for (const item of allItems) {
-    if (!(selectedShowIds.has(item.showId) && isRandomSong(item, showsById))) continue
+  for (const item of randomSongs) {
+    if (!selectedShowIds.has(item.showId)) continue
 
     const show = showsById.get(item.showId)
     if (!show) continue
