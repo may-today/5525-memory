@@ -8,6 +8,7 @@ import { flushPendingReportSubmission } from '@/lib/report-submission-client'
 import { SummaryCardCity } from './cards/SummaryCardCity'
 import { SummaryCardDuration } from './cards/SummaryCardDuration'
 import { SummaryCardGuests } from './cards/SummaryCardGuests'
+import { SummaryCardAlbumProgress } from './cards/SummaryCardAlbumProgress'
 import { SummaryCardMemories } from './cards/SummaryCardMemories'
 import { SummaryCardOverview } from './cards/SummaryCardOverview'
 import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
@@ -21,6 +22,7 @@ const CARDS: React.ComponentType<SummaryCardProps>[] = [
   SummaryCardDuration,
   SummaryCardCity,
   SummaryCardSongWall,
+  SummaryCardAlbumProgress,
   SummaryCardPlaylist,
   SummaryCardRareSongs,
   SummaryCardGuests,
