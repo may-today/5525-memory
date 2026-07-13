@@ -279,11 +279,7 @@ export function SummaryCardMemories() {
               全部回忆
             </button>
           </div>
-          <h3 className="font-bold text-3xl text-white leading-snug">
-            有些瞬间，
-            <br />
-            散场后还亮着。
-          </h3>
+          <h3 className="font-title text-white text-xl leading-snug">有些瞬间，散场后还亮着。</h3>
           <p className="mt-3 text-sm text-zinc-400">{intro}</p>
         </header>
 

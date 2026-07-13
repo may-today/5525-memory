@@ -209,7 +209,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
         className="summary-duration-intro pointer-events-none absolute inset-x-0 top-0 px-6 pt-6"
         data-hidden={!isIntroVisible || undefined}
       >
-        <h3 className="font-bold text-white text-xl">耳机里的少年，已经唱了 25 年。</h3>
+        <h3 className="font-title text-white text-xl leading-snug">耳机里的少年，已经唱了 25 年。</h3>
         <p className="mt-2 text-sm text-zinc-400">这一趟疯狂世界，你又是何时跳上了这班列车？</p>
         {hasShows && (
           <p className="mt-2 text-sm text-zinc-500">拉开时光机的舱门，轻轻往下拨动，开启你的 5525 穿梭航线。</p>
@@ -221,13 +221,13 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
           className="summary-duration-hero-copy pointer-events-none absolute inset-x-0 top-[58%] -translate-y-1/2 px-6 text-center"
           data-visible={isNumberVisible || undefined}
         >
-          <p className="font-wjh text-sm text-zinc-300">穿过漫长星轨，在 5525 的时空里</p>
-          <p className="mt-1 font-wjh text-sm text-zinc-300">你与五月天陪伴了</p>
+          <p className="text-sm text-zinc-300">穿过漫长星轨，在 5525 的时空里</p>
+          <p className="mt-1 text-sm text-zinc-300">你与五月天陪伴了</p>
           <p className="mt-4">
             <span className="summary-duration-number text-[64px] leading-none" ref={numberRef}>
               {formattedMinutes}
             </span>
-            <span className="ml-2 font-wjh text-lg text-zinc-300">分钟</span>
+            <span className="ml-2 text-lg text-zinc-300">分钟</span>
           </p>
           <p className="mt-4 font-mono text-xs text-zinc-500">
             ≈ {totalHours} 小时 · {showCount} 场
@@ -235,7 +235,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
         </div>
       ) : (
         <div className="pointer-events-none absolute inset-x-0 top-[74%] px-6 text-center">
-          <h3 className="font-bold text-white text-xl">时光机还停在原地</h3>
+          <h3 className="font-title text-white text-xl">时光机还停在原地</h3>
           <p className="mt-3 text-sm text-zinc-400">选好你去过的场次，属于你的穿梭航线才会亮起。</p>
         </div>
       )}
@@ -273,7 +273,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
                   side="bottom"
                 >
                   <SheetHeader className="border-white/10 border-b px-5 pt-6 pb-4">
-                    <SheetTitle className="text-xl text-zinc-100">每一场的时长</SheetTitle>
+                    <SheetTitle className="font-title text-xl text-zinc-100">每一场的时长</SheetTitle>
                     <SheetDescription className="text-zinc-500">
                       按场次日期排列 · 共 {entries.length} 场
                     </SheetDescription>

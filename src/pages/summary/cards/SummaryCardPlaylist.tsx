@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 
 import type { RandomSongEntry } from '@/server/summary'
+import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
 import { useSummaryDataContext } from '../summary-data-context'
 
 /** Single accent hue for the vinyl label and hero glow — the brand orange shared with the Overview card. */
@@ -67,7 +68,7 @@ export function SummaryCardPlaylist() {
     return (
       <div className="flex h-svh flex-col bg-zinc-950">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 pb-24 text-center">
-          <h3 className="font-bold text-white text-xl">你的黑胶还是一张空白母盘</h3>
+          <h3 className="font-title text-white text-xl">你的黑胶还是一张空白母盘</h3>
           <p className="text-sm text-zinc-400">
             {overview.totalShows > 0
               ? '这些场次还没有留下点歌与安可的记录。'
@@ -80,11 +81,12 @@ export function SummaryCardPlaylist() {
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950" style={{ '--playlist-color': PLAYLIST_COLOR } as CSSProperties}>
-      <div className="shrink-0 px-6 pt-6">
-        <h3 className="font-bold text-white text-xl">点歌与安可，替你压成一张时光黑胶。</h3>
+      <div className="shrink-0 px-6 pt-6 pb-3">
+        <h3 className="font-title text-white text-xl leading-snug">点歌与安可，替你压成一张时光黑胶。</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-8 pb-24" data-scroll-container>
+      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+        <SummaryScrollFadeTop />
         <div className="mb-10 flex flex-col items-center text-center">
           <VinylDisc />
           <p className="mt-8 text-xs text-zinc-500">你的常驻曲</p>

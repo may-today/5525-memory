@@ -158,6 +158,37 @@
     font-family: "ChillDINGothic Std", sans-serif;
 }
 
+/* 统计卡「固定标题 + 页内滚动」的平滑边界：滚动容器顶部的 sticky 渐变遮罩，
+   让上滑内容在标题下自然淡出，避免标题区与主体区之间出现硬切割线。
+   用负外边距抵消自身高度，不占布局空间、只做叠加遮罩。 */
+.summary-scroll-fade-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 1.5rem;
+    margin: 0 -1.5rem -1.5rem;
+    pointer-events: none;
+    background: linear-gradient(to bottom, #09090b 15%, rgba(9, 9, 11, 0));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* 只有当主体已从顶部滚下去时才淡入遮罩，避免在 scrollTop=0 时压住内容顶部。 */
+.summary-scroll-fade-top[data-visible] {
+    opacity: 1;
+}
+
+/* 城市卡：地球区 → 底部信息面板的柔化遮罩，替代硬 border-t。 */
+.summary-city-panel-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 3rem;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(9, 9, 11, 0), #09090b);
+}
+
 .cover-background-strip {
     display: flex;
     width: max-content;

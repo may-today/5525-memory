@@ -263,19 +263,20 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
 
         {travel && mileage !== null && (
           <div className="summary-globe-travel-copy px-6 pt-1" data-visible={isCopyVisible || undefined}>
-            <p className="summary-travel-line font-wjh text-sm text-white leading-relaxed">
+            <p className="summary-travel-line text-sm text-white leading-relaxed">
               那一天，你从{departureCity ?? '家'}出发，跨越了{' '}
               <span className="summary-travel-distance">{mileage.toLocaleString('en-US')}</span>
               {' 公里，只为了奔赴那一角蓝色的海。'}
             </p>
-            <p className="summary-travel-line mt-1.5 font-wjh text-xs text-zinc-400 leading-relaxed">
+            <p className="summary-travel-line mt-1.5 text-xs text-zinc-400 leading-relaxed">
               你走过的所有路，都变成了舞台上亮起的逆风光。
             </p>
           </div>
         )}
       </div>
 
-      <div className="z-20 shrink-0 border-zinc-800 border-t bg-zinc-950 px-6 pt-4 pb-8">
+      <div className="relative z-20 shrink-0 bg-zinc-950 px-6 pt-4 pb-8">
+        <div aria-hidden className="summary-city-panel-fade" />
         <div className="summary-city-strip -mx-6 mb-4 px-6" ref={stripRef}>
           {markers.map((m, i) => (
             <button

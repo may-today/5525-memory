@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 
 import type { RareSongEntry } from '@/server/summary'
+import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
 import { useSummaryDataContext } from '../summary-data-context'
 
 /** Single accent hue for the washi tape, seal and spotlight — the brand orange shared with the vinyl card. */
@@ -58,7 +59,7 @@ export function SummaryCardRareSongs() {
     return (
       <div className="flex h-svh flex-col bg-zinc-950">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 pb-24 text-center">
-          <h3 className="font-bold text-white text-xl">纸条箱里还是空的</h3>
+          <h3 className="font-title text-white text-xl">纸条箱里还是空的</h3>
           <p className="text-sm text-zinc-400">
             {overview.totalShows > 0
               ? '这些场次还没有留下点歌与安可的记录。'
@@ -71,11 +72,12 @@ export function SummaryCardRareSongs() {
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950" style={{ '--rare-color': RARE_COLOR } as CSSProperties}>
-      <div className="shrink-0 px-6 pt-6">
-        <h3 className="font-bold text-white text-xl">全巡演最少被唱的歌，偏偏被你撞见。</h3>
+      <div className="shrink-0 px-6 pt-6 pb-3">
+        <h3 className="font-title text-white text-xl leading-snug">全巡演最少被唱的歌，偏偏被你撞见。</h3>
       </div>
 
-      <div className="relative flex-1 overflow-y-auto px-6 pt-8 pb-24" data-scroll-container>
+      <div className="relative flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+        <SummaryScrollFadeTop />
         <div aria-hidden className="summary-note-spotlight" />
 
         <div className="relative flex flex-col items-center text-center">

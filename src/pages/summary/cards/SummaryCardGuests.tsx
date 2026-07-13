@@ -131,7 +131,7 @@ export function SummaryCardGuests() {
             <span aria-hidden="true" className="summary-guest-planet-ring" />
           </div>
           <div className="text-center">
-            <h3 className="mb-2 font-bold text-white text-xl">这一年你没有撞见特别嘉宾</h3>
+            <h3 className="mb-2 font-title text-white text-xl">这一年你没有撞见特别嘉宾</h3>
             <p className="text-sm text-zinc-400">但台上的五个人，已经是一颗足够完整的星球。</p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export function SummaryCardGuests() {
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-zinc-950">
       <SpaceBackground />
-      <h3 className="relative shrink-0 px-6 font-bold text-white text-xl">
+      <h3 className="relative shrink-0 px-6 pt-6 font-title text-white text-xl leading-snug">
         在 5525 的多重宇宙里，有些星球你只撞见过一次。
       </h3>
       <p className="relative mt-2 shrink-0 px-6 text-sm text-zinc-400">今年，有 {planets.length} 位嘉宾与你同场。</p>

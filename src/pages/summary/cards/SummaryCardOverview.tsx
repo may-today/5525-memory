@@ -9,6 +9,7 @@ import {
 } from '@/components/kibo-ui/contribution-graph'
 import { concertStore } from '@/stores/concert-store'
 import type { Show } from '@/types'
+import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
 import { useSummaryDataContext } from '../summary-data-context'
 
 const YEARS = ['2023', '2024', '2025', '2026'] as const
@@ -179,12 +180,12 @@ export function SummaryCardOverview() {
 
   return (
     <div className="flex h-svh flex-col bg-zinc-950">
-      <div className="shrink-0 px-6 pt-9 pb-3">
-        <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Timeline · 时间航道</p>
-        <h1 className="mt-2 font-bold text-2xl text-white tracking-tight">5525 巡演时间轴</h1>
+      <div className="shrink-0 px-6 pt-6 pb-3">
+        <h1 className="font-title text-white text-xl leading-snug">5525 巡演时间轴</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-24" data-scroll-container>
+      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-24" data-scroll-container>
+        <SummaryScrollFadeTop />
         {/* 引导语：把冰冷的日历翻译成「航道 / 坐标 / 光点」的叙事 */}
         <div className="border-zinc-800/80 border-b pb-6">
           <p className="text-sm text-zinc-400 leading-relaxed">
