@@ -125,7 +125,7 @@ function DurationTimeline({ entries }: { entries: DurationShowEntry[] }) {
 }
 
 export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
-  const { durationStats } = useSummaryDataContext()
+  const { durationStats, songStats } = useSummaryDataContext()
   const { entries, fallbackCount, totalMinutes } = durationStats
   const showCount = entries.length + fallbackCount
   const hasShows = showCount > 0
@@ -229,9 +229,7 @@ export function SummaryCardDuration({ isPaused = false }: SummaryCardProps) {
             </span>
             <span className="ml-2 text-lg text-zinc-300">分钟</span>
           </p>
-          <p className="mt-4 font-mono text-xs text-zinc-500">
-            ≈ {totalHours} 小时 · {showCount} 场
-          </p>
+          <p className="mt-4 font-mono text-xs text-zinc-500">唱过 {songStats.totalSongs} 首歌</p>
         </div>
       ) : (
         <div className="pointer-events-none absolute inset-x-0 top-[74%] px-6 text-center">
