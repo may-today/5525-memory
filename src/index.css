@@ -2180,6 +2180,64 @@
     }
 }
 
+/* /share 操作区「深空控制台」：主操作是低透明星光蓝 + 辉光，次操作是
+   极淡玻璃 hairline，替代默认 shadcn 白色实心块以贴合海报的深空氛围。
+   背景与 hover 统一收在这里管理（非分层 CSS 稳定压过 Button 变体的
+   Tailwind hover 工具类，避免互相覆盖）。 */
+.share-action-primary {
+    color: #e0f2fe;
+    background-color: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.42);
+    box-shadow: 0 0 28px -8px rgba(56, 189, 248, 0.5);
+}
+
+.share-action-primary:hover {
+    color: #f0f9ff;
+    background-color: rgba(56, 189, 248, 0.2);
+}
+
+.share-action-secondary {
+    color: #d4d4d8;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.share-action-secondary:hover {
+    color: #f4f4f5;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 「特别企划」入口：/report 不是本页的保存操作，而是一档特别企划——
+   用星轨三个子主题色（5525 粉 / 5525+1 蓝 / 5525+2 橙）连成一圈
+   hairline 渐变描边作为标记，内底是带极淡星云染色的深空玻璃。
+   padding-box 层自上而下：两团角落染色 → 不透明深底；border-box
+   渐变垫底，只从 1px 边框缝隙透出。 */
+.share-plan-entry {
+    background:
+        radial-gradient(120% 150% at 88% 0%,
+            rgba(56, 189, 248, 0.09),
+            transparent 55%) padding-box,
+        radial-gradient(120% 150% at 6% 100%,
+            rgba(244, 114, 182, 0.07),
+            transparent 55%) padding-box,
+        linear-gradient(#0d0d10, #0d0d10) padding-box,
+        linear-gradient(120deg,
+            rgba(244, 114, 182, 0.55),
+            rgba(56, 189, 248, 0.55) 52%,
+            rgba(251, 146, 60, 0.55)) border-box;
+    border: 1px solid transparent;
+    transition: box-shadow 0.3s;
+}
+
+.share-plan-entry:hover {
+    box-shadow: 0 0 30px -10px rgba(56, 189, 248, 0.35);
+}
+
+.share-plan-entry:focus-visible {
+    outline: 1px solid var(--ring);
+    outline-offset: 2px;
+}
+
 /* ============================================================
    专辑解锁进度卡「创作年表」（summary-tl-*）
    一根 hairline 时间线从 1999 划到 2016，九张专辑作为站点交替

@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useSelector } from '@tanstack/react-store'
 import { toPng } from 'html-to-image'
-import { Copy } from 'lucide-react'
+import { ArrowRight, Copy } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -121,7 +121,7 @@ export function SharePage() {
 
       <div className="mt-6 flex flex-col gap-3">
         <Button
-          className="w-full"
+          className="share-action-primary w-full"
           disabled={!data || data.selectedShows.length === 0 || isSavingImage}
           onClick={savePosterImage}
           size="lg"
@@ -129,7 +129,10 @@ export function SharePage() {
           {isSavingImage ? '正在保存图片…' : '保存图片'}
         </Button>
         <Sheet>
-          <SheetTrigger disabled={!passcode} render={<Button className="w-full" size="lg" variant="outline" />}>
+          <SheetTrigger
+            disabled={!passcode}
+            render={<Button className="share-action-secondary w-full" size="lg" variant="outline" />}
+          >
             将场次保存到...
           </SheetTrigger>
           <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
@@ -149,9 +152,20 @@ export function SharePage() {
             </SheetFooter>
           </SheetContent>
         </Sheet>
-        <Button className="w-full" onClick={() => navigate({ to: '/report' })} size="lg" variant="outline">
-          你的专属报告
-        </Button>
+        <button
+          className="share-plan-entry group mt-1 flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+          onClick={() => navigate({ to: '/report' })}
+          type="button"
+        >
+          <span className="flex min-w-0 flex-col gap-1">
+            <span className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">Special Project · 特别企划</span>
+            <span className="font-medium text-sm text-zinc-100">5525数据电台 · 你的专属报告</span>
+          </span>
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-zinc-500 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-200"
+          />
+        </button>
         <button
           className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4"
           onClick={() => navigate({ to: '/summary' })}
