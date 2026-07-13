@@ -1158,18 +1158,6 @@
     text-shadow: 0 0 28px color-mix(in oklab, var(--report-color), transparent 45%);
 }
 
-/* Keep the report scroller's top fade flush with the fixed page header. */
-.report-page-header::after {
-    position: absolute;
-    right: 0;
-    bottom: -1rem;
-    left: 0;
-    height: 1rem;
-    pointer-events: none;
-    content: '';
-    background: linear-gradient(to bottom, rgb(9 9 11 / 0.92), transparent);
-}
-
 /* Rank bars grow left-to-right after the print reveal has passed them. */
 .report-bar {
     transform-origin: left center;

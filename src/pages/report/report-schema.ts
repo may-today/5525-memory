@@ -68,5 +68,4 @@ export const REPORT_SUGGESTIONS = [
   '我遇见过哪些嘉宾',
 ]
 
-export const REPORT_GREETING =
-  '我是 5525 数据电台。关于你这一年的巡演记录，想知道点什么？试试下面的问题，或者自己问一个。'
+export const REPORT_GREETING = '我是 5525 数据电台。关于你的巡演记录，想知道点什么？试试下面的问题，或者自己问一个。'

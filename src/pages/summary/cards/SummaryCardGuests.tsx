@@ -131,7 +131,7 @@ export function SummaryCardGuests() {
             <span aria-hidden="true" className="summary-guest-planet-ring" />
           </div>
           <div className="text-center">
-            <h3 className="mb-2 font-title text-white text-xl">这一年你没有撞见特别嘉宾</h3>
+            <h3 className="mb-2 font-title text-white text-xl">你没有撞见特别嘉宾</h3>
             <p className="text-sm text-zinc-400">但台上的五个人，已经是一颗足够完整的星球。</p>
           </div>
         </div>

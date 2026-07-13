@@ -105,6 +105,7 @@ function ThinkingSteps({ steps, tools }: { steps: string[]; tools: ToolCallPart[
 export function ReportPage() {
   const navigate = useNavigate()
   const [draft, setDraft] = useState('')
+  const [hasScrolled, setHasScrolled] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const selectedShows = useSelector(concertStore, (state) => state.selectedShows)
   const selectedShowIds = useMemo(
@@ -125,9 +126,11 @@ export function ReportPage() {
 
   // Keep the newest message and each streaming update in view.
   useEffect(() => {
+    if (messages.length === 0) return
+
     const el = scrollRef.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  })
+  }, [messages])
 
   async function ask(question: string) {
     const trimmed = question.trim()
@@ -142,7 +145,9 @@ export function ReportPage() {
       <div aria-hidden="true" className="summary-space-bg" />
       <div aria-hidden="true" className="summary-space-stars" />
 
-      <header className="report-page-header relative z-10 flex shrink-0 items-center gap-3 px-4 pt-5 pb-3">
+      <header
+        className={`relative z-10 flex shrink-0 items-center gap-3 border-b px-4 pt-5 pb-3 ${hasScrolled ? 'border-white/5' : 'border-transparent'}`}
+      >
         <button
           aria-label="返回"
           className="flex size-8 items-center justify-center rounded-full border border-white/10 text-zinc-400 transition-colors hover:border-white/25 hover:text-zinc-200"
@@ -157,7 +162,11 @@ export function ReportPage() {
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1 overflow-y-auto px-4 pb-4" ref={scrollRef}>
+      <div
+        className="relative min-h-0 flex-1 overflow-y-auto px-4 pb-4"
+        onScroll={(event) => setHasScrolled(event.currentTarget.scrollTop > 0)}
+        ref={scrollRef}
+      >
         <div className="flex flex-col gap-4">
           <div className="report-msg-in max-w-[85%] rounded-2xl rounded-bl-md border border-white/10 bg-zinc-900/60 px-4 py-3">
             <p className="text-sm text-zinc-200 leading-relaxed">{REPORT_GREETING}</p>
@@ -236,7 +245,7 @@ export function ReportPage() {
             className="min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-600"
             enterKeyHint="send"
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="问一个关于你这一年的统计…"
+            placeholder="问一个关于巡演的统计…"
             value={draft}
           />
           <button
