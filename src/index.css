@@ -46,7 +46,6 @@
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
 }
-
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -176,17 +175,6 @@
 /* 只有当主体已从顶部滚下去时才淡入遮罩，避免在 scrollTop=0 时压住内容顶部。 */
 .summary-scroll-fade-top[data-visible] {
     opacity: 1;
-}
-
-/* 城市卡：地球区 → 底部信息面板的柔化遮罩，替代硬 border-t。 */
-.summary-city-panel-fade {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
-    height: 3rem;
-    pointer-events: none;
-    background: linear-gradient(to bottom, rgba(9, 9, 11, 0), #09090b);
 }
 
 .cover-background-strip {
@@ -349,66 +337,6 @@
     fill: #ffffff;
 }
 
-/* 城市胶片条：横向滚动浏览全部巡演城市，两侧渐隐暗示更多内容，滚动条隐藏。 */
-.summary-city-strip {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(to right,
-            transparent,
-            black 20px,
-            black calc(100% - 20px),
-            transparent);
-    mask-image: linear-gradient(to right,
-            transparent,
-            black 20px,
-            black calc(100% - 20px),
-            transparent);
-}
-
-.summary-city-strip::-webkit-scrollbar {
-    display: none;
-}
-
-.summary-city-chip {
-    flex: none;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.75rem;
-    color: #71717a;
-    white-space: nowrap;
-    cursor: pointer;
-    background: transparent;
-    border: 1px solid #27272a;
-    border-radius: 9999px;
-    transition:
-        color 0.2s,
-        background-color 0.2s,
-        border-color 0.2s;
-}
-
-/* 用户去过的城市：白色文字 + 蓝色光点前缀，与星轨同色。 */
-.summary-city-chip[data-visited] {
-    color: #ffffff;
-}
-
-.summary-city-chip[data-visited]::before {
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    margin-right: 5px;
-    vertical-align: 1px;
-    content: "";
-    background: #38bdf8;
-    border-radius: 9999px;
-    box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
-}
-
-.summary-city-chip[data-active] {
-    background: #18181b;
-    border-color: #52525b;
-}
-
 /* 用户出发点的蓝色电波：两圈错峰扩散的脉冲环，锚定在 cobe 的 origin marker 上。 */
 .summary-globe-origin-pulse {
     position: absolute;
@@ -454,39 +382,30 @@
     }
 }
 
-/* 奔波距离文案：弧线全部抵达后两行先后淡入，覆盖在地球上方的暗部区域。 */
-.summary-globe-travel-copy {
+/* cobe 为每个 marker 暴露 anchor 与正面可见度变量；标签只在点位转向可见半球时出现。 */
+.summary-globe-marker-label {
     position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    z-index: 3;
-    text-shadow: 0 1px 8px rgba(9, 9, 11, 0.9);
+    top: anchor(bottom);
+    left: anchor(center);
+    z-index: 2;
+    max-width: 5.5rem;
+    overflow: hidden;
+    color: #a1a1aa;
+    font-size: 0.625rem;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     pointer-events: none;
+    text-shadow: 0 1px 5px #09090b, 0 0 8px #09090b;
+    translate: -50% 4px;
+    transition: opacity 0.25s ease;
 }
 
-.summary-travel-line {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-        opacity 1.4s ease,
-        transform 1.4s ease;
-}
-
-.summary-globe-travel-copy[data-visible] .summary-travel-line {
-    opacity: 1;
-    transform: none;
-}
-
-.summary-globe-travel-copy[data-visible] .summary-travel-line+.summary-travel-line {
-    transition-delay: 1.2s;
-}
-
-.summary-travel-distance {
-    font-family: "Doto", monospace;
-    font-weight: 700;
-    color: #38bdf8;
-    text-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+.summary-globe-marker-label[data-visited] {
+    color: #e0f2fe;
+    font-weight: 600;
+    text-shadow: 0 1px 5px #09090b, 0 0 9px rgba(56, 189, 248, 0.7);
 }
 
 /* 时长统计卡背景「多巴胺弥散光」：三团巡演子主题色（5525 粉 / 5525+1 蓝 /
