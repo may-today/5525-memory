@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useSelector } from "@tanstack/react-store";
 import { toPng } from "html-to-image";
-import { ArrowRight, Copy } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, CalendarClock, Copy } from "lucide-react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import wmbkQr from "@/assets/logo/wmbk-qr.webp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,21 @@ import { encodeShowPasscode } from "@/lib/show-passcode";
 import { concertStore, getPersistedShowIndexes } from "@/stores/concert-store";
 import { SharePoster } from "./share/SharePoster";
 
+const PORTAL_LAUNCH_AT = Date.parse("2026-07-17T19:00:00+08:00");
+
+function formatPortalCountdown(now: number): string {
+	const remainingMilliseconds = PORTAL_LAUNCH_AT - now;
+	if (remainingMilliseconds <= 0) return "预约现已开启";
+
+	const remainingSeconds = Math.ceil(remainingMilliseconds / 1000);
+	const days = Math.floor(remainingSeconds / 86_400);
+	const hours = Math.floor((remainingSeconds % 86_400) / 3600);
+	const minutes = Math.floor((remainingSeconds % 3600) / 60);
+	const seconds = remainingSeconds % 60;
+
+	return `${days}天 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 export function SharePage() {
 	const navigate = useNavigate();
 	const { toast } = useToast();
@@ -33,11 +48,15 @@ export function SharePage() {
 	const posterRef = useRef<HTMLDivElement>(null);
 	const [restoredShowIndexes, setRestoredShowIndexes] = useState<number[]>([]);
 	const [isSavingImage, setIsSavingImage] = useState(false);
+	const [now, setNow] = useState(0);
 	const { data, ready } = useSummaryData();
 
 	useEffect(() => {
 		markSharePageVisited();
 		setRestoredShowIndexes(getPersistedShowIndexes());
+		setNow(Date.now());
+		const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
+		return () => window.clearInterval(intervalId);
 	}, []);
 
 	const passcode = useMemo(() => {
@@ -111,6 +130,18 @@ export function SharePage() {
 		}
 	}
 
+	function showPortalBookingNotice() {
+		toast({
+			title: "任意门启航版",
+			description:
+				now >= PORTAL_LAUNCH_AT
+					? "预约入口即将接入。"
+					: "预约将于 7 月 17 日晚上 7:00 开启。",
+		});
+	}
+
+	const portalCountdown = now === 0 ? "倒计时加载中" : formatPortalCountdown(now);
+
 	return (
 		<div className="mx-auto flex min-h-svh w-full max-w-md flex-col p-6">
 			<div className="mb-5">
@@ -140,6 +171,18 @@ export function SharePage() {
 			</div>
 
 			<div className="mt-6 flex flex-col gap-3">
+				<div
+					className="flex flex-col gap-2"
+					style={{ "--starlight": "#fb923c" } as CSSProperties}
+				>
+					<p className="text-center font-mono text-[11px] text-orange-200/80 tracking-[0.16em]">
+						距 7/17 19:00 {portalCountdown}
+					</p>
+					<Button className="w-full" onClick={showPortalBookingNotice} size="lg" variant="starlight">
+						<CalendarClock data-icon="inline-start" />
+						预约 任意门启航版
+					</Button>
+				</div>
 				<Button
 					className="w-full"
 					disabled={!data || data.selectedShows.length === 0 || isSavingImage}
