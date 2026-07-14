@@ -194,7 +194,7 @@ export function SharePage() {
 									<div className="flex min-w-0 flex-col gap-1">
 										<h3 className="font-medium text-sm">小程序 五迷百科</h3>
 										<p className="text-muted-foreground text-xs leading-5">
-											属于WMLS的五月天数据库：五月天演唱会歌单/公益数据/唱片标记/获奖记录，五迷自定义物料生成
+											属于WMLS的五月天数据库：五月天演唱会歌单/公益数据/唱片标记/获奖记录/Talking记录，五迷自定义物料生成
 										</p>
 										<p className="text-muted-foreground text-[10px] leading-5 bg-accent border px-1">
 											在 我的-导入场次 输入口令导入
