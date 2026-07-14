@@ -64,7 +64,10 @@ function buildCityGroups(allShows: Show[]): CityGroup[] {
   for (const g of groups) {
     g.shows.sort((a, b) => a.showDate.localeCompare(b.showDate))
   }
-  groups.sort((a, b) => a.shows[0].showDate.localeCompare(b.shows[0].showDate))
+  groups.sort(
+    (a, b) =>
+      b.shows.length - a.shows.length || a.shows[0].showDate.localeCompare(b.shows[0].showDate)
+  )
   return groups
 }
 
@@ -447,11 +450,11 @@ export function FormPage() {
         }
         eyebrow="Time Coordinates"
         step={2}
-        subtitle={`按巡演时间线排列 · 共 ${CITY_GROUPS.length} 座城市 ${allShows.length} 场`}
+        subtitle={`按场次数量排列 · 共 ${CITY_GROUPS.length} 座城市 ${allShows.length} 场`}
         title="你去过哪几场？"
       />
 
-      {/* City accordion list — cities follow the tour route (first-show order). */}
+      {/* City accordion list — cities are ordered by show count, then first-show date. */}
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4">
         {CITY_GROUPS.map((group) => {
           const isExpanded = expandedCities.has(group.city)
