@@ -231,6 +231,16 @@ export function clearSelectedShows(): void {
   concertStore.setState((state) => ({ ...state, reportSubmission: null, reportSubmissionId: null, selectedShows: [] }))
 }
 
+/** Replace the global concert selection with a validated set of shows. */
+export function replaceSelectedShows(selectedShows: Show[]): void {
+  concertStore.setState((state) => ({
+    ...state,
+    reportSubmission: null,
+    reportSubmissionId: null,
+    selectedShows,
+  }))
+}
+
 /** Persist the server-confirmed anonymous registration associated with the current selection. */
 export function saveReportSubmission(reportSubmission: ReportSubmissionStats): void {
   concertStore.setState((state) => ({ ...state, reportSubmission, reportSubmissionId: reportSubmission.submissionId }))

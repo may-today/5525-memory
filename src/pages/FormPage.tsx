@@ -6,16 +6,27 @@ import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { useToast } from '@/components/ui/toast'
 import { geoCoordMap } from '@/data/geo-coord'
 import { getCityIcon } from '@/lib/city-icon'
 import { flushPendingReportSubmission } from '@/lib/report-submission-client'
+import { decodeShowPasscode } from '@/lib/show-passcode'
 import {
   clearSelectedShows,
   concertStore,
   getOrCreateReportSubmissionId,
   hydrateConcertProfile,
   hydrateSelectedShows,
+  replaceSelectedShows,
   toggleSelectedShow,
   updateConcertProfile,
 } from '@/stores/concert-store'
@@ -152,6 +163,8 @@ export function FormPage() {
   })
   const [isLocating, setIsLocating] = useState(false)
   const [supportsGeolocation, setSupportsGeolocation] = useState(false)
+  const [isPasscodeSheetOpen, setIsPasscodeSheetOpen] = useState(false)
+  const [passcode, setPasscode] = useState('')
 
   useEffect(() => {
     hydrateConcertProfile()
@@ -198,6 +211,42 @@ export function FormPage() {
     updateConcertProfile({
       city: value,
       coordinates: null,
+    })
+  }
+
+  function handleImportPasscode() {
+    const showIndexes = decodeShowPasscode(passcode.trim())
+    if (!showIndexes || showIndexes.length === 0) {
+      toast({
+        description: '请粘贴以 5525- 开头的有效场次口令。',
+        title: '口令无法识别',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const showsByIndex = new Map(allShows.map((show) => [show.showIndex, show]))
+    const importedShows: Show[] = []
+    for (const showIndex of showIndexes) {
+      const show = showsByIndex.get(showIndex)
+      if (!show) {
+        toast({
+          description: '这个口令包含当前场次目录中不存在的场次，未替换原有选择。',
+          title: '口令不适用于当前目录',
+          variant: 'destructive',
+        })
+        return
+      }
+      importedShows.push(show)
+    }
+
+    replaceSelectedShows(importedShows)
+    setExpandedCities(new Set(importedShows.map((show) => show.city)))
+    setIsPasscodeSheetOpen(false)
+    setPasscode('')
+    toast({
+      description: '已替换当前已选场次，昵称与出发地不会变更。',
+      title: `已导入 ${importedShows.length} 场`,
     })
   }
 
@@ -348,13 +397,53 @@ export function FormPage() {
     <div className="form-page form-step-in flex min-h-svh flex-col" key="shows">
       <FormStepHeader
         action={
-          <button
-            className="shrink-0 pb-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
-            onClick={() => setStep('profile')}
-            type="button"
-          >
-            返回
-          </button>
+          <div className="flex shrink-0 items-center gap-3 pb-1">
+            <Sheet onOpenChange={setIsPasscodeSheetOpen} open={isPasscodeSheetOpen}>
+              <SheetTrigger render={<Button size="xs" type="button" variant="glass" />}>导入口令</SheetTrigger>
+              <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
+                <SheetHeader className="border-b px-5 pt-6 pb-4">
+                  <SheetTitle className="text-xl">导入场次口令</SheetTitle>
+                  <SheetDescription>粘贴其他应用保存的 5525 场次口令，即可恢复已选场次。</SheetDescription>
+                </SheetHeader>
+                <div className="px-5 py-5">
+                  <label className="flex flex-col gap-2" htmlFor="show-passcode">
+                    <span className="font-medium text-sm">场次口令</span>
+                    <Input
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      id="show-passcode"
+                      onChange={(event) => setPasscode(event.target.value)}
+                      placeholder="5525-..."
+                      spellCheck={false}
+                      value={passcode}
+                    />
+                  </label>
+                  <p className="mt-3 text-muted-foreground text-xs leading-5">
+                    导入会替换当前已选场次，不会变更昵称、出发地或定位。
+                  </p>
+                </div>
+                <SheetFooter className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                  <Button
+                    className="w-full"
+                    disabled={!passcode.trim()}
+                    onClick={handleImportPasscode}
+                    size="lg"
+                    type="button"
+                    variant="starlight"
+                  >
+                    导入并替换场次
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+            <button
+              className="text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
+              onClick={() => setStep('profile')}
+              type="button"
+            >
+              返回
+            </button>
+          </div>
         }
         eyebrow="Time Coordinates"
         step={2}

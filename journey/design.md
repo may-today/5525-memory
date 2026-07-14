@@ -42,6 +42,8 @@ Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` �
 
 表单分为两页：第一页采集可选昵称、城市选择和可选浏览器定位坐标；第二页按城市对可见场次分组并支持多选。城市选择使用 `src/components/ui/select.tsx` 和 `src/data/geo-coord.ts` 的省级/地区列表（含“不透露”“其他国家或地区”），浏览器定位不可用或失败时通过 app-level toast 提示。用户资料和已选择的完整场次对象保存在 TanStack Store 中，供路由间的组件全局订阅；store 每次变更都会以 `concert-form-data:v1` 为键同步到 `localStorage`（`profile` + `showIds`），`/form` 在拿到场次目录后会恢复资料并用这些 ID 恢复选择。恢复 profile / selectedShows 时会临时跳过 store 订阅器的自动持久化，避免先恢复 profile 时用空 `selectedShows` 覆盖掉 localStorage 里已有的 `showIds`；恢复场次后再写回完整状态。`/summary` 挂载时通过 `useSummaryData` hook 优先用 store，其次用 `localStorage` 里的 ID 换回完整场次数据，解决了硬刷新丢失选中场次的问题；写回 store 时会连同解析出的 profile 一起写入（2026-07-11）——此前只写 selectedShows，store 里的空 profile 会被持久化订阅器写回 `localStorage`，把用户填过的城市清空。
 
+表单第二步页头另有「导入口令」入口（2026-07-14）：粘贴 `5525-` 场次口令后复用 `show-passcode` 解码，并以当前目录中的 `showIndex` 映射场次；成功时原子替换所有已选场次、清除与旧选择绑定的匿名报告登记、展开相关城市，但不会改动昵称、出发地或定位。空口令、非法编码或包含当前目录之外索引的口令都会被拒绝，原选择保持不变。
+
 `/share` 另提供「将场次保存到...」底部 Sheet：它只把选中场次转为可复制的短口令，不携带昵称、位置或其他资料。口令直接以全量可见场次按 `show_date ASC, id ASC` 排列后的零基 `showIndex` 为坐标，使用 `5525-` 前缀加自适应压缩：稀疏选择为 LEB128 差分、密集选择为位图，二者都做无填充 Base64URL 并取较短结果；`showIndex` 会随已选场次写入 localStorage，分享页不必加载全量场次，第三方也可直接得到序号后自行查询资料。由于 SSR 无法读取浏览器 localStorage，分享页会在客户端挂载后恢复持久化的 `showIndexes`，令刷新后的入口保持可用（2026-07-12）。
 
 **本地开发**：D1 的本地状态是每台机器独立的 SQLite 文件（`.wrangler/state/v3/d1`，已 gitignore），完全由 Miniflare 模拟，不需要 Cloudflare 账号权限。新拉仓库或换机器只需要 `bunx wrangler d1 migrations apply 5525-memory-db --local` 再 `bun run dev`。
