@@ -95,13 +95,18 @@ const SHOW_SELECT = `
 /** A non-performance event mistakenly present in the tour data; it must not be selectable or displayed as a tour show. */
 const EXCLUDED_SHOW_DATE = '2026-03-24'
 
-/** All shows, sorted by date. Used to populate the /form picker and the Overview timeline. */
+/**
+ * Visible shows, sorted by date. Their indexes retain the full chronological
+ * catalogue positions so passcodes remain stable when non-performance events
+ * are hidden from the picker.
+ */
 export async function queryAllShows(db: D1Database): Promise<Show[]> {
   const { results } = await db
-    .prepare(`${SHOW_SELECT} WHERE s.show_date != ? ORDER BY s.show_date ASC, s.id ASC`)
-    .bind(EXCLUDED_SHOW_DATE)
+    .prepare(`${SHOW_SELECT} ORDER BY s.show_date ASC, s.id ASC`)
     .all<ShowRow>()
-  return results.map((row, showIndex) => mapShowRow(row, showIndex))
+  return results
+    .map((row, showIndex) => mapShowRow(row, showIndex))
+    .filter((show) => show.showDate !== EXCLUDED_SHOW_DATE)
 }
 
 /** Resolve full Show rows for a set of ids. */

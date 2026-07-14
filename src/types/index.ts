@@ -17,7 +17,7 @@ export interface Show {
   guests: string[]
   /** 场次ID */
   id: number
-  /** 所有可见场次按日期排序后的零基序号 */
+  /** 完整场次目录按日期排序后的零基序号；非正式活动场次会保留其编号位置。 */
   showIndex: number
   /** 歌单长图 URL */
   playlistImg: string
