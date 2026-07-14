@@ -1,4 +1,8 @@
-import { randomSongBlackList } from '@/data/song-filter'
+import {
+  randomSongBlackList,
+  randomSongRequestBlackList,
+  randomSongSpecialBlackList,
+} from '@/data/song-filter'
 
 interface AttendanceOverview {
   cityCount: number
@@ -163,6 +167,19 @@ function buildRandomSongBlacklistCondition(section: SongSectionScope | undefined
   for (const [subTheme, titles] of Object.entries(randomSongBlackList)) {
     themeConditions.push(`(s.sub_theme = ? AND si.title IN (${titles.map(() => '?').join(',')}))`)
     params.push(subTheme, ...titles)
+  }
+  for (const [subTheme, cities] of Object.entries(randomSongSpecialBlackList)) {
+    for (const [city, titles] of Object.entries(cities)) {
+      themeConditions.push(
+        `(s.sub_theme = ? AND s.city = ? AND si.title IN (${titles.map(() => '?').join(',')}))`
+      )
+      params.push(subTheme, city, ...titles)
+    }
+  }
+
+  if (section === 'request') {
+    themeConditions.push(`si.title IN (${randomSongRequestBlackList.map(() => '?').join(',')})`)
+    params.push(...randomSongRequestBlackList)
   }
 
   return { params, sql: `NOT (${themeConditions.join(' OR ')})` }

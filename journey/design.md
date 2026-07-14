@@ -114,7 +114,9 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 「专属歌单」与「最小众歌单」的随机曲目先限制为 `section = 'request'` 或
 `section LIKE 'encore_%'` 的歌曲，再按场次 `subTheme` 排除
 `src/data/song-filter.ts` 的 `randomSongBlackList` 中的主题固定曲；随后仅对
-`section = 'request'` 排除同文件 `randomSongRequestBlackList` 中的点歌固定曲。
+`section = 'request'` 排除同文件 `randomSongRequestBlackList` 中的点歌固定曲；最后
+按 `randomSongSpecialBlackList` 排除特定主题与城市组合的固定曲（目前为 `5525` 台中场的
+〈如果我们不曾相遇〉）。
 其中「最小众歌单」（`SummaryCardRareSongs`）会再限制为能匹配
 `src/data/song-list.ts` 五月天曲库的歌曲；嘉宾／翻唱等非五月天曲目不参与该卡的
 专属曲目与冷门排序。报告页的 request/encore 歌曲排行与时间线采用同一排除规则；主歌单和结尾曲等非随机口径不受影响。

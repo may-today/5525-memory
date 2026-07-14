@@ -392,7 +392,10 @@ function isRandomSong(
 	return (
 		isSong(item) &&
 		(item.section === "request" || item.section.startsWith("encore_")) &&
-		!(show && isRandomSongBlacklisted(show.subTheme, item.title)) &&
+		!(
+			show &&
+			isRandomSongBlacklisted(show.subTheme, show.city, item.title)
+		) &&
 		!(
 			item.section === "request" &&
 			randomSongRequestBlackList.includes(item.title)
