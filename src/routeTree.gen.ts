@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarmupRouteImport } from './routes/warmup'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as RecordsRouteImport } from './routes/records'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as DataStationRouteImport } from './routes/data-station'
@@ -34,6 +35,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecordsRoute = RecordsRouteImport.update({
+  id: '/records',
+  path: '/records',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoadingRoute = LoadingRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/records': typeof RecordsRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/records': typeof RecordsRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/data-station': typeof DataStationRoute
   '/form': typeof FormRoute
   '/loading': typeof LoadingRoute
+  '/records': typeof RecordsRoute
   '/share': typeof ShareRoute
   '/summary': typeof SummaryRoute
   '/warmup': typeof WarmupRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/data-station'
     | '/form'
     | '/loading'
+    | '/records'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/data-station'
     | '/form'
     | '/loading'
+    | '/records'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/data-station'
     | '/form'
     | '/loading'
+    | '/records'
     | '/share'
     | '/summary'
     | '/warmup'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   DataStationRoute: typeof DataStationRoute
   FormRoute: typeof FormRoute
   LoadingRoute: typeof LoadingRoute
+  RecordsRoute: typeof RecordsRoute
   ShareRoute: typeof ShareRoute
   SummaryRoute: typeof SummaryRoute
   WarmupRoute: typeof WarmupRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/share'
       fullPath: '/share'
       preLoaderRoute: typeof ShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/records': {
+      id: '/records'
+      path: '/records'
+      fullPath: '/records'
+      preLoaderRoute: typeof RecordsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loading': {
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   DataStationRoute: DataStationRoute,
   FormRoute: FormRoute,
   LoadingRoute: LoadingRoute,
+  RecordsRoute: RecordsRoute,
   ShareRoute: ShareRoute,
   SummaryRoute: SummaryRoute,
   WarmupRoute: WarmupRoute,

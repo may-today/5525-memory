@@ -19,7 +19,8 @@
 
 ```text
 /（封面）→ /form（场次选择）→ /loading（生成过渡）→ /summary（统计回顾）→ /share（分享）
-                                                                        └→ /data-station（专属报告，效果图）
+                                                                        ├→ /data-station（专属报告，效果图）
+                                                                        └→ /records（5525 巡回记录）
 
 开放前：/warmup（预热倒计时）→ /form（提前填写，保存后回到 /warmup）
 ```
@@ -264,6 +265,17 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 - **reduced-motion**：全部动画停用并显式归位（星轨 dashoffset 归零、节点直接可见、引力波静止为三圈渐淡同心环）。
 - **保存图片**：海报根节点以 ref 交给 `html-to-image`，浏览器端等待字体就绪后按 2 倍像素密度导出 PNG，文件名为 `5525-memory-{口令}.png`；生成期间按钮显示进度并禁止重复触发。无已选场次时按钮保持不可用，生成失败时 toast 建议浏览器截图。未实现的原生「分享」按钮不展示。
 - **操作区「深空控制台」（2026-07-14）**：三个入口不再用默认 shadcn 白色实心/描边块。「保存图片」用 Button `starlight` 变体、「将场次保存到...」用 `glass` 变体（见「关键设计决策」的全站按钮体系）；Sheet 内「复制口令」也是 `starlight`。复制按钮上方固定展示「目前支持的应用」区块，当前为「小程序 五迷百科」：左侧是 `src/assets/logo/wmbk-qr.webp` 的二维码，右侧保留其用途说明，令用户在复制前能明确知道口令可粘贴到哪里。**「你的专属报告」标注为特别企划入口**（`index.css` 的 `.share-plan-entry`，本页专属签名）：左对齐入口卡——eyebrow `SPECIAL PROJECT · 特别企划`（9px 0.3em 字距，与海报档案眉行同语言）+ 标题「5525数据电台 · 你的专属报告」+ 右箭头（hover 右移），边框是星轨三个子主题色（粉→蓝→橙）连成的 1px 渐变 hairline（padding-box 深底 + border-box 渐变双背景），内底带两团极淡角落星云染色，与保存类操作明确区分。底部文字链接为「重新回顾」，返回首页而不是统计页；客户端首次进入 `/share` 会保存独立的 localStorage 访问标记，首页客户端挂载后据此显示「回顾分享页」快捷按钮并回到 `/share`，不读取或上传任何用户资料。
+
+## 巡回记录页「全航线日志」（/records，2026-07-14）
+
+- **组件**：`src/pages/records/RecordsPage.tsx`（页面本体）+ `src/pages/records/SetlistImageOverlay.tsx`（歌单长图弹层）；入口为 `/share` 页「5525 巡回记录」入口卡（数据电台特别企划入口下方，同 eyebrow + 标题 + 右箭头版式，但用安静的 white/10 hairline 边框，渐变边框保持特别企划入口的专属性）。
+- **定位**：巡演自己的完整航行日志——`/summary` 只点亮用户的坐标，`/records` 按时间顺序展示全部场次档案（日期时间、城市、dayLabel、子主题 + versionName、场馆），每场可查看歌单长图。
+- **签名元素「航迹线」**（`records-*`，样式在 `index.css`）：左侧一条随巡演时代变色的竖向航迹线贯穿全部驻站——5525 段粉、5525+1 段蓝、5525+2 段橙（`--records-color` 按子主题下发，与 /form、Overview、SharePoster 同一套色，未知子主题回退场次 `themeColor`）；线体向下一站的时代色渐变（`--records-next-color`），换代处自然变色；每站节点是时代色发光圆点；年内末站渐隐到透明，年份之间断开换气。
+- **驻站分组**：连续且 `city + venue + subTheme + versionName` 相同的场次聚成一个「驻站」，站头为 Doto 站序号（`NO.xx 站`，全航线跨年份连续编号）+ font-title 城市名 + 时代色 chip（子主题 · 版本，低透明填充 + hairline，配方与 starlight 按钮同族）+ 场馆；站内每行一场：Doto 日期 + 星期缩写 + 开演时间（有真实记录才显示）+ dayLabel + 「查看歌单」胶囊按钮（`playlistImg` 为空时显示灰字「歌单暂缺」）。跨年处插入超大 Doto 幽灵年份数字作为章节呼吸位。
+- **歌单长图弹层**：全屏覆盖层（信息条：城市 dayLabel 日期 + 关闭按钮；长图区纵向滚动 `overscroll-contain`）。**图床是微博（sinaimg.cn）带 Referer 防盗链，图片必须 `referrerPolicy="no-referrer"` 加载**；失败时提供 `rel="noreferrer"` 的原图链接兜底；加载成功后在图下显示 `歌单整理 · {contributor}`。打开时锁 body 滚动并聚焦关闭按钮，Esc / 关闭按钮关闭。
+- **动画**：驻站随滚动逐个淡入上移（IntersectionObserver 一次性加类；`useLayoutEffect` 挂载后才加 pending 类，无 JS 时保持全部可见）；弹层整层淡入 + 长图区轻微上移。`prefers-reduced-motion` 下组件不挂 observer，CSS 同时兜底停用。
+- **数据来源**：复用 `getAllShows` server function（路由 loader 直接调用，无新增查询）；路由与 `/share` 同样经 `ensureStatsOpen()` 门禁。不做「你在场」个人化标记，保持档案属性、避免与 `/summary` 职责重叠。
+- **详见**：`journey/plans/2026-07-14-records-page.md`。
 
 ## 报告页「你的专属报告」（/data-station）
 

@@ -2572,6 +2572,115 @@
     opacity: 1;
 }
 
+/* ============================================================
+   巡回记录页「全航线日志」（records-*）
+   左侧一条随巡演时代变色的航迹线贯穿全部驻站：线经过 5525 段是粉、
+   5525+1 段是蓝、5525+2 段是橙（--records-color 由组件按子主题下发），
+   每站节点在线上发光；线体向下一站的时代色渐变（--records-next-color），
+   换代处自然变色，年份之间断开换气。
+   ============================================================ */
+
+/* 航迹线：从本站节点向下延伸、穿过站间距接到下一站；
+   年内末站渐隐到透明，让年份幽灵数字前有一段留白。 */
+.records-stop::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1.35rem;
+    bottom: -3.5rem;
+    width: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--records-color) 38%, transparent),
+        color-mix(in srgb, var(--records-next-color) 38%, transparent)
+    );
+}
+
+/* 驻站节点：时代色圆点 + 柔和辉光，压在航迹线起点上。 */
+.records-stop::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.45rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--records-color);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--records-color) 70%, transparent);
+}
+
+/* 站序号：Doto 点阵体小字，与全站强调数字同一词汇。 */
+.records-stop-no {
+    font-weight: 500;
+    font-size: 0.625rem;
+    letter-spacing: 0.2em;
+    color: color-mix(in srgb, var(--records-color) 72%, #a1a1aa);
+}
+
+/* 子主题 · 版本 chip：时代色低透明填充 + hairline，配方与 starlight 按钮同族。 */
+.records-chip {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--records-color) 40%, transparent);
+    background: color-mix(in srgb, var(--records-color) 10%, transparent);
+    font-size: 0.6875rem;
+    line-height: 1.25rem;
+    color: color-mix(in srgb, var(--records-color) 85%, white);
+}
+
+/* 页头总览句里的数字：Doto 点阵体，安静提亮不加辉光。 */
+.records-num {
+    font-family: "Doto", monospace;
+    font-weight: 600;
+    color: #f4f4f5;
+}
+
+/* 年份幽灵数字：超大 Doto 低透明度，作为长列表的章节呼吸位。 */
+.records-year {
+    font-family: "Doto", monospace;
+    font-weight: 300;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+/* 驻站随滚动逐个显现：JS 挂载后才加 pending（无 JS 时保持可见）。 */
+.records-stop-pending {
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+.records-stop-pending.records-stop-in {
+    opacity: 1;
+    transform: none;
+    transition:
+        opacity 0.6s ease,
+        transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 歌单长图弹层：整层淡入，长图区轻微上移入场。 */
+.records-overlay {
+    animation: records-overlay-in 0.25s ease both;
+}
+
+.records-overlay-body {
+    animation: records-overlay-rise 0.35s ease both;
+}
+
+@keyframes records-overlay-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes records-overlay-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     /* /loading 串场：船票直接显影、呼吸辉光与光标停用（组件侧同时跳过
      逐字打印，文案立即完整可见） */
@@ -2584,6 +2693,19 @@
     .loading-fade {
         opacity: 1;
         transition: none;
+    }
+
+    /* /records 巡回记录：驻站显现与弹层动画停用（组件侧同时不挂
+     IntersectionObserver，这里是 pending 类残留时的兜底） */
+    .records-stop-pending {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .records-overlay,
+    .records-overlay-body {
+        animation: none;
     }
 
     .cover-background-strip {

@@ -246,6 +246,24 @@ export function SharePage() {
 						className="size-4 shrink-0 text-zinc-500 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-200"
 					/>
 				</button>
+				<button
+					className="group flex w-full items-center justify-between gap-3 border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-white/25"
+					onClick={() => navigate({ to: "/records" })}
+					type="button"
+				>
+					<span className="flex min-w-0 flex-col gap-1">
+						<span className="text-[9px] text-zinc-500 uppercase tracking-[0.3em]">
+							Tour Archive · 全航线日志
+						</span>
+						<span className="font-medium text-sm text-zinc-100">
+							5525 巡回记录
+						</span>
+					</span>
+					<ArrowRight
+						aria-hidden="true"
+						className="size-4 shrink-0 text-zinc-500 transition-all group-hover:translate-x-0.5 group-hover:text-zinc-200"
+					/>
+				</button>
 				<Link
 					className="mt-2 text-center text-muted-foreground text-sm underline underline-offset-4"
 					to="/"
