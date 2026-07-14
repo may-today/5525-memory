@@ -2147,6 +2147,28 @@
     outline-offset: 2px;
 }
 
+/* 「任意门启航版」预约入口：这是本页星际暗色调之外的一个分支子品牌——
+   偏亮、温馨——所以不沿用 .share-plan-entry 的三色渐变描边，改用不
+   浮夸的半透明白底 + 白色 hairline 单独标记「亮」这件事；倒计时叠进
+   按钮内部，行高比其余列表项稍高以容纳三行文字。 */
+.share-portal-entry {
+    background-color: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 0 0 24px -12px rgba(255, 255, 255, 0.5);
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.share-portal-entry:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 28px -10px rgba(255, 255, 255, 0.6);
+}
+
+.share-portal-entry:focus-visible {
+    outline: 1px solid var(--ring);
+    outline-offset: 2px;
+}
+
 /* ============================================================
    专辑解锁进度卡「创作年表」（summary-tl-*）
    一根 hairline 时间线从 1999 划到 2016，九张专辑作为站点交替
