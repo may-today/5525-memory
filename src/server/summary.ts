@@ -374,7 +374,7 @@ function isRandomSong(item: SummarySetlistItem, showsById: Map<number, Show>): b
 /** How many rare-song "paper slips" the rare-songs card shows (1 hero + 6 small notes). */
 const RARE_SONG_RANK_LIMIT = 7
 
-const SONG_DECORATION_PATTERN = /\p{Extended_Pictographic}|\uFE0F/gu
+const SONG_DECORATION_PATTERN = /\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Modifier}|\u200D|\uFE0E|\uFE0F|\u20E3/gu
 const SONG_FEATURING_SUFFIX_PATTERN = /\s+ft\..*$/iu
 const SONG_WHITESPACE_PATTERN = /\s+/g
 const MEDLEY_SONG_SEPARATOR_PATTERN = /[+＋]/
@@ -416,22 +416,19 @@ function countTitles(items: SummarySetlistItem[]): Map<string, number> {
 }
 
 /**
- * Flattens song-bearing setlist rows into individual songs. A regular `song`
- * stays intact; a `medley` splits on either plus sign and discards blank parts.
+ * Flattens song-bearing setlist rows into individual normalized songs. A regular
+ * `song` stays intact; a `medley` splits on either plus sign. Every resulting
+ * title drops emoji and whitespace, and blank parts are discarded.
  */
 function expandSongItems(items: SummarySetlistItem[]): SummarySetlistItem[] {
   const songs: SummarySetlistItem[] = []
 
   for (const item of items) {
     if (!isSong(item)) continue
-    if (item.itemType === 'song') {
-      songs.push(item)
-      continue
-    }
-
-    for (const title of item.title.split(MEDLEY_SONG_SEPARATOR_PATTERN)) {
-      const trimmedTitle = title.trim()
-      if (trimmedTitle) songs.push({ ...item, title: trimmedTitle })
+    const titles = item.itemType === 'medley' ? item.title.split(MEDLEY_SONG_SEPARATOR_PATTERN) : [item.title]
+    for (const title of titles) {
+      const normalizedTitle = stripSongDecorations(title)
+      if (normalizedTitle) songs.push({ ...item, title: normalizedTitle })
     }
   }
 
@@ -450,13 +447,12 @@ function buildSongStats(items: SummarySetlistItem[]): SongStats {
   }
 }
 
-/** Removes emoji decorations and normalizes whitespace for display. */
+/** Removes emoji decorations and all whitespace from a setlist song title. */
 function stripSongDecorations(title: string): string {
   return title
     .replace(SONG_DECORATION_PATTERN, '')
     .replace(SONG_FEATURING_SUFFIX_PATTERN, '')
-    .replace(SONG_WHITESPACE_PATTERN, ' ')
-    .trim()
+    .replace(SONG_WHITESPACE_PATTERN, '')
 }
 
 /** Produces a comparison key that ignores punctuation and whitespace differences. */
