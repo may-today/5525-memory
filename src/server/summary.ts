@@ -454,7 +454,7 @@ function stripSongDecorations(title: string): string {
   return title
     .replace(SONG_DECORATION_PATTERN, '')
     .replace(SONG_FEATURING_SUFFIX_PATTERN, '')
-    .replace(SONG_WHITESPACE_PATTERN, '')
+    .trim()
 }
 
 /** Produces a comparison key that ignores punctuation and whitespace differences. */
