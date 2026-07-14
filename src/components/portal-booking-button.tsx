@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react'
 import astronaut from '@/assets/logo/astronaut.png'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 const PORTAL_LAUNCH_AT = Date.parse('2026-07-17T19:00:00+08:00')
 
@@ -70,19 +63,19 @@ export function PortalBookingButton() {
   }, [])
 
   return (
-    <Sheet>
-      <SheetTrigger className="share-portal-entry group relative flex w-full items-center justify-between gap-3 py-3.5 pr-4 pl-14 text-left">
+    <Sheet open={false}>
+      <SheetTrigger className="share-portal-entry group relative flex w-full items-center justify-between gap-3 py-3.5 pr-4 pl-16 text-left">
         <img
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute -top-2.5 -left-2.5 size-14 -rotate-6 transition-transform group-hover:-rotate-2 group-hover:scale-105"
+          className="pointer-events-none absolute bottom-0 left-0 size-14 opacity-60"
           height={93}
           src={astronaut}
           width={90}
         />
         <span className="flex min-w-0 flex-col gap-1">
-          <span className="text-[9px] text-orange-200/70 uppercase tracking-[0.3em]">Reservation · 预约通道</span>
-          <span className="font-medium text-sm text-zinc-50">预约 任意门启航版</span>
+          <span className="text-[9px] text-orange-200/70 uppercase tracking-[0.3em]">5525「时空旅行报告」</span>
+          <span className="font-medium text-sm text-zinc-50">任意门启航版</span>
         </span>
         <span className="flex shrink-0 flex-col items-end gap-0.5">
           <PortalCountdown now={now} />
