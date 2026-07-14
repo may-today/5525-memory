@@ -58,6 +58,7 @@ export function SetlistImageOverlay({
 			aria-label={`${show.city} ${show.dayLabel} 歌单`}
 			aria-modal="true"
 			className="records-overlay fixed inset-0 z-50 flex flex-col bg-zinc-950/95 backdrop-blur-sm"
+			data-summary-gesture-exempt
 			role="dialog"
 		>
 			<header className="flex shrink-0 items-center justify-between gap-3 border-white/10 border-b px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4">
