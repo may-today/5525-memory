@@ -126,10 +126,16 @@ function getFormShowThemeColor(show: Show): string {
 	);
 }
 
-function SubThemeTag({ theme }: { theme: string }) {
+interface SubThemeTagProps {
+	theme: string;
+	versionName: string;
+}
+
+function SubThemeTag({ theme, versionName }: SubThemeTagProps) {
 	return (
 		<span className="form-show-tag inline-flex shrink-0 items-center border border-muted-foreground/40 px-1 py-px text-[9px] text-muted-foreground/60 leading-none tracking-widest">
 			{theme}
+			{versionName && ` ${versionName}`}
 		</span>
 	);
 }
@@ -629,7 +635,10 @@ export function FormPage() {
 													<span className="form-show-date shrink-0 text-muted-foreground text-sm tabular-nums transition-colors">
 														{formatShowDate(show.showDate)}
 													</span>
-													<SubThemeTag theme={show.subTheme} />
+													<SubThemeTag
+														theme={show.subTheme}
+														versionName={show.versionName}
+													/>
 												</div>
 
 												{/* Day */}
