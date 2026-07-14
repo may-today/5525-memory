@@ -115,7 +115,7 @@ export function SummaryCardRareSongs() {
 
         <p className="relative mt-8 text-xs text-zinc-500">没被唱够的歌，才最像秘密。这几张纸条，只属于你的耳朵。</p>
         <p className="relative mt-1 text-[10px] text-zinc-600">
-          口径：仅统计点歌与安可段落；全巡演次数按全部已收录场次计。
+          口径：候选曲目仅统计点歌与安可；全巡演次数计入所有五月天歌曲段落。
         </p>
       </div>
     </div>

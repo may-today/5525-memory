@@ -97,7 +97,7 @@ export interface RareSongEntry {
 	heardDateSlash: string;
 	/** setlist_items.title 的精确值，按标题精确分组。 */
 	title: string;
-	/** 该曲目在全巡演所有场次中的出现次数（点歌 + 安可）。 */
+	/** 该曲目在全巡演所有歌曲段落中的出现次数（含固定曲、点歌与安可）。 */
 	tourCount: number;
 }
 
@@ -665,20 +665,25 @@ function buildSeasonalSongStats(
 /**
  * The mirror of the playlist ranking: the user's LEAST-heard random songs
  * (same request/encore condition), ranked by heard count ascending, then by
- * how rarely the song appeared across the whole tour, then by title so the
- * ranking is deterministic across SSR/CSR. Tour-wide counts only consider
- * non-hidden shows; each entry carries the first show (city + date) where the
- * user heard the song, which the card prints as the slip's signature line.
+ * how rarely the song appeared across every song section of the whole tour,
+ * then by title so the ranking is deterministic across SSR/CSR. The candidate
+ * songs remain request/encore songs, but their tour-wide counts include fixed
+ * songs so a commonly performed staple is not presented as a rarity. Each
+ * entry carries the first show (city + date) where the user heard the song,
+ * which the card prints as the slip's signature line.
  */
 function buildRareSongStats(
 	allItems: SummarySetlistItem[],
 	selectedShowIds: Set<number>,
 	showsById: Map<number, Show>,
 ): RareSongStats {
-	const randomSongs = expandSongItems(allItems).filter(
-		(item) => isRandomSong(item, showsById) && isMaydayCatalogSong(item.title),
+	const allTourSongs = expandSongItems(allItems).filter((item) =>
+		isMaydayCatalogSong(item.title),
 	);
-	const tourCounts = countTitles(randomSongs);
+	const randomSongs = allTourSongs.filter((item) =>
+		isRandomSong(item, showsById),
+	);
+	const tourCounts = countTitles(allTourSongs);
 	const heardByTitle = new Map<
 		string,
 		{ heardCount: number; heardCity: string; heardDate: string }
