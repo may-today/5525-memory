@@ -11,6 +11,9 @@ import { getDb } from "./db";
 import type { SummarySetlistItem } from "./shows";
 import { querySummarySnapshot } from "./shows";
 
+/** A non-performance event mistakenly present in the tour data; it must not affect summary statistics. */
+const EXCLUDED_SUMMARY_SHOW_DATE = "2026-03-24";
+
 export interface CityMarker {
 	/** 城市展示名；来自全部场次城市去重，按场次日期顺序排列。 */
 	cityName: string;
@@ -894,7 +897,15 @@ export const getSummaryData = createServerFn({ method: "POST" })
 		async ({ data: { showIds, city, coordinates } }): Promise<SummaryData> => {
 			const db = await getDb();
 
-			const { shows: allShows, setlistItems } = await querySummarySnapshot(db);
+			const { shows: snapshotShows, setlistItems: snapshotSetlistItems } =
+				await querySummarySnapshot(db);
+			const allShows = snapshotShows.filter(
+				(show) => show.showDate !== EXCLUDED_SUMMARY_SHOW_DATE,
+			);
+			const includedShowIds = new Set(allShows.map((show) => show.id));
+			const setlistItems = snapshotSetlistItems.filter((item) =>
+				includedShowIds.has(item.showId),
+			);
 			const selectedShowIds = new Set(showIds);
 			const selectedShows = allShows.filter((show) =>
 				selectedShowIds.has(show.id),
