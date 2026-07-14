@@ -111,8 +111,9 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 
 「专属歌单」与「最小众歌单」的随机曲目先限制为 `section = 'request'` 或
 `section LIKE 'encore_%'` 的歌曲，再按场次 `subTheme` 排除
-`src/data/song-filter.ts` 的 `randomSongBlackList` 中的主题固定曲。报告页的
-request/encore 歌曲排行与时间线采用同一排除规则；主歌单和结尾曲等非随机口径不受影响。
+`src/data/song-filter.ts` 的 `randomSongBlackList` 中的主题固定曲；随后仅对
+`section = 'request'` 排除同文件 `randomSongRequestBlackList` 中的点歌固定曲。
+报告页的 request/encore 歌曲排行与时间线采用同一排除规则；主歌单和结尾曲等非随机口径不受影响。
 
 本章节按 `/summary` 中的展示顺序维护每一个统计页面。新增、删除或调整统计页面时，需要同步更新页面顺序、设计目标、数据来源和完成状态。
 

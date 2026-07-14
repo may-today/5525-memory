@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { geoCoordMap } from '@/data/geo-coord'
-import { isRandomSongBlacklisted } from '@/data/song-filter'
+import { isRandomSongBlacklisted, randomSongRequestBlackList } from '@/data/song-filter'
 import { songList } from '@/data/song-list'
 import type { Show } from '@/types'
 import { CITY_COORDINATES } from './city-coordinates'
@@ -359,15 +359,17 @@ const RANDOM_SONG_RANK_LIMIT = 10
 /**
  * "Random songs" are the non-fixed part of a show: request-section songs and
  * encore-section songs (section = 'request' OR section LIKE 'encore_%'),
- * excluding songs fixed by the show's sub-theme. Main-setlist songs are
- * excluded — they are identical across shows and would drown out the signal.
+ * excluding songs fixed by the show's sub-theme and request-section fixed
+ * songs. Main-setlist songs are excluded — they are identical across shows
+ * and would drown out the signal.
  */
 function isRandomSong(item: SummarySetlistItem, showsById: Map<number, Show>): boolean {
   const show = showsById.get(item.showId)
   return (
     isSong(item) &&
     (item.section === 'request' || item.section.startsWith('encore_')) &&
-    !(show && isRandomSongBlacklisted(show.subTheme, item.title))
+    !(show && isRandomSongBlacklisted(show.subTheme, item.title)) &&
+    !(item.section === 'request' && randomSongRequestBlackList.includes(item.title))
   )
 }
 
