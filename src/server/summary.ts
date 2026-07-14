@@ -90,7 +90,7 @@ export interface RareSongEntry {
   heardCity: string
   /** 该曲目在用户选中场次中的出现次数（点歌 + 安可行数之和）。 */
   heardCount: number
-  /** 用户第一次听到该曲目的场次日期 MM/DD 格式。 */
+  /** 用户第一次听到该曲目的场次日期 YYYY/MM/DD 格式。 */
   heardDateSlash: string
   /** setlist_items.title 的精确值，按标题精确分组。 */
   title: string
@@ -645,7 +645,7 @@ function buildRareSongStats(
         title,
         heardCount: heard.heardCount,
         heardCity: heard.heardCity,
-        heardDateSlash: heard.heardDate.slice(5).replace('-', '/'),
+        heardDateSlash: heard.heardDate.replaceAll('-', '/'),
         // Selected shows come from the non-hidden catalog, so this fallback is defensive only.
         tourCount: tourCounts.get(title) ?? heard.heardCount,
       })
