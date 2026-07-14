@@ -168,12 +168,20 @@ export function CoverPage() {
         </h1>
         <Logos />
         {hasVisitedShare ? (
-          <Link
-            className="mt-4 inline-flex min-h-10 items-center rounded-full border border-white/20 bg-white/8 px-4 font-medium text-foreground text-sm transition-colors hover:border-white/40 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
-            to="/share"
-          >
-            回顾分享页
-          </Link>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex min-h-10 items-center rounded-full border border-white/20 bg-white/8 px-4 font-medium text-foreground text-sm transition-colors hover:border-white/40 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+              to="/share"
+            >
+              回顾分享页
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center rounded-full border border-white/20 bg-white/8 px-4 font-medium text-foreground text-sm transition-colors hover:border-white/40 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+              to="/records"
+            >
+              5525 巡回记录
+            </Link>
+          </div>
         ) : null}
         <p className="mt-2 -ml-1 flex items-center text-muted-foreground text-xs">
           <PrivacyStatement />
