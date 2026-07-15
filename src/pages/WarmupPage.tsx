@@ -77,11 +77,11 @@ export function WarmupPage() {
 
         <div className="relative flex items-start gap-3 sm:gap-5">
           <CountdownUnit label="天" value={countdown.days} />
-          <span className="pt-1 font-geist text-4xl text-muted-foreground/50 sm:text-5xl">:</span>
+          <span className="pt-1 font-geist text-4xl text-muted-foreground sm:text-5xl">:</span>
           <CountdownUnit label="时" value={countdown.hours} />
-          <span className="pt-1 font-geist text-4xl text-muted-foreground/50 sm:text-5xl">:</span>
+          <span className="pt-1 font-geist text-4xl text-muted-foreground sm:text-5xl">:</span>
           <CountdownUnit label="分" value={countdown.minutes} />
-          <span className="pt-1 font-geist text-4xl text-muted-foreground/50 sm:text-5xl">:</span>
+          <span className="pt-1 font-geist text-4xl text-muted-foreground sm:text-5xl">:</span>
           <CountdownUnit label="秒" value={countdown.seconds} />
         </div>
 

@@ -264,7 +264,7 @@ function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
     <>
       <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
         <p>巡演足迹</p>
-        <p className="font-geist">
+        <p className="font-title">
           {sectionsByShowId.size} / {allShows.length}
         </p>
       </div>
@@ -295,10 +295,6 @@ function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
         })}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-zinc-500">
-        <span className="flex items-center gap-1.5">
-          <GridCell />
-          没唱
-        </span>
         {GRID_LEGEND_SECTIONS.map((sectionType) => (
           <span className="flex items-center gap-1.5" key={sectionType}>
             <GridCell sectionTypes={[sectionType]} />
@@ -551,7 +547,7 @@ function RecordDetailOverlay({
               <TourShowGrid appearances={appearances} />
               <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
                 <p>唱过的场次</p>
-                <p className="font-geist">
+                <p className="font-title">
                   {heardCount} / {appearances.length}
                 </p>
               </div>
@@ -565,7 +561,7 @@ function RecordDetailOverlay({
                       }`}
                       key={key}
                     >
-                      <span className="font-geist text-[11px] tabular-nums">
+                      <span className="font-title text-[11px] tabular-nums">
                         {formatShowDate(appearance.show.showDate)}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-xs">
@@ -678,7 +674,7 @@ export function SummaryCardSongWall({ onDetailOpenChange }: SummaryCardProps) {
 
         <div className="mt-8 mb-3 flex items-baseline justify-between text-xs text-zinc-500">
           <p>五月天曲库</p>
-          <p className="font-geist">{totalMayday}</p>
+          <p className="font-title">{totalMayday}</p>
         </div>
         <div className="summary-shelf-frame">
           <div className="summary-shelf-inner">
@@ -694,7 +690,7 @@ export function SummaryCardSongWall({ onDetailOpenChange }: SummaryCardProps) {
           <>
             <div className="mt-8 mb-3 flex items-baseline justify-between text-xs text-zinc-500">
               <p>曲库外的意外惊喜</p>
-              <p className="font-geist">{totalSurprise}</p>
+              <p className="font-title">{totalSurprise}</p>
             </div>
             <div className="summary-shelf-frame">
               <div className="summary-shelf-inner summary-space-scroller overflow-x-auto overflow-y-hidden">

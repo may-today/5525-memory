@@ -28,7 +28,7 @@ function VinylDisc() {
         </svg>
         <div className="summary-vinyl-label">
           <div className="summary-vinyl-hole" />
-          <p className="absolute inset-x-0 top-[63%] text-center font-geist text-[8px] text-orange-950/80">5525</p>
+          <p className="absolute inset-x-0 top-[63%] text-center font-geist text-[8px] text-orange-950">5525</p>
         </div>
       </div>
       <div className="summary-vinyl-sheen" />

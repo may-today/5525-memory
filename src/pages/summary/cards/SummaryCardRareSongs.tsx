@@ -45,7 +45,7 @@ function SmallNote({ entry, index }: { entry: RareSongEntry; index: number }) {
     >
       <p className="truncate font-title text-stone-800 text-xl">{entry.title}</p>
       <p className="mt-2 text-[10px] text-stone-500">
-        {entry.heardCity} · 全巡演 <span className="font-geist">×{entry.tourCount}</span>
+        {entry.heardCity} · 全巡演 <span className="font-title">×{entry.tourCount}</span>
       </p>
     </div>
   )
@@ -103,7 +103,7 @@ export function SummaryCardRareSongs() {
           <>
             <div className="relative mt-10 mb-4 flex items-baseline justify-between border-white/10 border-t pt-4 text-xs text-zinc-500">
               <p>同样被你收藏的冷门曲</p>
-              <p className="font-geist">{smallSongs.length} 首</p>
+              <p className="font-title">{smallSongs.length} 首</p>
             </div>
             <div className="relative grid grid-cols-2 gap-x-3 gap-y-4">
               {smallSongs.map((entry, index) => (

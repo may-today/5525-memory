@@ -25,7 +25,7 @@ function splitPortalCountdown(remainingMilliseconds: number): PortalCountdownPar
 /** Mini digital readout for the portal countdown, styled after the warmup page's Doto-font clock. */
 function PortalCountdown({ now }: { now: number }) {
   if (now === 0) {
-    return <span className="font-geist text-orange-200/40 text-xs tracking-wide">···</span>
+    return <span className="font-geist text-orange-200 text-xs tracking-wide">···</span>
   }
 
   if (now >= PORTAL_LAUNCH_AT) {

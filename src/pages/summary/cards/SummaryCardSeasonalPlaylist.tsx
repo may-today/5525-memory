@@ -88,7 +88,7 @@ export function SummaryCardSeasonalPlaylist() {
                   <>
                     <p className="summary-seasons-title font-title text-3xl text-white leading-snug">{song.title}</p>
                     <p className="summary-seasons-count">
-                      现场响起 <span className="font-geist">×{song.count}</span>
+                      现场响起 <span className="font-title">×{song.count}</span>
                     </p>
                   </>
                 ) : (

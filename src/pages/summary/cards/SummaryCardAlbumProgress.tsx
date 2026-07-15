@@ -60,9 +60,9 @@ function TimelineStation({ index, station }: { index: number; station: AlbumStat
         />
         <p className="summary-tl-name font-title">{station.name}</p>
         <p className="summary-tl-count">
-          已听 <span className="summary-tl-count-heard font-geist">{station.heardCount}</span>
+          已听 <span className="font-title">{station.heardCount}</span>
           <span className="text-zinc-600"> / {station.totalCount}</span>
-          <span className="summary-tl-percent font-geist"> · {percent}%</span>
+          <span className="summary-tl-percent font-title"> · {percent}%</span>
         </p>
         {unlockState === 'full' && <p className="summary-tl-complete">已完整解锁</p>}
       </div>
@@ -153,8 +153,7 @@ export function SummaryCardAlbumProgress() {
           <span className="font-geist text-zinc-200">{totalCount}</span> 首歌。
           {heardCount > 0 ? (
             <>
-              你已在现场听过其中 <span className="font-geist text-sky-300">{heardCount}</span>{' '}
-              首——沿年表往右，看看哪一段五月天，被你听回了颜色。
+              你已在现场听过其中 <span className="font-geist text-sky-300">{heardCount}</span> 首。
             </>
           ) : (
             <>选好你去过的场次，这条年表才会开始显影。</>

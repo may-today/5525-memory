@@ -74,6 +74,10 @@ shadcn Button 新增两个变体（`src/components/ui/button.tsx`，样式实体
 
 应用：`/summary` 最后一页悬浮「生成总结」（`starlight` + `backdrop-blur-md` + `px-8`，悬浮在滚动内容上用毛玻璃保证可读性）；`/share` 三个操作（见分享页章节）；`/warmup` 两个 CTA（覆写 `--starlight: #f97316` 品牌橙，呼应倒计时辉光）；`/form` 的「继续／下一步／保存」用 `starlight`（sky 色温与页面 `--primary` 覆写一致，重量从实心变辉光），「使用我的定位」以 `starlight`/`glass` 表达已定位/未定位。**保留不动**：封面白色圆形箭头 CTA（编辑排版语言的首屏视觉锚点，非深空语境）；`/data-station` 数据电台自有的橙色圆钮与 chips 形态（仅补 hover 反馈）；`.form-page` 的 `--primary` 覆写继续服务 checkbox 等其他 shadcn 控件。
 
+### Doto 点阵字可读性（2026-07-15）
+
+Doto 仅用于数字、日期、序号和少量拉丁装饰文字；其点阵笔画在深色底上不适合再叠加低字重或透明文本色。全局 `.font-geist`（Doto 工具类）使用 `font-weight: 500`，信息性 Doto 一律使用实色；仅 `aria-hidden` 的巡演年份幽灵数字保留低透明度，继续作为背景装饰而非信息载体。
+
 ### 表单页「旅程登记」视觉语言（2026-07-11）
 
 表单页以「时空旅行登记」为叙事：步骤一登记旅客（eyebrow `PASSENGER`，标题「出发之前，先认识你」，出发地字段文案呼应城市卡「你从X出发」），步骤二登记时间坐标（eyebrow `TIME COORDINATES`，标题「你去过哪几场？」）。页头统一为 `FormStepHeader`：eyebrow + Doto 步骤号 + 两段式步骤进度（当前段 `sky-400` + 辉光）；表单根节点也在作用域内把 shadcn primary 设为 `sky-400`，让主要操作按钮一致使用蓝色。城市按所含场次数量降序排列；数量相同时按首演日期排序，城市头部用 Doto 站号编码当前列表顺序。**签名元素**：场次行勾选后按巡演子主题点亮（5525 粉色 `#f472b6`、5525+1 蓝色 `#38bdf8`、5525+2 橙色 `#fb923c`；未知主题回退场次原始 `themeColor`），并用于左侧色条、复选块填色发光、行背景轻染与子主题标签；聚合选中数（城市徽标、底栏「已选 N 场 · M 座城市」的 Doto 数字）统一用 `sky-400`。步骤切换用 root div 换 `key` 触发 `form-step-in` 淡入上移；行背景（含 hover）统一收在 `index.css` 的 `.form-show-row` 里管理，避免与 Tailwind hover 工具类互相覆盖；新动画均已加入 reduced-motion 停用清单。见 `journey/plans/2026-07-11-form-redesign.md` 与 `journey/plans/2026-07-11-form-color-themes.md`。
