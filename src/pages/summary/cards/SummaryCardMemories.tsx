@@ -32,7 +32,7 @@ function normalizeEventDate(date: string): string {
  * event is attached only to the earliest matching show in the given list.
  */
 function getMemoryGroups(shows: Show[]): MemoryGroup[] {
-  const sortedShows = shows.toSorted((a, b) => a.showDate.localeCompare(b.showDate))
+  const sortedShows = [...shows].sort((a, b) => a.showDate.localeCompare(b.showDate))
   const usedEventIndexes: Set<number> = new Set()
   const groups: MemoryGroup[] = []
 

@@ -86,7 +86,7 @@ const fillHoles = (activities: Activity[]): Activity[] => {
     return []
   }
 
-  const sortedActivities = activities.toSorted((a, b) => a.date.localeCompare(b.date))
+  const sortedActivities = [...activities].sort((a, b) => a.date.localeCompare(b.date))
 
   const calendar = new Map<string, Activity>(activities.map((a) => [a.date, a]))
 

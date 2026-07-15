@@ -25,7 +25,7 @@ export interface ReportSubmissionStats {
 
 /** Removes duplicate show IDs while retaining predictable parameter ordering. */
 function getUniqueShowIds(showIds: number[]): number[] {
-  return [...new Set(showIds)].toSorted((a, b) => a - b)
+  return [...new Set(showIds)].sort((a, b) => a - b)
 }
 
 /** Verifies that every requested show still exists. */

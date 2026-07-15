@@ -29,6 +29,10 @@
 
 ## 关键设计决策
 
+### Android 浏览器兼容边界（2026-07-15）
+
+客户端排序不直接使用 ES2023 的 `Array.prototype.toSorted`。TypeScript / Vite 的 ES2023 编译目标不会为旧版 Chrome 或 Android WebView 注入该原生 API；需要保持非变异排序语义时，统一先复制数组再调用广泛支持的 `sort`（`[...items].sort(compareFn)`）。统计概览、回忆卡与贡献图均遵循此边界，避免用户从表单进入统计流程后在旧 Android 环境触发 `toSorted is not a function`。
+
 ### 使用标准路径与服务端渲染
 
 Cloudflare Workers 负责处理直接路由请求，因此页面使用 `/form` 等标准路径，而不是哈希路由。根路由统一管理 HTML 文档、共享布局和主题提供器。

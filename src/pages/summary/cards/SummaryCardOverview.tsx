@@ -123,7 +123,7 @@ export function SummaryCardOverview() {
     }, LIT_TICK_MS)
 
     // Read the mount-time snapshot — stable ref, no stale closure issue.
-    const selectedSorted = selectedShowsAtMount.current.toSorted((a, b) =>
+    const selectedSorted = [...selectedShowsAtMount.current].sort((a, b) =>
       a.showDate.localeCompare(b.showDate)
     )
     let j = 0
