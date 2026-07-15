@@ -222,10 +222,19 @@ function toCellBackground(sectionTypes: TourSongAppearance['sectionType'][]): st
 }
 
 /** One cell of the tour-show grid; cells with any section light up, split into bands when several. */
-function GridCell({ sectionTypes, title }: { sectionTypes?: TourSongAppearance['sectionType'][]; title?: string }) {
+function GridCell({
+  isAttended = false,
+  sectionTypes,
+  title,
+}: {
+  /** 用户是否参加过这一场；到场的格子加描边高亮，与是否唱过无关。 */
+  isAttended?: boolean
+  sectionTypes?: TourSongAppearance['sectionType'][]
+  title?: string
+}) {
   return (
     <span
-      className="summary-record-grid-cell"
+      className={`summary-record-grid-cell ${isAttended ? 'summary-record-grid-cell-attended' : ''}`}
       style={sectionTypes && sectionTypes.length > 0 ? { background: toCellBackground(sectionTypes) } : undefined}
       title={title}
     />
@@ -237,7 +246,8 @@ function GridCell({ sectionTypes, title }: { sectionTypes?: TourSongAppearance['
  * 被点歌或被安可时以对应颜色点亮，没唱的场次保持暗格。
  */
 function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
-  const { allShows } = useSummaryDataContext()
+  const { allShows, selectedShows } = useSummaryDataContext()
+  const attendedShowIds = new Set(selectedShows.map((show) => show.id))
 
   // 同一场可能出现在多个段落（如主歌单唱过又被安可），一格里能挂多个段落。
   const sectionsByShowId = new Map<number, Set<TourSongAppearance['sectionType']>>()
@@ -253,7 +263,7 @@ function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
   return (
     <>
       <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
-        <p>全巡演足迹</p>
+        <p>巡演足迹</p>
         <p className="font-geist">
           {sectionsByShowId.size} / {allShows.length}
         </p>
@@ -271,11 +281,15 @@ function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
             sectionTypes.length > 0
               ? sectionTypes.map((sectionType) => GRID_SECTION_LABEL[sectionType]).join('＋')
               : '没唱'
+          const isAttended = attendedShowIds.has(show.id)
           return (
             <GridCell
+              isAttended={isAttended}
               key={show.id}
               sectionTypes={sectionTypes}
-              title={`${formatShowDate(show.showDate)} ${show.city} ${show.dayLabel} · ${stateLabel}`}
+              title={`${formatShowDate(show.showDate)} ${show.city} ${show.dayLabel} · ${stateLabel}${
+                isAttended ? ' · 你在场' : ''
+              }`}
             />
           )
         })}
@@ -291,6 +305,10 @@ function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
             {GRID_SECTION_LABEL[sectionType]}
           </span>
         ))}
+        <span className="flex items-center gap-1.5">
+          <GridCell isAttended />
+          你在场
+        </span>
       </div>
     </>
   )
@@ -529,7 +547,7 @@ function RecordDetailOverlay({
           <EncounterStory song={song} />
 
           {appearances.length > 0 && (
-            <>
+            <div className="max-h-[38svh] overflow-y-auto overscroll-contain">
               <TourShowGrid appearances={appearances} />
               <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
                 <p>唱过的场次</p>
@@ -537,7 +555,7 @@ function RecordDetailOverlay({
                   {heardCount} / {appearances.length}
                 </p>
               </div>
-              <ul className="max-h-[24svh] overflow-y-auto overscroll-contain rounded-lg border border-white/8">
+              <ul className="rounded-lg border border-white/8">
                 {appearanceRows.map(({ appearance, key }) => {
                   const badge = SECTION_BADGE_LABEL[appearance.sectionType]
                   return (
@@ -559,7 +577,7 @@ function RecordDetailOverlay({
                   )
                 })}
               </ul>
-            </>
+            </div>
           )}
 
           <button

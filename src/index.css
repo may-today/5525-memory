@@ -1839,6 +1839,11 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
+/* 用户到场的场次格:内描边高亮,与该场是否唱过这首歌无关 */
+.summary-record-grid-cell-attended {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32);
+}
+
 .summary-record-section-badge {
     flex-shrink: 0;
     padding: 1px 5px;
