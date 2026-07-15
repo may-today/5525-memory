@@ -323,14 +323,120 @@
 }
 
 .city-passport-dot[data-visited] {
-    background-color: rgba(56, 189, 248, 0.25);
-    border-color: rgba(56, 189, 248, 0.6);
+    background-color: color-mix(in srgb, var(--dot-color, #38bdf8) 25%, transparent);
+    border-color: color-mix(in srgb, var(--dot-color, #38bdf8) 60%, transparent);
 }
 
 .city-passport-dot[data-active] {
-    background-color: #38bdf8;
-    border-color: #38bdf8;
+    background-color: var(--dot-color, #38bdf8);
+    border-color: var(--dot-color, #38bdf8);
     transform: scale(1.4);
+}
+
+/* 护照首页的「书页」指示：区别于城市圆点的圆角短矩形。 */
+.city-passport-dot-index {
+    width: 12px;
+    border-radius: 2px;
+}
+
+@property --city-ambient {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: transparent;
+}
+
+/* 卡片环境光：随当前页印章的子主题色渐变过渡的低透明 radial 光晕；
+   @property 不可用的老浏览器退化为瞬时换色（var 仍生效，仅无过渡）。 */
+.city-passport-ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 42%,
+            color-mix(in srgb, var(--city-ambient, transparent) 10%, transparent),
+            transparent 62%);
+    transition: --city-ambient 0.8s ease;
+}
+
+/* 护照首页（卡组第一页）：eyebrow / Doto 分数 / 迷你印章网格 / MRZ 机读码 */
+.city-passport-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: #71717a;
+    text-transform: uppercase;
+}
+
+.city-passport-count {
+    color: #f4f4f5;
+    text-shadow:
+        0 0 14px rgba(56, 189, 248, 0.55),
+        0 0 32px rgba(56, 189, 248, 0.25);
+}
+
+.city-passport-count-total {
+    font-size: 1.25rem;
+    color: #52525b;
+}
+
+/* 迷你印章：一城一枚的缩览圆章，到场 = 子主题色实线 + 辉光，未到场 = 灰色
+   虚线空心；微倾角与错峰 pop-in 保持手工盖章的松弛感。 */
+.city-mini-stamp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    padding: 0.25rem;
+    border: 1.5px solid color-mix(in srgb, var(--stamp-color, #38bdf8) 72%, transparent);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--stamp-color, #38bdf8) 10%, transparent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--stamp-color, #38bdf8) 24%, transparent);
+    transform: rotate(var(--mini-rotation, 0deg));
+    animation: city-mini-stamp-in 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+    animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+.city-mini-stamp:not([data-visited]) {
+    border-style: dashed;
+    border-color: #3f3f46;
+    background: transparent;
+    box-shadow: none;
+}
+
+.city-mini-stamp-name {
+    font-size: 10px;
+    line-height: 1.15;
+    color: #f4f4f5;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.city-mini-stamp:not([data-visited]) .city-mini-stamp-name {
+    color: #52525b;
+}
+
+@keyframes city-mini-stamp-in {
+    from {
+        opacity: 0;
+        transform: scale(0.5) rotate(var(--mini-rotation, 0deg));
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(var(--mini-rotation, 0deg));
+    }
+}
+
+/* MRZ 机读码：护照资料页的身份符号，内容为真实统计数据（巡演名 / 盖章数 /
+   总城市数 / 里程），不是装饰性乱码。 */
+.city-passport-mrz {
+    width: 100%;
+    padding-top: 0.75rem;
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: 0.14em;
+    color: #52525b;
+    text-align: center;
+    white-space: nowrap;
+    border-top: 1px dashed #27272a;
 }
 
 /* 护照印章：SVG 绘制的圆形墨章，取代场馆图作为每张城市卡的视觉核心。墨色由
@@ -339,6 +445,50 @@
     position: relative;
     contain: layout style;
     user-select: none;
+    transform: rotate(var(--stamp-rotation, 0deg));
+}
+
+/* 印泥不匀的手工感：固定光照下的局部缺墨（复用小众歌单卡印章手法）。
+   mask 盖在整个印章上（含旋转文字环与邮戳），静态缺墨叠在旋转元素上
+   反而更像固定光源下的真实油墨。 */
+.city-stamp[data-visited] {
+    mask-image: radial-gradient(circle at 32% 24%,
+            rgba(0, 0, 0, 0.68) 0 16%,
+            black 44%);
+}
+
+/* 盖章动画：城市页首次滑入视口前保持空白，命中后一次性「盖下去」
+   （overshoot 缓动让 scale 在落定前轻微压过 1，像真实按压）。 */
+.city-stamp[data-visited]:not([data-stamped]) {
+    opacity: 0;
+}
+
+.city-stamp[data-stamped] {
+    animation: city-stamp-slam 0.6s cubic-bezier(0.2, 1.4, 0.35, 1) 0.1s both;
+}
+
+@keyframes city-stamp-slam {
+    from {
+        opacity: 0;
+        transform: scale(1.45) rotate(calc(var(--stamp-rotation, 0deg) - 8deg));
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(var(--stamp-rotation, 0deg));
+    }
+}
+
+@keyframes city-stamp-postmark-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -30%) rotate(-8deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-8deg);
+    }
 }
 
 .city-stamp-svg {
@@ -357,21 +507,40 @@
     font-size: 6px;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    fill: var(--stamp-color, #38bdf8);
+    fill: var(--stamp-ink, var(--stamp-color, #38bdf8));
     opacity: 0.55;
+}
+
+/* 双圈 + 机刻细密刻线：真实橡皮章的外圈结构。--stamp-ink 为纯色或跨子主题
+   城市的「彩虹印台」SVG 渐变引用。 */
+.city-stamp-outer-ring {
+    fill: none;
+    stroke: var(--stamp-ink, var(--stamp-color, #38bdf8));
+    stroke-width: 1.25;
+    opacity: 0.5;
+}
+
+.city-stamp-ticks {
+    fill: none;
+    stroke: var(--stamp-ink, var(--stamp-color, #38bdf8));
+    stroke-width: 4;
+    stroke-dasharray: 0.6 3.4;
+    opacity: 0.28;
 }
 
 .city-stamp-inner-ring {
     fill: none;
-    stroke: var(--stamp-color, #38bdf8);
+    stroke: var(--stamp-ink, var(--stamp-color, #38bdf8));
     stroke-width: 0.75;
     opacity: 0.35;
 }
 
 .city-stamp-body {
-    fill: color-mix(in srgb, var(--stamp-color, #38bdf8) 8%, transparent);
-    stroke: var(--stamp-color, #38bdf8);
+    fill: var(--stamp-ink, var(--stamp-color, #38bdf8));
+    fill-opacity: 0.08;
+    stroke: var(--stamp-ink, var(--stamp-color, #38bdf8));
     stroke-width: 2;
+    /* 辉光取首色：drop-shadow 无法渐变，首色与章体渐变起点一致即可 */
     filter: drop-shadow(0 0 10px color-mix(in srgb, var(--stamp-color, #38bdf8) 55%, transparent));
     transition:
         fill 0.4s ease,
@@ -390,6 +559,12 @@
 .city-stamp:not([data-visited]) .city-stamp-inner-ring {
     stroke: #52525b;
     opacity: 0.25;
+}
+
+.city-stamp:not([data-visited]) .city-stamp-outer-ring,
+.city-stamp:not([data-visited]) .city-stamp-ticks {
+    stroke: #52525b;
+    opacity: 0.3;
 }
 
 .city-stamp:not([data-visited]) .city-stamp-ring-text {
@@ -417,10 +592,11 @@
     text-shadow: none;
 }
 
-/* 邮戳日期条：斜切叠在印章上，只在已盖章状态渲染，模拟真实邮戳的取消线。 */
+/* 邮戳日期条：斜切叠在印章下部，只在已盖章状态渲染，模拟真实邮戳的取消线；
+   压在城市名下缘而不是正中，保证城市名可读。 */
 .city-stamp-postmark {
     position: absolute;
-    top: 50%;
+    top: 66%;
     left: 50%;
     display: flex;
     align-items: baseline;
@@ -442,6 +618,11 @@
 .city-stamp-postmark-extra {
     color: #d4d4d8;
     font-size: 0.6rem;
+}
+
+/* 盖章后邮戳延迟落下，衔接印章 slam 的时序。 */
+.city-stamp[data-stamped] .city-stamp-postmark {
+    animation: city-stamp-postmark-in 0.35s ease-out 0.5s both;
 }
 
 @keyframes city-stamp-ring-spin {
@@ -2814,6 +2995,22 @@
     /* 城市护照卡：印章环形文字停止旋转，静态展示即可辨认 */
     .city-stamp-svg {
         animation: none;
+    }
+
+    /* 城市护照卡：盖章/邮戳/迷你章入场动画停用，未激活过的到场印章保持可见，
+       环境光瞬时换色 */
+    .city-stamp[data-visited]:not([data-stamped]) {
+        opacity: 1;
+    }
+
+    .city-stamp[data-stamped],
+    .city-stamp[data-stamped] .city-stamp-postmark,
+    .city-mini-stamp {
+        animation: none;
+    }
+
+    .city-passport-ambient {
+        transition: none;
     }
 
     /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），

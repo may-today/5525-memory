@@ -25,6 +25,12 @@ export interface CityMarker {
 	 * （去过多场取时间最早的一场）；未去过的城市取该城市首次出现的场次。
 	 */
 	subTheme: string;
+	/**
+	 * 该城市全部场次覆盖的子主题去重列表（按首次出现顺序，过滤空值）。
+	 * 跨子主题城市（如北京横跨全部三段巡演）据此生成「彩虹印台」渐变墨色；
+	 * 单主题城市只有一项，印章退化为纯色。
+	 */
+	subThemes: string[];
 	/** 代表场次的原始主题色，`subTheme` 未匹配到配色表时的回退色。 */
 	themeColor: string;
 	/** 代表场次的版本名。 */
@@ -316,10 +322,15 @@ function buildCityMarkers(
 		const visitedShows = shows.filter((show) => selectedShowIds.has(show.id));
 		// 已去过：取用户实际去过的最早一场作代表；未去过：取该城市首次出现的场次。
 		const representative = visitedShows[0] ?? shows[0];
+		// 数据里存在 sub_theme 为空的脏记录（如香港某场），取墨色时过滤掉。
+		const subThemes = [
+			...new Set(shows.map((show) => show.subTheme).filter(Boolean)),
+		];
 		markers.push({
 			cityName,
 			isVisited: visitedShows.length > 0,
 			subTheme: representative.subTheme,
+			subThemes,
 			themeColor: representative.themeColor,
 			versionName: representative.versionName,
 			venue: representative.venue,
