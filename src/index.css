@@ -1830,6 +1830,15 @@
     background: color-mix(in oklab, var(--record-color), transparent 88%);
 }
 
+/* 唱片详情:巡演全场次方格图。一场一格;点亮格的纯色/多段落分带背景由组件内联注入 */
+.summary-record-grid-cell {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .summary-record-section-badge {
     flex-shrink: 0;
     padding: 1px 5px;

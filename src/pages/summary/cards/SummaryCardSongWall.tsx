@@ -185,6 +185,118 @@ const SECTION_BADGE_LABEL: Record<TourSongAppearance['sectionType'], string | nu
 }
 
 /**
+ * 场次方格图三种点亮态的颜色。按段落语义全卡固定，不随唱片主色（紫／金）变化；
+ * 刻意压暗降饱和，避免方格比正文更抢眼。深色底 dataviz 校验通过（CVD 最差邻对
+ * ΔE 10.6，处于需辅助编码的下限区间，由格间距＋图例＋逐格 tooltip 补足）。
+ */
+const GRID_SECTION_COLOR: Record<TourSongAppearance['sectionType'], string> = {
+  main: '#8a72cc',
+  request: '#2e84b0',
+  encore: '#a86a30',
+}
+
+const GRID_SECTION_LABEL: Record<TourSongAppearance['sectionType'], string> = {
+  main: '唱过',
+  request: '点歌',
+  encore: '安可',
+}
+
+/** 同一场同曲出现在多个段落时，格内自上而下的填充顺序（主歌单 → 点歌 → 安可）。 */
+const GRID_SECTION_RANK: Record<TourSongAppearance['sectionType'], number> = {
+  main: 0,
+  request: 1,
+  encore: 2,
+}
+
+const GRID_LEGEND_SECTIONS = ['main', 'request', 'encore'] as const
+
+/** 单段落为纯色；多段落（如 main+encore 的返场重唱）按填充顺序上下均分色带。 */
+function toCellBackground(sectionTypes: TourSongAppearance['sectionType'][]): string {
+  if (sectionTypes.length === 1) return GRID_SECTION_COLOR[sectionTypes[0]]
+  const bandPercent = 100 / sectionTypes.length
+  const stops = sectionTypes.map(
+    (sectionType, index) =>
+      `${GRID_SECTION_COLOR[sectionType]} ${(index * bandPercent).toFixed(1)}% ${((index + 1) * bandPercent).toFixed(1)}%`
+  )
+  return `linear-gradient(to bottom, ${stops.join(', ')})`
+}
+
+/** One cell of the tour-show grid; cells with any section light up, split into bands when several. */
+function GridCell({ sectionTypes, title }: { sectionTypes?: TourSongAppearance['sectionType'][]; title?: string }) {
+  return (
+    <span
+      className="summary-record-grid-cell"
+      style={sectionTypes && sectionTypes.length > 0 ? { background: toCellBackground(sectionTypes) } : undefined}
+      title={title}
+    />
+  )
+}
+
+/**
+ * 巡演全场次方格图：按日期顺序一场一格、自动换行；这首歌在该场被唱过、
+ * 被点歌或被安可时以对应颜色点亮，没唱的场次保持暗格。
+ */
+function TourShowGrid({ appearances }: { appearances: TourSongAppearance[] }) {
+  const { allShows } = useSummaryDataContext()
+
+  // 同一场可能出现在多个段落（如主歌单唱过又被安可），一格里能挂多个段落。
+  const sectionsByShowId = new Map<number, Set<TourSongAppearance['sectionType']>>()
+  for (const { sectionType, show } of appearances) {
+    const existing = sectionsByShowId.get(show.id)
+    if (existing) {
+      existing.add(sectionType)
+    } else {
+      sectionsByShowId.set(show.id, new Set([sectionType]))
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
+        <p>全巡演足迹</p>
+        <p className="font-geist">
+          {sectionsByShowId.size} / {allShows.length}
+        </p>
+      </div>
+      <div
+        aria-label={`全巡演 ${allShows.length} 场中，这首歌被唱过 ${sectionsByShowId.size} 场`}
+        className="flex flex-wrap gap-[3px]"
+        role="img"
+      >
+        {allShows.map((show) => {
+          const sectionTypes = [...(sectionsByShowId.get(show.id) ?? [])].sort(
+            (a, b) => GRID_SECTION_RANK[a] - GRID_SECTION_RANK[b]
+          )
+          const stateLabel =
+            sectionTypes.length > 0
+              ? sectionTypes.map((sectionType) => GRID_SECTION_LABEL[sectionType]).join('＋')
+              : '没唱'
+          return (
+            <GridCell
+              key={show.id}
+              sectionTypes={sectionTypes}
+              title={`${formatShowDate(show.showDate)} ${show.city} ${show.dayLabel} · ${stateLabel}`}
+            />
+          )
+        })}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-zinc-500">
+        <span className="flex items-center gap-1.5">
+          <GridCell />
+          没唱
+        </span>
+        {GRID_LEGEND_SECTIONS.map((sectionType) => (
+          <span className="flex items-center gap-1.5" key={sectionType}>
+            <GridCell sectionTypes={[sectionType]} />
+            {GRID_SECTION_LABEL[sectionType]}
+          </span>
+        ))}
+      </div>
+    </>
+  )
+}
+
+/**
  * One vinyl sleeve seen spine-on: vertical-rl song title on a thin slat.
  * Heard records light up and pull out of the rack; the inner span owns the
  * writing mode so the flex wrapper can center the title across the spine.
@@ -418,13 +530,14 @@ function RecordDetailOverlay({
 
           {appearances.length > 0 && (
             <>
+              <TourShowGrid appearances={appearances} />
               <div className="mt-5 mb-2 flex items-baseline justify-between text-[11px] text-zinc-500">
                 <p>唱过的场次</p>
                 <p className="font-geist">
                   {heardCount} / {appearances.length}
                 </p>
               </div>
-              <ul className="max-h-[30svh] overflow-y-auto overscroll-contain rounded-lg border border-white/8">
+              <ul className="max-h-[24svh] overflow-y-auto overscroll-contain rounded-lg border border-white/8">
                 {appearanceRows.map(({ appearance, key }) => {
                   const badge = SECTION_BADGE_LABEL[appearance.sectionType]
                   return (
