@@ -13,3 +13,8 @@ export const coverIdMap: Record<string, string> = {
 export function getCoverImg(name: string): string {
   return `//mayday-replay-cdn.ddiu.site/cover/album/thumb/${coverIdMap[name]}.webp`
 }
+
+/** Only the albums listed in `coverIdMap` have cover art available. */
+export function hasCoverImg(name: string): boolean {
+  return name in coverIdMap
+}

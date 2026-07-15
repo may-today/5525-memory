@@ -1720,10 +1720,22 @@
     position: relative;
     aspect-ratio: 1;
     border-radius: 6px;
+    overflow: hidden;
     will-change: transform;
 }
 
+/* 曲库内唱片的封套底纹：专辑封面半透明浮在渐变背景之上，只做氛围不抢文字 */
+.summary-record-sleeve-cover {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.28;
+    mix-blend-mode: luminosity;
+}
+
 .summary-record-sleeve-content {
+    position: relative;
     opacity: 0;
     transition: opacity 0.25s ease;
 }

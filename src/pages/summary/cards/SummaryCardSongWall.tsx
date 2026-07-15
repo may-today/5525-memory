@@ -1,5 +1,6 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
+import { getCoverImg, hasCoverImg } from '@/data/cover'
 import { songList } from '@/data/song-list'
 import type { TourSong, TourSongAppearance } from '@/server/summary'
 import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
@@ -370,6 +371,7 @@ function RecordDetailOverlay({
   const sleeveMeta = song.isSurprise
     ? '曲库之外 · 意外惊喜'
     : `${song.album ? `《${song.album}》` : '五月天'}${song.year ? ` · ${song.year}` : ''}`
+  const coverImg = !song.isSurprise && song.album && hasCoverImg(song.album) ? getCoverImg(song.album) : null
 
   // Deduplicate row keys: a song can in principle repeat within one show's same section.
   const seenRowKeys = new Map<string, number>()
@@ -395,6 +397,13 @@ function RecordDetailOverlay({
           <div className={`summary-record-stage ${isSettled ? 'summary-record-stage-settled' : ''}`}>
             <div aria-hidden className="summary-record-disc" />
             <div className={`summary-record-sleeve ${sleeveClass}`} ref={sleeveRef}>
+              {coverImg && (
+                <div
+                  aria-hidden
+                  className="summary-record-sleeve-cover"
+                  style={{ backgroundImage: `url(${coverImg})` }}
+                />
+              )}
               <div className="summary-record-sleeve-content flex h-full flex-col p-4">
                 <p className="text-[9px] tracking-[0.22em] opacity-70">MAYDAY #5525</p>
                 <p className="mt-auto font-title text-2xl leading-snug">{song.title}</p>
