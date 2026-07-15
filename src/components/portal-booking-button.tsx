@@ -3,7 +3,7 @@ import astronaut from '@/assets/logo/astronaut.png'
 import wmbkQr from '@/assets/logo/wmbk-qr.webp'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
-const PORTAL_LAUNCH_AT = Date.parse('2026-07-17T19:00:00+08:00')
+const PORTAL_LAUNCH_AT = Date.parse('2026-07-18T19:00:00+08:00')
 
 interface PortalCountdownParts {
   days: string
@@ -92,8 +92,8 @@ export function PortalBookingButton() {
           <p>我们在这组庞大的数据里，寻找着你留下的专属坐标。</p>
 
           <p>而你的故事，现在正是起点。</p>
-          <p className="mt-2">Talking 统计 / 公益纪录 / 特别场次 / 观看标签</p>
-          <p>你的 任意门启航版 报告现已开放。</p>
+          <p className="mt-2">Talking 统计 / 公益纪录 / 特别场次 / 观看标签 / 自定义物料</p>
+          <p>打开属于你的 任意门启航版。</p>
           <section aria-labelledby="supported-apps-title" className="mt-4 w-full border bg-muted/40 p-4">
             <div className="flex items-center gap-4">
               <img alt="五迷百科小程序二维码" className="size-20 rounded-md" height={300} src={wmbkQr} width={300} />

@@ -13,6 +13,19 @@
     }
   },
   {
+    "title": "Alive",
+    "slug": "alive",
+    "index": "A",
+    "meta": {
+      "year": 2026,
+      "album": "Alive",
+      "banlam": false,
+      "lyricist": "五月天 阿信",
+      "composer": "五月天 阿信",
+      "length": 238
+    }
+  },
+  {
     "title": "阿姆斯壮",
     "slug": "a-mu-si-zhuang",
     "index": "A",
@@ -310,7 +323,7 @@
     }
   },
   {
-    "title": "Do You Ever Shine",
+    "title": "Do You Ever Shine?",
     "slug": "do-you-ever-shine",
     "index": "D",
     "meta": {
