@@ -139,7 +139,7 @@ export function SharePage() {
           </SheetTrigger>
           <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
             <SheetHeader className="border-b px-5 pt-6 pb-4">
-              <SheetTitle className="text-xl">保存场次口令</SheetTitle>
+              <SheetTitle className="font-title text-xl">保存场次口令</SheetTitle>
               <SheetDescription>复制口令，粘贴到其他支持的应用，即可永久保存你的回忆。</SheetDescription>
             </SheetHeader>
             <div className="flex flex-col gap-3 px-5 py-5">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import astronaut from '@/assets/logo/astronaut.png'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import wmbkQr from '@/assets/logo/wmbk-qr.webp'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 const PORTAL_LAUNCH_AT = Date.parse('2026-07-17T19:00:00+08:00')
 
@@ -63,7 +64,7 @@ export function PortalBookingButton() {
   }, [])
 
   return (
-    <Sheet open={false}>
+    <Sheet>
       <SheetTrigger className="share-portal-entry group relative flex w-full items-center justify-between gap-3 py-3.5 pr-4 pl-16 text-left">
         <img
           alt=""
@@ -84,10 +85,27 @@ export function PortalBookingButton() {
       </SheetTrigger>
       <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
         <SheetHeader className="border-b px-5 pt-6 pb-4">
-          <SheetTitle className="text-xl">任意门启航版</SheetTitle>
-          <SheetDescription>预约入口即将接入，敬请期待。</SheetDescription>
+          <SheetTitle className="font-title text-xl">「时空旅行报告」任意门启航版</SheetTitle>
         </SheetHeader>
-        <div className="px-5 py-10 text-center text-muted-foreground text-sm">占位内容</div>
+        <div className="px-5 py-4 text-muted-foreground text-xs leading-relaxed">
+          <p>162 场，925 天，100,400 公里。</p>
+          <p>我们在这组庞大的数据里，寻找着你留下的专属坐标。</p>
+
+          <p>而你的故事，现在正是起点。</p>
+          <p className="mt-2">Talking 统计 / 公益纪录 / 特别场次 / 观看标签</p>
+          <p>你的 任意门启航版 报告现已开放。</p>
+          <section aria-labelledby="supported-apps-title" className="mt-4 w-full border bg-muted/40 p-4">
+            <div className="flex items-center gap-4">
+              <img alt="五迷百科小程序二维码" className="size-20 rounded-md" height={300} src={wmbkQr} width={300} />
+              <div className="flex min-w-0 flex-col gap-1">
+                <h3 className="font-medium text-sm">小程序 五迷百科</h3>
+                <p className="text-muted-foreground text-xs leading-5">
+                  属于WMLS的五月天数据库：五月天演唱会歌单/公益数据/唱片标记/获奖记录/Talking记录，五迷自定义物料生成
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
       </SheetContent>
     </Sheet>
   )
