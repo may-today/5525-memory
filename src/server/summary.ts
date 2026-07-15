@@ -17,12 +17,24 @@ const EXCLUDED_SUMMARY_SHOW_DATE = "2026-03-24";
 export interface CityMarker {
 	/** 城市展示名；来自全部场次城市去重，按场次日期顺序排列。 */
 	cityName: string;
-	/** 用户选中场次中是否包含该城市；City 卡据此高亮标记并连接星轨。 */
+	/** 用户选中场次中是否包含该城市；City 卡护照印章据此决定盖章/未盖章状态。 */
 	isVisited: boolean;
-	/** 从硬编码 CITY_COORDINATES 映射表解析出的纬度；映射表缺失的城市会被跳过。 */
-	latitude: number;
-	/** 从硬编码 CITY_COORDINATES 映射表解析出的经度；映射表缺失的城市会被跳过。 */
-	longitude: number;
+	/**
+	 * 代表场次的子巡演主题（如「5525回到1999」），用作护照印章的墨色取色键
+	 * （见 `src/lib/sub-theme-colors.ts`）。已去过的城市取用户实际去过的那场
+	 * （去过多场取时间最早的一场）；未去过的城市取该城市首次出现的场次。
+	 */
+	subTheme: string;
+	/** 代表场次的原始主题色，`subTheme` 未匹配到配色表时的回退色。 */
+	themeColor: string;
+	/** 代表场次的版本名。 */
+	versionName: string;
+	/** 代表场次的场馆名。 */
+	venue: string;
+	/** 该城市全巡演的演出日期（`dateSlash` 格式），按时间顺序排列。 */
+	showDates: string[];
+	/** 用户实际到场的该城市场次日期（`dateSlash` 格式），按时间顺序排列；未去过为空数组。 */
+	visitedShowDates: string[];
 }
 
 export interface LocationCoordinates {
@@ -208,10 +220,10 @@ export interface SummaryData {
 	 */
 	allShows: Show[];
 	/**
-	 * 地球城市标记列表。
+	 * 护照卡组的城市标记列表。
 	 *
-	 * 始终由 allShows 中的全部城市去重计算，用户选中场次覆盖的城市标记
-	 * isVisited = true。只有能在 CITY_COORDINATES 中匹配到经纬度的城市会被返回。
+	 * 始终由 allShows 中的全部城市去重计算（按城市首次出现的场次日期排序），
+	 * 用户选中场次覆盖的城市标记 isVisited = true。
 	 */
 	cityMarkers: CityMarker[];
 	/**
@@ -286,28 +298,34 @@ export interface SummaryData {
 	 * 记录该曲目出现过的场次、在该场所属的歌单段落，以及用户是否听过这场。
 	 */
 	tourSongs: TourSong[];
-	/**
-	 * 用户的出发点坐标：浏览器定位优先，未定位时回退到所选城市／地区中心
-	 * （geoCoordMap）。City 卡用它在地球上标记用户位置并向去过的城市发射弧线。
-	 * null 表示没有可用地点，此时 mileage 也为 null。
-	 */
-	travelOrigin: LocationCoordinates | null;
 }
 
 function buildCityMarkers(
 	allShows: Show[],
-	visitedCities: Set<string>,
+	selectedShowIds: Set<number>,
 ): CityMarker[] {
-	const uniqueCities = [...new Set(allShows.map((show) => show.city))];
+	const showsByCity = new Map<string, Show[]>();
+	for (const show of allShows) {
+		const shows = showsByCity.get(show.city);
+		if (shows) shows.push(show);
+		else showsByCity.set(show.city, [show]);
+	}
+
 	const markers: CityMarker[] = [];
-	for (const cityName of uniqueCities) {
-		const coord = CITY_COORDINATES[cityName];
-		if (coord)
-			markers.push({
-				cityName,
-				isVisited: visitedCities.has(cityName),
-				...coord,
-			});
+	for (const [cityName, shows] of showsByCity) {
+		const visitedShows = shows.filter((show) => selectedShowIds.has(show.id));
+		// 已去过：取用户实际去过的最早一场作代表；未去过：取该城市首次出现的场次。
+		const representative = visitedShows[0] ?? shows[0];
+		markers.push({
+			cityName,
+			isVisited: visitedShows.length > 0,
+			subTheme: representative.subTheme,
+			themeColor: representative.themeColor,
+			versionName: representative.versionName,
+			venue: representative.venue,
+			showDates: shows.map((show) => show.dateSlash),
+			visitedShowDates: visitedShows.map((show) => show.dateSlash),
+		});
 	}
 	return markers;
 }
@@ -916,7 +934,6 @@ export const getSummaryData = createServerFn({ method: "POST" })
 			);
 			const showsById = new Map(allShows.map((show) => [show.id, show]));
 
-			const visitedCities = new Set(selectedShows.map((show) => show.city));
 			const origin = getOriginCoordinates(city, coordinates);
 
 			return {
@@ -927,12 +944,9 @@ export const getSummaryData = createServerFn({ method: "POST" })
 					cityCount: new Set(selectedShows.map((s) => s.city)).size,
 					venueCount: new Set(selectedShows.map((s) => s.venue)).size,
 				},
-				cityMarkers: buildCityMarkers(allShows, visitedCities),
+				cityMarkers: buildCityMarkers(allShows, selectedShowIdSet),
 				durationStats: buildDurationStats(selectedShows),
 				mileage: buildMileage(selectedShows, origin),
-				travelOrigin: origin
-					? { longitude: origin[0], latitude: origin[1] }
-					: null,
 				songStats: buildSongStats(selectedSetlistItems),
 				tourSongs: buildTourSongs(setlistItems, showsById, selectedShowIdSet),
 				randomSongStats: buildRandomSongStats(selectedSetlistItems, showsById),

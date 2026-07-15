@@ -5,8 +5,9 @@
 export interface SummaryCardProps {
   /**
    * True during the ~1s page-transition window. Cards that run their own
-   * requestAnimationFrame loop (City's WebGL globe, Duration's particle
-   * canvas) freeze rendering while set so the slide stays smooth.
+   * requestAnimationFrame loop or CSS animation (Duration's particle canvas,
+   * City's stamp ring spin) freeze rendering while set so the slide stays
+   * smooth.
    */
   isPaused?: boolean
 

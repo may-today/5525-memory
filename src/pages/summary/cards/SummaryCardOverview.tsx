@@ -7,6 +7,7 @@ import {
   ContributionGraphBlock,
   ContributionGraphCalendar,
 } from '@/components/kibo-ui/contribution-graph'
+import { getSubThemeColor, SUB_THEME_COLORS } from '@/lib/sub-theme-colors'
 import { concertStore } from '@/stores/concert-store'
 import type { Show } from '@/types'
 import { SummaryScrollFadeTop } from '../SummaryScrollFadeTop'
@@ -28,13 +29,6 @@ const MONTH_LABELS_ZH = ['1月', '2月', '3月', '4月', '5月', '6月', '7月',
 const SHOWS_PER_TICK = 4
 const LIT_TICK_MS = 60
 
-/** 巡演子主题配色，与 `/form` 场次选择页保持一致（未知子主题回退场次原 themeColor）。 */
-const SUB_THEME_COLORS = {
-  '5525': '#f472b6',
-  '5525+1': '#38bdf8',
-  '5525+2': '#fb923c',
-} as const
-
 const SUB_THEME_LEGEND = [
   { label: '5525', color: SUB_THEME_COLORS['5525'] },
   { label: '5525+1', color: SUB_THEME_COLORS['5525+1'] },
@@ -49,7 +43,7 @@ const TOUR_FILL_OPACITY = 0.4
 const VISITED_FILL_OPACITY = 1
 
 function getShowColor(show: Show): string {
-  return SUB_THEME_COLORS[show.subTheme as keyof typeof SUB_THEME_COLORS] ?? show.themeColor
+  return getSubThemeColor(show.subTheme, show.themeColor)
 }
 
 function buildYearData(year: Year, allShows: Show[]): Activity[] {

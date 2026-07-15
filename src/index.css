@@ -286,127 +286,172 @@
     }
 }
 
-.summary-globe-container {
+/* 城市护照卡组：横向 snap 滚动，一屏一城。原生触摸滚动足以与 /summary 的纵向
+   翻页手势共存——外层纵向手势判定要求 |deltaY| > |deltaX| 才会触发翻页，横向
+   滑动天然被过滤掉，不需要额外的手势豁免标记。 */
+.city-passport-scroller {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.city-passport-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.city-passport-item {
+    display: flex;
+    flex: 0 0 100%;
+    flex-direction: column;
+    justify-content: center;
+    scroll-snap-align: center;
+}
+
+.city-passport-dot {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+    border: 1px solid rgba(161, 161, 170, 0.5);
+    border-radius: 9999px;
+    transition:
+        transform 0.25s ease,
+        background-color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.city-passport-dot[data-visited] {
+    background-color: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.6);
+}
+
+.city-passport-dot[data-active] {
+    background-color: #38bdf8;
+    border-color: #38bdf8;
+    transform: scale(1.4);
+}
+
+/* 护照印章：SVG 绘制的圆形墨章，取代场馆图作为每张城市卡的视觉核心。墨色由
+   --stamp-color（子主题色）驱动；已盖章 / 未盖章两态共享同一份标记结构。 */
+.city-stamp {
     position: relative;
-    width: 100%;
     contain: layout style;
     user-select: none;
 }
 
-.summary-globe-canvas {
-    position: relative;
+.city-stamp-svg {
     width: 100%;
     height: 100%;
-    contain: layout style;
-    user-select: none;
+    overflow: visible;
+    animation: city-stamp-ring-spin 50s linear infinite;
 }
 
-.summary-globe-orbit-ring {
-    position: absolute;
-    inset: -2%;
-    z-index: 1;
-    pointer-events: none;
-    -webkit-mask-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.1) 40%,
-            black 48%,
-            black 100%);
-    mask-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.1) 40%,
-            black 48%,
-            black 100%);
-}
-
-.summary-globe-orbit-svg {
-    width: 100%;
-    height: 100%;
-    -webkit-transform: rotateX(62deg);
-    transform: rotateX(62deg);
-    animation:
-        orbit-spin 30s linear infinite,
-        fade-in 1.7s ease 0.5s both;
-}
-
-.summary-globe-container[data-paused] .summary-globe-orbit-svg {
+.city-stamp[data-paused] .city-stamp-svg {
     animation-play-state: paused;
 }
 
-.summary-globe-orbit-text {
+.city-stamp-ring-text {
     font-family: var(--font-mono), monospace;
     font-size: 6px;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    letter-spacing: 0.11em;
-    fill: #ffffff;
+    fill: var(--stamp-color, #38bdf8);
+    opacity: 0.55;
 }
 
-/* 用户出发点的蓝色电波：两圈错峰扩散的脉冲环，锚定在 cobe 的 origin marker 上。 */
-.summary-globe-origin-pulse {
-    position: absolute;
-    top: anchor(center);
-    left: anchor(center);
-    z-index: 2;
-    width: 12px;
-    height: 12px;
-    pointer-events: none;
-    translate: -50% -50%;
-    transition: opacity 0.8s;
+.city-stamp-inner-ring {
+    fill: none;
+    stroke: var(--stamp-color, #38bdf8);
+    stroke-width: 0.75;
+    opacity: 0.35;
 }
 
-.summary-globe-origin-pulse::before,
-.summary-globe-origin-pulse::after {
+.city-stamp-body {
+    fill: color-mix(in srgb, var(--stamp-color, #38bdf8) 8%, transparent);
+    stroke: var(--stamp-color, #38bdf8);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--stamp-color, #38bdf8) 55%, transparent));
+    transition:
+        fill 0.4s ease,
+        stroke 0.4s ease,
+        opacity 0.4s ease;
+}
+
+.city-stamp:not([data-visited]) .city-stamp-body {
+    fill: transparent;
+    stroke: #52525b;
+    stroke-width: 1.5;
+    stroke-dasharray: 4 5;
+    filter: none;
+}
+
+.city-stamp:not([data-visited]) .city-stamp-inner-ring {
+    stroke: #52525b;
+    opacity: 0.25;
+}
+
+.city-stamp:not([data-visited]) .city-stamp-ring-text {
+    fill: #52525b;
+    opacity: 0.45;
+}
+
+.city-stamp-center {
     position: absolute;
     inset: 0;
-    content: "";
-    border: 1px solid rgba(56, 189, 248, 0.9);
-    border-radius: 9999px;
-    animation: origin-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
-.summary-globe-origin-pulse::after {
-    animation-delay: 1.5s;
+.city-stamp-name {
+    color: #f4f4f5;
+    font-size: 1.5rem;
+    text-shadow: 0 0 16px color-mix(in srgb, var(--stamp-color, #38bdf8) 60%, transparent);
 }
 
-.summary-globe-container[data-paused] .summary-globe-origin-pulse::before,
-.summary-globe-container[data-paused] .summary-globe-origin-pulse::after {
-    animation-play-state: paused;
+.city-stamp:not([data-visited]) .city-stamp-name {
+    color: #71717a;
+    text-shadow: none;
 }
 
-@keyframes origin-ping {
-    0% {
-        opacity: 0.9;
-        transform: scale(0.4);
-    }
-
-    70%,
-    100% {
-        opacity: 0;
-        transform: scale(3.2);
-    }
-}
-
-/* cobe 为每个 marker 暴露 anchor 与正面可见度变量；标签只在点位转向可见半球时出现。 */
-.summary-globe-marker-label {
+/* 邮戳日期条：斜切叠在印章上，只在已盖章状态渲染，模拟真实邮戳的取消线。 */
+.city-stamp-postmark {
     position: absolute;
-    top: anchor(bottom);
-    left: anchor(center);
-    z-index: 2;
-    max-width: 5.5rem;
-    overflow: hidden;
-    color: #a1a1aa;
-    font-size: 0.625rem;
-    line-height: 1.2;
-    text-align: center;
-    text-overflow: ellipsis;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    padding: 0.2rem 0.9rem;
+    background: color-mix(in srgb, var(--stamp-color, #38bdf8) 22%, #09090b 78%);
+    border-top: 1px solid color-mix(in srgb, var(--stamp-color, #38bdf8) 70%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--stamp-color, #38bdf8) 70%, transparent);
     white-space: nowrap;
     pointer-events: none;
-    text-shadow: 0 1px 5px #09090b, 0 0 8px #09090b;
-    translate: -50% 4px;
-    transition: opacity 0.25s ease;
+    transform: translate(-50%, -50%) rotate(-8deg);
 }
 
-.summary-globe-marker-label[data-visited] {
-    color: #e0f2fe;
-    font-weight: 600;
-    text-shadow: 0 1px 5px #09090b, 0 0 9px rgba(56, 189, 248, 0.7);
+.city-stamp-postmark-date {
+    color: #f4f4f5;
+    font-size: 0.8rem;
+}
+
+.city-stamp-postmark-extra {
+    color: #d4d4d8;
+    font-size: 0.6rem;
+}
+
+@keyframes city-stamp-ring-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* 时长统计卡背景「多巴胺弥散光」：三团巡演子主题色（5525 粉 / 5525+1 蓝 /
@@ -625,16 +670,6 @@
 
 .animate-hint-down {
     animation: hint-down 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-@keyframes orbit-spin {
-    from {
-        transform: rotateX(62deg) rotateZ(0deg);
-    }
-
-    to {
-        transform: rotateX(62deg) rotateZ(-360deg);
-    }
 }
 
 /* Guest Planets card — deep-space background. Stars are tiny radial-gradient
@@ -2771,25 +2806,14 @@
         animation: none;
     }
 
-    /* Globe orbit ring spin */
-    .summary-globe-orbit-svg {
-        animation: none;
-    }
-
     /* 巡演时间轴「你去过」光点：停用呼吸，保留基础静态辉光与放大即可辨识 */
     .overview-dot-lit {
         animation: none;
     }
 
-    /* 城市地图卡：出发点脉冲环静止隐藏（蓝色 marker 仍在），文案直接可见 */
-    .summary-globe-origin-pulse::before,
-    .summary-globe-origin-pulse::after {
-        opacity: 0;
+    /* 城市护照卡：印章环形文字停止旋转，静态展示即可辨认 */
+    .city-stamp-svg {
         animation: none;
-    }
-
-    .summary-travel-line {
-        transition: none;
     }
 
     /* 时长统计卡：数字块直接可见（组件同时停用滚动叙事与粒子 RAF），
