@@ -1724,14 +1724,19 @@
     will-change: transform;
 }
 
-/* 曲库内唱片的封套底纹：专辑封面半透明浮在渐变背景之上，只做氛围不抢文字 */
+/* 曲库内唱片的封套底纹：专辑封面半透明浮在渐变背景之上，只做氛围不抢文字；随封套文字一起淡入淡出 */
 .summary-record-sleeve-cover {
     position: absolute;
     inset: 0;
     background-position: center;
     background-size: cover;
-    opacity: 0.28;
+    opacity: 0;
     mix-blend-mode: luminosity;
+    transition: opacity 0.25s ease;
+}
+
+.summary-record-stage-settled .summary-record-sleeve-cover {
+    opacity: 0.28;
 }
 
 .summary-record-sleeve-content {
