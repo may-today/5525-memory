@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react'
 import astronaut from '@/assets/logo/astronaut.png'
 import wmbkQr from '@/assets/logo/wmbk-qr.webp'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-
-const PORTAL_LAUNCH_AT = Date.parse('2026-07-18T19:00:00+08:00')
+import { getPortalOpenTime } from '@/server/portal-config'
 
 interface PortalCountdownParts {
   days: string
   hours: string
   minutes: string
   seconds: string
+}
+
+interface PortalOpenTimeState {
+  isLoaded: boolean
+  launchAt: number | null
 }
 
 function splitPortalCountdown(remainingMilliseconds: number): PortalCountdownParts {
@@ -23,17 +27,40 @@ function splitPortalCountdown(remainingMilliseconds: number): PortalCountdownPar
   }
 }
 
+function formatPortalOpenTime(launchAt: number): string {
+  const parts = new Intl.DateTimeFormat('zh-CN', {
+    day: 'numeric',
+    hour: '2-digit',
+    hourCycle: 'h23',
+    minute: '2-digit',
+    month: 'numeric',
+    timeZone: 'Asia/Shanghai',
+  }).formatToParts(launchAt)
+  const partValue = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? ''
+  return `${partValue('month')}/${partValue('day')} ${partValue('hour')}:${partValue('minute')}`
+}
+
+function getPortalOpenTimeLabel({ isLoaded, launchAt }: PortalOpenTimeState): string {
+  if (!isLoaded) return '读取开放时间'
+  if (launchAt === null) return '开放时间待定'
+  return formatPortalOpenTime(launchAt)
+}
+
 /** Mini digital readout for the portal countdown, styled after the warmup page's Doto-font clock. */
-function PortalCountdown({ now }: { now: number }) {
-  if (now === 0) {
+function PortalCountdown({ isLoaded, launchAt, now }: PortalOpenTimeState & { now: number }) {
+  if (now === 0 || !isLoaded) {
     return <span className="font-geist text-orange-200 text-xs tracking-wide">···</span>
   }
 
-  if (now >= PORTAL_LAUNCH_AT) {
+  if (launchAt === null) {
+    return <span className="font-geist text-orange-100 text-xs tracking-wide">时间待定</span>
+  }
+
+  if (now >= launchAt) {
     return <span className="font-geist text-orange-100 text-xs tracking-wide">预约开启</span>
   }
 
-  const { days, hours, minutes, seconds } = splitPortalCountdown(PORTAL_LAUNCH_AT - now)
+  const { days, hours, minutes, seconds } = splitPortalCountdown(launchAt - now)
   return (
     <span
       className="flex items-baseline gap-[2px] font-geist text-base text-orange-50 tabular-nums"
@@ -56,11 +83,35 @@ function PortalCountdown({ now }: { now: number }) {
  */
 export function PortalBookingButton() {
   const [now, setNow] = useState(0)
+  const [openTime, setOpenTime] = useState<PortalOpenTimeState>({
+    isLoaded: false,
+    launchAt: null,
+  })
 
   useEffect(() => {
     setNow(Date.now())
     const intervalId = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(intervalId)
+  }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    getPortalOpenTime()
+      .then(({ opensAtMs }) => {
+        if (!isCancelled) {
+          setOpenTime({ isLoaded: true, launchAt: opensAtMs })
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setOpenTime({ isLoaded: true, launchAt: null })
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
   }, [])
 
   return (
@@ -79,8 +130,8 @@ export function PortalBookingButton() {
           <span className="font-medium text-sm text-zinc-50">任意门启航版</span>
         </span>
         <span className="flex shrink-0 flex-col items-end gap-0.5">
-          <PortalCountdown now={now} />
-          <span className="text-[8px] text-orange-200/40 tracking-widest">7/17 19:00</span>
+          <PortalCountdown {...openTime} now={now} />
+          <span className="text-[8px] text-orange-200/40 tracking-widest">{getPortalOpenTimeLabel(openTime)}</span>
         </span>
       </SheetTrigger>
       <SheetContent className="max-h-[80svh] rounded-t-2xl" side="bottom">
