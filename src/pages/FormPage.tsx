@@ -162,6 +162,7 @@ export function FormPage() {
   const selectedIds = useMemo(() => new Set(selectedShows.map((show) => show.id)), [selectedShows])
   const selectedCityCount = useMemo(() => new Set(selectedShows.map((show) => show.city)).size, [selectedShows])
   const totalCount = selectedShows.length
+  const isAllShowsSelected = allShows.length > 0 && allShows.every((show) => selectedIds.has(show.id))
   const [step, setStep] = useState<FormStep>('profile')
   const [expandedCities, setExpandedCities] = useState<Set<string>>(() => {
     const lastGroup = CITY_GROUPS.at(-1)
@@ -191,6 +192,10 @@ export function FormPage() {
       }
       return next
     })
+  }
+
+  function handleSelectAllShows() {
+    replaceSelectedShows(allShows)
   }
 
   function handleSubmit() {
@@ -548,15 +553,29 @@ export function FormPage() {
               {selectedCityCount} 座城市
             </p>
           )}
-          {totalCount > 0 && (
-            <button
-              className="shrink-0 text-[11px] text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
-              onClick={clearSelectedShows}
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              className="text-[11px] text-muted-foreground"
+              disabled={isAllShowsSelected}
+              onClick={handleSelectAllShows}
+              size="xs"
               type="button"
+              variant="ghost"
             >
-              清空
-            </button>
-          )}
+              全选
+            </Button>
+            {totalCount > 0 && (
+              <Button
+                className="text-[11px] text-muted-foreground"
+                onClick={clearSelectedShows}
+                size="xs"
+                type="button"
+                variant="ghost"
+              >
+                清空
+              </Button>
+            )}
+          </div>
         </div>
         <Button
           className="w-full"
