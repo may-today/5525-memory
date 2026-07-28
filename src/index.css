@@ -2364,6 +2364,67 @@
     background-color: rgba(255, 255, 255, 0.08);
 }
 
+/* /summary 右下角快捷跳转（summary-quicknav-*）：圆形罗盘按钮沿用 /records、
+   /data-station 返回按钮的圆形玻璃语言，压在卡片上所以要自带深投影与模糊，
+   不然会溺进地球、极光这类高对比卡片里。点开是从底部升起的 Sheet，列表项
+   用 Doto 序号 + 标题 + 一句说明；当前所在页整行以 sky 色温点亮，呼应
+   表单页与全站 starlight 的蓝。 */
+.summary-quicknav-fab {
+    color: #d4d4d8;
+    background-color: rgba(9, 9, 11, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.9);
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.summary-quicknav-fab:hover {
+    color: #f4f4f5;
+    background-color: rgba(24, 24, 27, 0.7);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.summary-quicknav-fab:focus-visible {
+    outline: 1px solid var(--ring);
+    outline-offset: 2px;
+}
+
+/* 行 hover 只轻染背景：列表已经靠序号和说明分层，再加边框会显得吵。 */
+.summary-quicknav-item {
+    transition: background-color 0.2s;
+}
+
+.summary-quicknav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.summary-quicknav-item:focus-visible {
+    outline: 1px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.summary-quicknav-index {
+    color: #52525b;
+    transition: color 0.2s;
+}
+
+.summary-quicknav-title {
+    color: #e4e4e7;
+}
+
+.summary-quicknav-item:hover .summary-quicknav-index {
+    color: #a1a1aa;
+}
+
+.summary-quicknav-item[data-current] {
+    background-color: color-mix(in oklab, #38bdf8, transparent 92%);
+}
+
+.summary-quicknav-item[data-current] .summary-quicknav-index,
+.summary-quicknav-item[data-current] .summary-quicknav-title {
+    color: color-mix(in oklab, #38bdf8, white 55%);
+}
+
 /* 「特别企划」入口：/data-station 不是本页的保存操作，而是一档特别企划——
    用星轨三个子主题色（5525 粉 / 5525+1 蓝 / 5525+2 橙）连成一圈
    hairline 渐变描边作为标记，内底是带极淡星云染色的深空玻璃。

@@ -5,31 +5,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useSummaryData } from '@/hooks/useSummaryData'
 import { flushPendingReportSubmission } from '@/lib/report-submission-client'
-import { SummaryCardAlbumProgress } from './cards/SummaryCardAlbumProgress'
-import { SummaryCardCity } from './cards/SummaryCardCity'
-import { SummaryCardDuration } from './cards/SummaryCardDuration'
-import { SummaryCardGuests } from './cards/SummaryCardGuests'
-import { SummaryCardOverview } from './cards/SummaryCardOverview'
-import { SummaryCardPlaylist } from './cards/SummaryCardPlaylist'
-import { SummaryCardRareSongs } from './cards/SummaryCardRareSongs'
-import { SummaryCardRecords } from './cards/SummaryCardRecords'
-import { SummaryCardSeasonalPlaylist } from './cards/SummaryCardSeasonalPlaylist'
-import { SummaryCardSongWall } from './cards/SummaryCardSongWall'
-import type { SummaryCardProps } from './summary-card-props'
+import { SummaryQuickNav } from './SummaryQuickNav'
+import { SUMMARY_CARDS } from './summary-cards'
 import { SummaryDataContext } from './summary-data-context'
-
-const CARDS: React.ComponentType<SummaryCardProps>[] = [
-  SummaryCardOverview,
-  SummaryCardDuration,
-  SummaryCardCity,
-  SummaryCardSongWall,
-  SummaryCardAlbumProgress,
-  SummaryCardPlaylist,
-  SummaryCardRareSongs,
-  SummaryCardSeasonalPlaylist,
-  SummaryCardGuests,
-  SummaryCardRecords,
-]
 
 /** Must match the CSS animation duration so the exiting card is cleaned up after it finishes. */
 const ANIM_DURATION = 1000
@@ -50,6 +28,7 @@ export function SummaryContainer() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animState, setAnimState] = useState<AnimState | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isQuickNavOpen, setIsQuickNavOpen] = useState(false)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const cardWrapperRef = useRef<HTMLDivElement>(null)
   const isTransitioning = useRef(false)
@@ -80,10 +59,13 @@ export function SummaryContainer() {
     return scrollEl.scrollTop <= 10
   }, [getScrollEl])
 
-  const goForward = useCallback(() => {
+  /** Slides to any card; the quick-jump sheet uses it to skip several cards at once. */
+  const goTo = useCallback((index: number) => {
     const prev = currentIndexRef.current
-    setAnimState({ prevIndex: prev, direction: 'forward' })
-    setCurrentIndex((i) => i + 1)
+    if (index === prev || index < 0 || index >= SUMMARY_CARDS.length) return
+
+    setAnimState({ prevIndex: prev, direction: index > prev ? 'forward' : 'backward' })
+    setCurrentIndex(index)
     isTransitioning.current = true
     setTimeout(() => {
       setAnimState(null)
@@ -91,16 +73,9 @@ export function SummaryContainer() {
     }, ANIM_DURATION + 50)
   }, [])
 
-  const goBack = useCallback(() => {
-    const prev = currentIndexRef.current
-    setAnimState({ prevIndex: prev, direction: 'backward' })
-    setCurrentIndex((i) => i - 1)
-    isTransitioning.current = true
-    setTimeout(() => {
-      setAnimState(null)
-      isTransitioning.current = false
-    }, ANIM_DURATION + 50)
-  }, [])
+  const goForward = useCallback(() => goTo(currentIndexRef.current + 1), [goTo])
+
+  const goBack = useCallback(() => goTo(currentIndexRef.current - 1), [goTo])
 
   function handleTouchStart(e: React.TouchEvent) {
     if (isInsideGestureExemptOverlay(e.target)) {
@@ -122,7 +97,7 @@ export function SummaryContainer() {
 
     if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) < 40) return
 
-    if (deltaY < 0 && currentIndex < CARDS.length - 1 && canAdvanceForward()) {
+    if (deltaY < 0 && currentIndex < SUMMARY_CARDS.length - 1 && canAdvanceForward()) {
       goForward()
     } else if (deltaY > 0 && currentIndex > 0 && canGoBack()) {
       goBack()
@@ -133,7 +108,7 @@ export function SummaryContainer() {
     if (isInsideGestureExemptOverlay(e.target)) return
     if (isTransitioning.current || Math.abs(e.deltaY) < 10) return
 
-    if (e.deltaY > 0 && currentIndex < CARDS.length - 1 && canAdvanceForward()) {
+    if (e.deltaY > 0 && currentIndex < SUMMARY_CARDS.length - 1 && canAdvanceForward()) {
       goForward()
     } else if (e.deltaY < 0 && currentIndex > 0 && canGoBack()) {
       goBack()
@@ -142,10 +117,10 @@ export function SummaryContainer() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (isDetailOpen || isTransitioning.current) return
+      if (isDetailOpen || isQuickNavOpen || isTransitioning.current) return
       const idx = currentIndexRef.current
 
-      if ((e.key === 'ArrowDown' || e.key === 'PageDown') && idx < CARDS.length - 1 && canAdvanceForward()) {
+      if ((e.key === 'ArrowDown' || e.key === 'PageDown') && idx < SUMMARY_CARDS.length - 1 && canAdvanceForward()) {
         goForward()
       } else if ((e.key === 'ArrowUp' || e.key === 'PageUp') && idx > 0 && canGoBack()) {
         goBack()
@@ -153,7 +128,7 @@ export function SummaryContainer() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [canAdvanceForward, canGoBack, goForward, goBack, isDetailOpen])
+  }, [canAdvanceForward, canGoBack, goForward, goBack, isDetailOpen, isQuickNavOpen])
 
   if (!(ready && data)) {
     return (
@@ -163,7 +138,7 @@ export function SummaryContainer() {
     )
   }
 
-  const isLast = currentIndex === CARDS.length - 1
+  const isLast = currentIndex === SUMMARY_CARDS.length - 1
   const visibleCards = animState
     ? [
         { index: animState.prevIndex, isOutgoing: true },
@@ -180,7 +155,7 @@ export function SummaryContainer() {
         onWheel={handleWheel}
       >
         {visibleCards.map(({ index: cardIndex, isOutgoing }) => {
-          const Card = CARDS[cardIndex]
+          const Card = SUMMARY_CARDS[cardIndex]?.Component
           if (!Card) return null
           let animationClass = ''
           if (animState) {
@@ -217,9 +192,9 @@ export function SummaryContainer() {
             </Button>
           ) : (
             <div
-              aria-hidden={isDetailOpen}
+              aria-hidden={isDetailOpen || isQuickNavOpen}
               className={`flex flex-col items-center gap-1 transition-opacity duration-150 ${
-                isDetailOpen ? 'invisible opacity-0' : ''
+                isDetailOpen || isQuickNavOpen ? 'invisible opacity-0' : ''
               }`}
             >
               <span className="text-muted-foreground/70 text-xs">滑动探索</span>
@@ -227,6 +202,13 @@ export function SummaryContainer() {
             </div>
           )}
         </div>
+
+        <SummaryQuickNav
+          currentIndex={currentIndex}
+          isOpen={isQuickNavOpen}
+          onJump={goTo}
+          onOpenChange={setIsQuickNavOpen}
+        />
       </div>
     </SummaryDataContext>
   )

@@ -100,6 +100,8 @@ Doto 仅用于数字、日期、序号和少量拉丁装饰文字；其点阵笔
 
 `/summary` 渲染 `SummaryContainer`，由其通过 `currentIndex` 管理当前统计页面。每个统计页面是独立组件，而不是独立路由，以便实现切换动画，并避免滑动手势导致 URL 频繁变化。
 
+卡片清单收敛在 `src/pages/summary/summary-cards.ts` 的 `SUMMARY_CARDS`（`{ Component, title, description }`，2026-07-28 由 Container 内的 `CARDS` 数组升级而来）：容器按它渲染，右下角「航线图」按它出列表，新增一张卡只在这一处声明。放独立模块同时避开 Container 与 QuickNav 的循环依赖（沿用 `summary-card-props.ts` 先例）。`title` 是航线图用的短标签，不是卡片自己的整句大标题。
+
 ### 竖向切页与页面内纵向滚动的优先级
 
 `SummaryContainer` 使用竖向滑动（上下）切换统计页面：`|deltaY| > |deltaX|` 且 `|deltaY| >= 40` 时触发切页。每页底部中心悬浮展示"滑动探索"引导箭头（最后一页替换为"生成总结"按钮），无页面圆点指示器。
@@ -107,6 +109,12 @@ Doto 仅用于数字、日期、序号和少量拉丁装饰文字；其点阵笔
 需要页内纵向滚动的统计页（`SummaryCardOverview`、`SummaryCardDuration`、`SummaryCardPlaylist`、`SummaryCardRareSongs`）在可滚动区域加 `data-scroll-container` 属性。切页前，`SummaryContainer` 检查该元素是否已滚动到底部（前进）或顶部（后退），未到则不切页，内部滚动优先。四季歌单为一屏四宫格，不需要页内滚动。
 
 统计卡片内以 Portal 呈现的覆盖层（如时长卡的 shadcn Sheet）在内容根节点加 `data-summary-gesture-exempt`；`SummaryContainer` 会忽略该区域冒泡而来的 touch / wheel 事件。这样 Sheet 内的长内容始终只滚动自身（`overscroll-contain`），不会触发卡片切页。
+
+### 「航线图」快捷跳转（2026-07-28）
+
+滑动之外，右下角常驻一个圆形罗盘悬浮按钮（`SummaryQuickNav`，样式实体 `.summary-quicknav-*`），点开是从底部升起的 Sheet「航线图」，列出全部统计页（Doto 序号 + 短标题 + 一句说明），点任意一站直达。列表 `max-h-[72svh]` + 内部 `overflow-y-auto overscroll-contain`，卡片增多也只滚列表自身。按钮沿用 `/records`、`/data-station` 返回按钮的圆形玻璃语言并自带模糊与深投影，压在地球、极光这类高对比卡片上仍可辨认；当前所在站整行以 sky 色温点亮并带对勾，点它只关 Sheet。
+
+切页能力相应从 `goForward` / `goBack` 两个相邻步进收敛为 `goTo(index)`：方向由 `index > currentIndex` 决定，animState、`isTransitioning` 锁与 1050ms 清理完全复用既有切页动画，因此跳几页与滑一页是同一个动作。触发器与 SheetContent 都带 `data-summary-gesture-exempt`；展开状态提到容器的 `isQuickNavOpen`，与 `isDetailOpen` 一起屏蔽方向键切页并隐藏底部滑动引导。详见 `journey/plans/2026-07-28-summary-quick-nav.md`。
 
 ### 切页过渡动画
 
