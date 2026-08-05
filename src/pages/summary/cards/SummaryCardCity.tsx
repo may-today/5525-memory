@@ -1,5 +1,5 @@
 import { useSelector } from '@tanstack/react-store'
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getSubThemeColor, SUB_THEME_COLORS } from '@/lib/sub-theme-colors'
 import type { CityMarker } from '@/server/summary'
@@ -133,6 +133,8 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
   const profileCity = useSelector(concertStore, (s) => s.profile.city)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const scrollAnimationRef = useRef<number | null>(null)
+  const entryHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasPlayedEntryHintRef = useRef(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const [stampedIndexes, setStampedIndexes] = useState<Set<number>>(() => new Set())
 
@@ -196,10 +198,62 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
     })
   }, [activeIndex, orderedMarkers])
 
-  // 清理未完成的翻页动画，避免卸载后 RAF 继续写 scrollLeft。
+  /** 取消提示或翻页动画，并恢复容器的横向 snap。 */
+  const cancelPassportMotion = useCallback(() => {
+    if (entryHintTimeoutRef.current !== null) {
+      clearTimeout(entryHintTimeoutRef.current)
+      entryHintTimeoutRef.current = null
+    }
+    if (scrollAnimationRef.current !== null) {
+      cancelAnimationFrame(scrollAnimationRef.current)
+      scrollAnimationRef.current = null
+    }
+    if (scrollerRef.current) scrollerRef.current.style.scrollSnapType = ''
+  }, [])
+
+  // 切页完成后让护照向右轻探再归位，提示首页后面还有可横滑展开的城市页。
+  // 用户已开始操作、容器已不在首页或系统要求减少动态效果时不再打扰。
+  useEffect(() => {
+    const scroller = scrollerRef.current
+    if (isPaused || !scroller || hasPlayedEntryHintRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    entryHintTimeoutRef.current = setTimeout(() => {
+      entryHintTimeoutRef.current = null
+      if (scrollAnimationRef.current !== null || Math.abs(scroller.scrollLeft) > 1) return
+
+      hasPlayedEntryHintRef.current = true
+      const start = scroller.scrollLeft
+      const distance = Math.min(56, scroller.clientWidth * 0.15)
+      const duration = 1000
+      const startTime = performance.now()
+      scroller.style.scrollSnapType = 'none'
+
+      const step = (now: number) => {
+        const progress = Math.min(1, (now - startTime) / duration)
+        // sin² 从 0 平滑探到峰值后回到 0，首尾速度均为 0。
+        const offsetProgress = Math.sin(Math.PI * progress) ** 2
+        scroller.scrollLeft = start + distance * offsetProgress
+        if (progress < 1) {
+          scrollAnimationRef.current = requestAnimationFrame(step)
+        } else {
+          scroller.scrollLeft = start
+          scrollAnimationRef.current = null
+          scroller.style.scrollSnapType = ''
+        }
+      }
+      scrollAnimationRef.current = requestAnimationFrame(step)
+    }, 450)
+
+    return cancelPassportMotion
+  }, [cancelPassportMotion, isPaused])
+
+  // 清理未完成的提示 / 翻页动画，避免卸载后继续写 scrollLeft。
   useEffect(
     () => () => {
+      if (entryHintTimeoutRef.current !== null) clearTimeout(entryHintTimeoutRef.current)
       if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+      if (scrollerRef.current) scrollerRef.current.style.scrollSnapType = ''
     },
     []
   )
@@ -213,7 +267,7 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
   function scrollToIndex(index: number) {
     const scroller = scrollerRef.current
     if (!scroller) return
-    if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+    cancelPassportMotion()
 
     const target = index * scroller.clientWidth
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -273,7 +327,12 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
         <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{citySummary}</p>
       </header>
 
-      <div className="city-passport-scroller flex min-h-0 flex-1 items-center" ref={scrollerRef}>
+      <div
+        className="city-passport-scroller flex min-h-0 flex-1 items-center"
+        onPointerDown={cancelPassportMotion}
+        onWheel={cancelPassportMotion}
+        ref={scrollerRef}
+      >
         {/* 护照首页：全部城市的印章总览，翻开护照先看到自己的收集进度 */}
         <div className="city-passport-item shrink-0" data-city-passport-item={0}>
           <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center px-6">
