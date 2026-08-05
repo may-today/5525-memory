@@ -178,6 +178,126 @@
     opacity: 1;
 }
 
+/* 封面主标题上的版本徽章：一枚「星域胶囊」。
+   绝对定位悬浮在标题右上角、略微倾斜并带投影，读起来像贴在标题上的一枚贴纸，
+   而不是标题文字的一部分（否则会与「你的…时空旅行报告」连读）。
+   底色是深空蓝紫渐层 + 内侧高光描边，内部叠一层微星点与一道缓慢掠过的高光，
+   整体亮度刻意压在白色主标题之下——它是标题的注脚，不是第二个视觉焦点。 */
+.cover-edition-badge {
+    position: absolute;
+    /* 从顶部（而非底部）定位：第一行恒为「你的」，第二行起点固定在 1.125em；
+       从底部锚定的话，窄屏下「时空旅行报告」一旦折行就会掉到第三行上。
+       1.9rem 让胶囊底缘刚好压在第二行字身顶部，贴住标题体块而不遮字。 */
+    top: 1.9rem;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    overflow: hidden;
+    padding: 0.28rem 0.7rem 0.28rem 0.55rem;
+    border: 1px solid rgba(165, 180, 252, 0.3);
+    border-radius: 9999px;
+    background:
+        linear-gradient(135deg,
+            rgba(129, 140, 248, 0.2) 0%,
+            rgba(56, 189, 248, 0.12) 55%,
+            rgba(24, 24, 27, 0.62) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 22px -12px rgba(9, 9, 11, 0.9),
+        0 6px 20px -12px rgba(129, 140, 248, 0.7);
+    backdrop-filter: blur(6px);
+    transform: rotate(-5deg);
+    transform-origin: right center;
+}
+
+/* 胶囊内的微星点。用几枚不同亮度的 1px 径向渐变模拟远近星等，整体缓慢明灭。 */
+.cover-edition-badge-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(1px 1px at 16% 32%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 37% 74%, rgba(199, 210, 254, 0.55), transparent),
+        radial-gradient(1.2px 1.2px at 63% 26%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 81% 68%, rgba(186, 230, 253, 0.5), transparent),
+        radial-gradient(1px 1px at 93% 38%, rgba(255, 255, 255, 0.35), transparent);
+    animation: cover-edition-twinkle 4.5s ease-in-out infinite;
+}
+
+/* 缓慢掠过的高光：每轮只在前 45% 的时间里扫过一次，其余时间停在画面外。 */
+.cover-edition-badge::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -40%;
+    z-index: 2;
+    width: 40%;
+    pointer-events: none;
+    background: linear-gradient(100deg,
+            transparent,
+            rgba(255, 255, 255, 0.16),
+            transparent);
+    animation: cover-edition-sweep 6.5s ease-in-out infinite;
+}
+
+.cover-edition-badge-spark {
+    position: relative;
+    z-index: 1;
+    width: 11px;
+    height: 11px;
+    fill: #c7d2fe;
+    filter: drop-shadow(0 0 4px rgba(165, 180, 252, 0.55));
+    animation: cover-edition-twinkle 4.5s ease-in-out infinite;
+    animation-delay: -2.2s;
+}
+
+.cover-edition-badge-text {
+    position: relative;
+    z-index: 1;
+    font-family: "ChillDINGothic Std", sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.14em;
+    /* letter-spacing 会在末字后多留一格，右移半格把文字视觉推回居中 */
+    text-indent: 0.14em;
+    color: #e4e4e7;
+}
+
+@keyframes cover-edition-twinkle {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes cover-edition-sweep {
+    0% {
+        transform: translateX(0);
+    }
+
+    45%,
+    100% {
+        transform: translateX(350%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .cover-edition-badge::after,
+    .cover-edition-badge-stars,
+    .cover-edition-badge-spark {
+        animation: none;
+    }
+}
+
 .cover-background-strip {
     display: flex;
     width: max-content;

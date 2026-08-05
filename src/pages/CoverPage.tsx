@@ -121,6 +121,22 @@ const Logos = () => (
   </div>
 )
 
+/**
+ * 主标题上的「版本」徽章：一枚微微倾斜、悬浮在标题右上方的星域胶囊。
+ * 绝对定位脱离标题文字流，避免与「你的／时空旅行报告」连读成一句；
+ * 内含微星点、四芒星与缓慢掠过的高光，呼应「星空漫游」的叙事，
+ * 亮度整体压在白色主标题之下，只做点缀不抢主体。
+ */
+const EditionBadge = () => (
+  <span className="cover-edition-badge">
+    <span aria-hidden className="cover-edition-badge-stars" />
+    <svg aria-hidden className="cover-edition-badge-spark" role="presentation" viewBox="0 0 24 24">
+      <path d="M12 0c.9 6.6 4.5 10.2 12 12-7.5 1.8-11.1 5.4-12 12-.9-6.6-4.5-10.2-12-12 7.5-1.8 11.1-5.4 12-12Z" />
+    </svg>
+    <span className="cover-edition-badge-text">星空漫游版</span>
+  </span>
+)
+
 const NextButton: React.FC<{ onClick: () => void; className?: string }> = ({ onClick, className }) => (
   <button
     className={clsx([
@@ -161,10 +177,11 @@ export function CoverPage() {
       </div>
       <div className="relative flex flex-col items-start gap-2 border-t bg-linear-to-b bg-transparent from-background/65 to-33% to-background px-5 py-6">
         <p className="text-muted-foreground text-sm">五月天「5525 回到那一天」</p>
-        <h1 className="mb-6 font-extrabold font-wjh text-5xl">
+        <h1 className="relative mb-6 font-extrabold font-wjh text-5xl">
           你的
           <br />
           时空旅行报告
+          <EditionBadge />
         </h1>
         <Logos />
         {hasVisitedShare ? (
