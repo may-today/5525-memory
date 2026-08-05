@@ -30,3 +30,12 @@ const cityImgIdMap = {
 export function getCityIcon(name: string): string {
   return `//mayday-replay-cdn.ddiu.site/5525/city/${cityImgIdMap[name]}.webp`
 }
+
+/**
+ * Whether the city has a landmark icon. Call sites that can degrade to a
+ * text-only presentation should check this first, so an unmapped city name
+ * never requests `undefined.webp`.
+ */
+export function hasCityIcon(name: string): boolean {
+  return Boolean(cityImgIdMap[name])
+}

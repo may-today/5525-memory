@@ -477,12 +477,54 @@
     transition: --city-ambient 0.8s ease;
 }
 
-/* 护照首页（卡组第一页）：eyebrow / Doto 分数 / 迷你印章网格 / MRZ 机读码 */
-.city-passport-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.32em;
-    color: #71717a;
+/* 护照内页边框：外细线 + 沿四边的斜纹防伪底纹 + 内细线，骑在上框线上的页签截断
+   框线，让卡组看起来像翻护照本而不是一屏居中的文字。墨色由 --page-ink 驱动（首页
+   全站蓝、城市页取子主题色、未到场退化为中性灰），横滑时四边框线一起换色。防伪带
+   用同一份斜纹重复四次定位到四条边，不依赖 mask 合成，老 WebView 同样可用。 */
+.city-passport-page {
+    --page-hatch: color-mix(in srgb, var(--page-ink, #38bdf8) 22%, transparent);
+
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0.5rem 0.875rem;
+    padding: 1rem 0.875rem;
+    border: 1px solid color-mix(in srgb, var(--page-ink, #38bdf8) 28%, transparent);
+    background-image:
+        repeating-linear-gradient(45deg, var(--page-hatch) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(45deg, var(--page-hatch) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(45deg, var(--page-hatch) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(45deg, var(--page-hatch) 0 1px, transparent 1px 5px);
+    background-repeat: no-repeat;
+    background-position: left top, left bottom, left top, right top;
+    background-size: 100% 7px, 100% 7px, 7px 100%, 7px 100%;
+}
+
+.city-passport-page::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid color-mix(in srgb, var(--page-ink, #38bdf8) 14%, transparent);
+    pointer-events: none;
+}
+
+/* 页签：骑在上框线中点，用卡片底色截断框线（真实护照内页的页眉标记）。 */
+.city-passport-page-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    padding: 0 0.5rem;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    /* 补偿字距在末字符后多出的一格，视觉上仍居中 */
+    text-indent: 0.28em;
     text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--page-ink, #38bdf8) 45%, #a1a1aa);
+    background: #09090b;
+    transform: translate(-50%, -50%);
 }
 
 .city-passport-count {
@@ -497,14 +539,23 @@
     color: #52525b;
 }
 
-/* 迷你印章：一城一枚的缩览圆章，到场 = 子主题色实线 + 辉光，未到场 = 灰色
-   虚线空心；微倾角与错峰 pop-in 保持手工盖章的松弛感。 */
+/* 城市纪念章：章框（.city-mini-stamp）+ 章下城名。只有章体带微倾角与错峰
+   pop-in，城名保持水平——歪的是章，不是标签。 */
+.city-passport-city {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* 章框：到场 = 子主题色实线 + 辉光，未到场 = 灰色虚线空心。 */
 .city-mini-stamp {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     aspect-ratio: 1;
-    padding: 0.25rem;
+    padding: 0.125rem;
     border: 1.5px solid color-mix(in srgb, var(--stamp-color, #38bdf8) 72%, transparent);
     border-radius: 9999px;
     background: color-mix(in srgb, var(--stamp-color, #38bdf8) 10%, transparent);
@@ -514,14 +565,29 @@
     animation-delay: calc(var(--i, 0) * 35ms);
 }
 
-.city-mini-stamp:not([data-visited]) {
+.city-passport-city:not([data-visited]) .city-mini-stamp {
     border-style: dashed;
     border-color: #3f3f46;
     background: transparent;
     box-shadow: none;
 }
 
-.city-mini-stamp-name {
+/* 地标图（与 /form 城市折叠头同一套素材）：坐在章框里，投影让 3D 模型落在纸面上。 */
+.city-mini-stamp-icon {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+}
+
+/* 未盖章 = 压印了图案但还没上墨的凹版：同一张地标图灰度压暗，轮廓仍在、颜色未落。 */
+.city-passport-city:not([data-visited]) .city-mini-stamp-icon {
+    filter: grayscale(1) brightness(0.85) contrast(0.85);
+    opacity: 0.32;
+}
+
+/* 城市名不在地标图映射表内时的退化：章内直接排城市名。 */
+.city-mini-stamp-fallback {
     font-size: 10px;
     line-height: 1.15;
     color: #f4f4f5;
@@ -529,8 +595,33 @@
     overflow-wrap: anywhere;
 }
 
-.city-mini-stamp:not([data-visited]) .city-mini-stamp-name {
+.city-passport-city:not([data-visited]) .city-mini-stamp-fallback {
     color: #52525b;
+}
+
+.city-passport-city-name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.15em;
+    font-size: 9px;
+    line-height: 1.1;
+    color: #d4d4d8;
+    white-space: nowrap;
+}
+
+/* 拉斯维加斯这类长名降一档字号，保证单行不越出单元格。 */
+.city-passport-city-name[data-long] {
+    font-size: 7.5px;
+}
+
+.city-passport-city:not([data-visited]) .city-passport-city-name {
+    color: #52525b;
+}
+
+/* 多场次计数：与大印章的「及另外 N 场」同口径，只在去过 2 场以上时出现。 */
+.city-passport-city-count {
+    font-size: 9px;
+    color: color-mix(in srgb, var(--stamp-color, #38bdf8) 70%, #f4f4f5);
 }
 
 @keyframes city-mini-stamp-in {

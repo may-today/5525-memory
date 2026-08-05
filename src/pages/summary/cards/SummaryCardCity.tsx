@@ -1,6 +1,7 @@
 import { useSelector } from '@tanstack/react-store'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { getCityIcon, hasCityIcon } from '@/lib/city-icon'
 import { getSubThemeColor, SUB_THEME_COLORS } from '@/lib/sub-theme-colors'
 import type { CityMarker } from '@/server/summary'
 import { concertStore } from '@/stores/concert-store'
@@ -62,6 +63,71 @@ function getStampInkColors(marker: CityMarker): string[] {
   )
   const colors = [...new Set(orderedThemes.map((theme) => getSubThemeColor(theme, marker.themeColor)))]
   return colors.length > 0 ? colors : [getSubThemeColor(marker.subTheme, marker.themeColor)]
+}
+
+interface PassportCityCellProps {
+  /** 网格序号：驱动章体微倾角与错峰入场延迟。 */
+  index: number
+  marker: CityMarker
+  onSelect: () => void
+}
+
+/**
+ * 护照首页的城市纪念章：地标图坐在子主题墨色章框里，章下是城市名与多场次计数。
+ * 未到场城市共用同一张地标图，灰度压暗成「压印了图案但还没上墨的凹版」。
+ */
+function PassportCityCell({ index, marker, onSelect }: PassportCityCellProps) {
+  const inkColors = getStampInkColors(marker)
+  const visitedCount = marker.visitedShowDates.length
+
+  return (
+    <button
+      aria-label={
+        marker.isVisited ? `翻到 ${marker.cityName}，已盖章 ${visitedCount} 场` : `翻到 ${marker.cityName}，未盖章`
+      }
+      className="city-passport-city"
+      data-visited={marker.isVisited || undefined}
+      onClick={onSelect}
+      style={{
+        ['--stamp-color' as string]: inkColors[0],
+        ['--mini-rotation' as string]: getMiniStampRotation(index),
+        ['--i' as string]: index,
+      }}
+      type="button"
+    >
+      <span
+        className="city-mini-stamp"
+        style={
+          // 跨子主题城市的章框底色用同一份「彩虹印台」渐变；描边与辉光保持首色，
+          // 小尺寸下渐变描边只会糊掉。
+          marker.isVisited && inkColors.length > 1
+            ? {
+                background: `linear-gradient(135deg, ${inkColors
+                  .map((inkColor) => `color-mix(in srgb, ${inkColor} 14%, transparent)`)
+                  .join(', ')})`,
+              }
+            : undefined
+        }
+      >
+        {hasCityIcon(marker.cityName) ? (
+          <img
+            alt=""
+            className="city-mini-stamp-icon"
+            decoding="async"
+            height="80"
+            src={getCityIcon(marker.cityName)}
+            width="80"
+          />
+        ) : (
+          <span className="city-mini-stamp-fallback">{marker.cityName}</span>
+        )}
+      </span>
+      <span className="city-passport-city-name" data-long={marker.cityName.length >= 5 || undefined}>
+        {marker.cityName}
+        {visitedCount > 1 && <span className="city-passport-city-count font-geist">{visitedCount}</span>}
+      </span>
+    </button>
+  )
 }
 
 interface CityStampProps {
@@ -328,64 +394,48 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
       </header>
 
       <div
-        className="city-passport-scroller flex min-h-0 flex-1 items-center"
+        className="city-passport-scroller flex min-h-0 flex-1 items-stretch"
         onPointerDown={cancelPassportMotion}
         onWheel={cancelPassportMotion}
         ref={scrollerRef}
       >
         {/* 护照首页：全部城市的印章总览，翻开护照先看到自己的收集进度 */}
         <div className="city-passport-item shrink-0" data-city-passport-item={0}>
-          <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center px-6">
-            <p className="city-passport-eyebrow font-mono">MAYDAY #5525 · TOUR PASSPORT</p>
-            <p className="mt-4 font-geist text-4xl leading-none">
-              <span className="city-passport-count">{String(visitedCityCount).padStart(2, '0')}</span>
-              <span className="city-passport-count-total"> / {orderedMarkers.length}</span>
-            </p>
-            <p className="mt-2 text-xs text-zinc-500">
-              {visitedCityCount > 0 ? '座城市已盖章' : '还没有盖下第一枚城市印章'}
-            </p>
-
-            <div className="mt-7 grid w-full grid-cols-5 gap-2.5">
-              {orderedMarkers.map((marker, index) => {
-                const inkColors = getStampInkColors(marker)
-                return (
-                  <button
-                    aria-label={`翻到 ${marker.cityName}`}
-                    className="city-mini-stamp"
-                    data-visited={marker.isVisited || undefined}
-                    key={marker.cityName}
-                    onClick={() => scrollToIndex(index + 1)}
-                    style={{
-                      ['--stamp-color' as string]: inkColors[0],
-                      ['--mini-rotation' as string]: getMiniStampRotation(index),
-                      ['--i' as string]: index,
-                      // 跨子主题城市的迷你章底色用同一份「彩虹印台」渐变；描边
-                      // 与辉光保持首色，小尺寸下渐变描边只会糊掉。
-                      ...(marker.isVisited && inkColors.length > 1
-                        ? {
-                            background: `linear-gradient(135deg, ${inkColors
-                              .map((inkColor) => `color-mix(in srgb, ${inkColor} 14%, transparent)`)
-                              .join(', ')})`,
-                          }
-                        : undefined),
-                    }}
-                    type="button"
-                  >
-                    <span className="city-mini-stamp-name">{marker.cityName}</span>
-                  </button>
-                )
-              })}
-            </div>
-
-            <div aria-hidden="true" className="city-passport-mrz mt-8 font-mono">
-              <p>{padMrzLine('P<5525MAYDAY<WORLD<TOUR<PASSPORT')}</p>
-              <p>
-                {padMrzLine(
-                  `V${String(visitedCityCount).padStart(2, '0')}<OF<${orderedMarkers.length}<CITIES${
-                    mileage !== null && mileage > 0 ? `<KM<${mileage}` : ''
-                  }`
-                )}
+          <div className="city-passport-page" style={{ ['--page-ink' as string]: '#38bdf8' }}>
+            <span className="city-passport-page-label font-mono">MAYDAY #5525 · TOUR PASSPORT</span>
+            <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center">
+              <p className="flex items-baseline justify-center gap-2">
+                <span className="font-geist text-4xl leading-none">
+                  <span className="city-passport-count">{String(visitedCityCount).padStart(2, '0')}</span>
+                  <span className="city-passport-count-total"> / {orderedMarkers.length}</span>
+                </span>
+                <span className="text-xs text-zinc-500">
+                  {visitedCityCount > 0 ? '座城市已盖章' : '还没有盖下第一枚印章'}
+                </span>
               </p>
+
+              {/* 6 列 4 行：23 枚章在 667px 高的小屏上也能与分数、MRZ 一起放进内页框 */}
+              <div className="mt-5 grid w-full grid-cols-6 gap-x-2 gap-y-2.5">
+                {orderedMarkers.map((marker, index) => (
+                  <PassportCityCell
+                    index={index}
+                    key={marker.cityName}
+                    marker={marker}
+                    onSelect={() => scrollToIndex(index + 1)}
+                  />
+                ))}
+              </div>
+
+              <div aria-hidden="true" className="city-passport-mrz mt-5 font-mono">
+                <p>{padMrzLine('P<5525MAYDAY<WORLD<TOUR<PASSPORT')}</p>
+                <p>
+                  {padMrzLine(
+                    `V${String(visitedCityCount).padStart(2, '0')}<OF<${orderedMarkers.length}<CITIES${
+                      mileage !== null && mileage > 0 ? `<KM<${mileage}` : ''
+                    }`
+                  )}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -394,27 +444,31 @@ export function SummaryCardCity({ isPaused = false }: SummaryCardProps) {
           const markerColor = getSubThemeColor(marker.subTheme, marker.themeColor)
           return (
             <div className="city-passport-item shrink-0" data-city-passport-item={index + 1} key={marker.cityName}>
-              <CityStamp
-                index={index}
-                isPaused={isPaused}
-                isStamped={stampedIndexes.has(index + 1)}
-                marker={marker}
-              />
-              <div className="mt-7 px-10 text-center">
-                <p className="text-sm text-zinc-200 tracking-wide">{marker.venue}</p>
-                <p
-                  className="mt-1.5 text-xs"
-                  style={
-                    marker.isVisited
-                      ? { color: `color-mix(in srgb, ${markerColor} 62%, #a1a1aa)` }
-                      : undefined
-                  }
-                >
-                  <span className={marker.isVisited ? undefined : 'text-zinc-600'}>
-                    {[marker.subTheme, marker.versionName].filter(Boolean).join(' · ')}
-                  </span>
-                </p>
-                {!marker.isVisited && <p className="mt-3 text-xs text-zinc-600">未解锁 · 等待你的下一次奔赴</p>}
+              <div
+                className="city-passport-page"
+                style={{ ['--page-ink' as string]: marker.isVisited ? markerColor : '#52525b' }}
+              >
+                <span className="city-passport-page-label font-mono">
+                  Page <span className="font-geist">{String(index + 2).padStart(2, '0')}</span>
+                </span>
+                <CityStamp
+                  index={index}
+                  isPaused={isPaused}
+                  isStamped={stampedIndexes.has(index + 1)}
+                  marker={marker}
+                />
+                <div className="mt-7 px-4 text-center">
+                  <p className="text-sm text-zinc-200 tracking-wide">{marker.venue}</p>
+                  <p
+                    className="mt-1.5 text-xs"
+                    style={marker.isVisited ? { color: `color-mix(in srgb, ${markerColor} 62%, #a1a1aa)` } : undefined}
+                  >
+                    <span className={marker.isVisited ? undefined : 'text-zinc-600'}>
+                      {[marker.subTheme, marker.versionName].filter(Boolean).join(' · ')}
+                    </span>
+                  </p>
+                  {!marker.isVisited && <p className="mt-3 text-xs text-zinc-600">未解锁 · 等待你的下一次奔赴</p>}
+                </div>
               </div>
             </div>
           )
